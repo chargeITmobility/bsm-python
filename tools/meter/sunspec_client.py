@@ -1,7 +1,6 @@
 from pymodbus.constants import Endian
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
-from twisted.internet.defer import Deferred
 from six import iteritems
 
 
@@ -148,22 +147,6 @@ class SunspecOffsets(object):
 # --------------------------------------------------------------------------- # 
 # Common Functions
 # --------------------------------------------------------------------------- # 
-def defer_or_apply(func):
-    """ Decorator to apply an adapter method
-    to a result regardless if it is a deferred
-    or a concrete response.
-
-    :param func: The function to decorate
-    """
-    def closure(future, adapt):
-        if isinstance(future, Deferred):
-            d = Deferred()
-            future.addCallback(lambda r: d.callback(adapt(r)))
-            return d
-        return adapt(future)
-    return closure
-
-
 def create_sunspec_sync_client(host):
     """ A quick helper method to create a sunspec
     client.
