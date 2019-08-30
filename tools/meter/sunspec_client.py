@@ -1,5 +1,6 @@
+from argparse import ArgumentParser
 from pymodbus.constants import Endian
-from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadDecoder
 from six import iteritems
 
@@ -147,18 +148,28 @@ class SunspecOffsets(object):
 # --------------------------------------------------------------------------- # 
 # Common Functions
 # --------------------------------------------------------------------------- # 
-def create_sunspec_sync_client(host):
+def create_sunspec_sync_client(args):
     """ A quick helper method to create a sunspec
     client.
 
-    :param host: The host to connect to
+    :param args: command line arguments parsed by ArgumentParser
     :returns: an initialized SunspecClient
     """
-    modbus = ModbusTcpClient(host)
+    modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud)
     modbus.connect()
-    client = SunspecClient(modbus)
+    client = SunspecClient(modbus, unit=args.unit)
     client.initialize()
     return client
+
+
+def parse_args():
+    parser = ArgumentParser(description='Signing Meter Modbus Tool')
+    parser.add_argument('--device', metavar='DEVICE', help='serial device', required=True)
+    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=115200)
+    parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=10)
+    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=True)
+
+    return parser.parse_args()
 
 
 # --------------------------------------------------------------------------- # 
@@ -190,12 +201,13 @@ class SunspecDecoder(BinaryPayloadDecoder):
 
 class SunspecClient(object):
 
-    def __init__(self, client):
+    def __init__(self, client, unit=None):
         """ Initialize a new instance of the client
 
         :param client: The modbus client to use
         """
         self.client = client
+        self.unit = unit
         self.offset = SunspecOffsets.CommonBlock
 
     def initialize(self):
@@ -243,7 +255,7 @@ class SunspecClient(object):
         :returns: An initialized decoder for that result
         """
         _logger.debug("reading device block[{}..{}]".format(offset, offset + size))
-        response = self.client.read_holding_registers(offset, size + 2)
+        response = self.client.read_holding_registers(offset, size + 2, unit=self.unit)
         return SunspecDecoder.fromRegisters(response.registers)
 
     def get_all_device_blocks(self):
@@ -279,7 +291,9 @@ class SunspecClient(object):
 # A quick test runner
 #------------------------------------------------------------
 if __name__ == "__main__":
-    client = create_sunspec_sync_client("YOUR.HOST.GOES.HERE")
+    args = parse_args()
+
+    client = create_sunspec_sync_client(args)
 
     # print out all the device common block
     common = client.get_common_block()
