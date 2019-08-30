@@ -80,6 +80,7 @@ class SunspecModel(object):
     SplitPhaseMeter                          = 201
     WyeConnectMeter                          = 201
     DeltaConnectMeter                        = 201
+    ThreePhaseMeter                          = 203
 
     #---------------------------------------------
     # 3xx Environmental Models
@@ -143,7 +144,7 @@ class SunspecOffsets(object):
     the sunspec protocol
     """
     CommonBlock             = 40000
-    CommonBlockLength       = 69
+    CommonBlockLength       = 70
     AlternateCommonBlock    = 50000
 
 
@@ -242,6 +243,7 @@ class SunspecClient(object):
             'Version':          decoder.decode_string(size=16),
             'SerialNumber':     decoder.decode_string(size=32),
             'DeviceAddress':    decoder.decode_16bit_uint(),
+            'Pad':              decoder.decode_16bit_uint(),
             'Next_DID':         decoder.decode_16bit_uint(),
             'Next_DID_Length':  decoder.decode_16bit_uint(),
         }
