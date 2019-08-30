@@ -160,7 +160,7 @@ def create_sunspec_sync_client(args):
     """
     modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud)
     modbus.connect()
-    client = SunspecClient(modbus, unit=args.unit)
+    client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size, raw_data=args.raw_data)
     client.initialize()
     return client
 
@@ -171,6 +171,8 @@ def parse_args():
     parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=115200)
     parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=10)
     parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=True)
+    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=125)
+    parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
 
     return parser.parse_args()
 
@@ -204,13 +206,15 @@ class SunspecDecoder(BinaryPayloadDecoder):
 
 class SunspecClient(object):
 
-    def __init__(self, client, unit=None):
+    def __init__(self, client, unit=None, chunk_size=125, raw_data=False):
         """ Initialize a new instance of the client
 
         :param client: The modbus client to use
         """
         self.client = client
         self.unit = unit
+        self.chunk_size = chunk_size
+        self.raw_data = raw_data
         self.offset = SunspecOffsets.CommonBlock
 
     def initialize(self):
@@ -244,8 +248,6 @@ class SunspecClient(object):
             'SerialNumber':     decoder.decode_string(size=32),
             'DeviceAddress':    decoder.decode_16bit_uint(),
             'Pad':              decoder.decode_16bit_uint(),
-            'Next_DID':         decoder.decode_16bit_uint(),
-            'Next_DID_Length':  decoder.decode_16bit_uint(),
         }
 
     def get_device_block(self, offset, size):
@@ -259,8 +261,20 @@ class SunspecClient(object):
         :returns: An initialized decoder for that result
         """
         _logger.debug("reading device block[{}..{}]".format(offset, offset + size))
-        response = self.client.read_holding_registers(offset, size + 2, unit=self.unit)
-        return SunspecDecoder.fromRegisters(response.registers)
+
+        registers = []
+        remaining = size
+
+        if size > 0:
+            while remaining > 0:
+                current_chunk = min(remaining, self.chunk_size)
+                response = self.client.read_holding_registers(offset, current_chunk, unit=self.unit)
+
+                registers += response.registers
+                offset += current_chunk
+                remaining -= current_chunk
+
+        return SunspecDecoder.fromRegisters(registers)
 
     def get_all_device_blocks(self):
         """ Retrieve all the available blocks in the supplied
@@ -280,14 +294,22 @@ class SunspecClient(object):
         while model != SunspecModel.EndOfSunSpecMap:
             decoder = self.get_device_block(offset, 2)
             model   = decoder.decode_16bit_uint()
+            start   = offset
             length  = decoder.decode_16bit_uint()
+
+            offset += 2
+
+            if self.raw_data:
+                decoder = self.get_device_block(offset, length)
+
+            offset += length
+
             blocks.append({
                 'model' : model,
                 'name'  : SunspecModel.lookup(model),
+                'start' : start,
                 'length': length,
-                'offset': offset + length + 2
             })
-            offset += length + 2
         return blocks
 
 
