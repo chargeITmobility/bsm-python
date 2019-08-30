@@ -2,6 +2,7 @@ from pymodbus.constants import Endian
 from pymodbus.client.sync import ModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from twisted.internet.defer import Deferred
+from six import iteritems
 
 
 # --------------------------------------------------------------------------- #
@@ -31,7 +32,7 @@ class SunspecDefaultValue(object):
     Signed64        = 0x8000000000000000
     Unsigned64      = 0xffffffffffffffff
     Accumulator64   = 0x0000000000000000
-    String          = '\x00'
+    String          = b'\x00'
 
 
 class SunspecStatus(object):
@@ -130,7 +131,7 @@ class SunspecModel(object):
         :param code: The device code to lookup
         :returns: The device model name, or None if none available
         """
-        values = dict((v, k) for k, v in klass.__dict__.iteritems()
+        values = dict((v, k) for k, v in iteritems(klass.__dict__)
             if not callable(v))
         return values.get(code, None)
 
@@ -185,14 +186,14 @@ class SunspecDecoder(BinaryPayloadDecoder):
     binary format.
     """
 
-    def __init__(self, payload, byteorder):
+    def __init__(self, payload, byteorder, wordorder):
         """ Initialize a new instance of the SunspecDecoder
 
         .. note:: This is always set to big endian byte order
         as specified in the protocol.
         """
         byteorder = Endian.Big
-        BinaryPayloadDecoder.__init__(self, payload, byteorder)
+        BinaryPayloadDecoder.__init__(self, payload, byteorder, wordorder)
 
     def decode_string(self, size=1):
         """ Decodes a string from the buffer
@@ -299,7 +300,7 @@ if __name__ == "__main__":
 
     # print out all the device common block
     common = client.get_common_block()
-    for key, value in common.iteritems():
+    for key, value in iteritems(common):
         if key == "SunSpec_DID":
             value = SunspecModel.lookup(value)
         print("{:<20}: {}".format(key, value))
