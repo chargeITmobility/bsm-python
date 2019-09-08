@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from collections import namedtuple
+from enum import IntEnum
+from pprint import pprint
 from pymodbus.constants import Endian
 from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadDecoder
@@ -14,6 +17,9 @@ import logging
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 logging.basicConfig()
+
+
+Item = namedtuple('item', 'name, value')
 
 
 # --------------------------------------------------------------------------- # 
@@ -124,6 +130,8 @@ class SunspecModel(object):
     #---------------------------------------------
     # 64xxx Vender Extension Block
     #---------------------------------------------
+    BsmSignedState                           = 64901
+
     EndOfSunSpecMap                          = 65535
 
     @classmethod
@@ -148,6 +156,23 @@ class SunspecOffsets(object):
     AlternateCommonBlock    = 50000
 
 
+class SigningMeterOffsets(object):
+    SignedCurrentStateBlock                  = 40471
+    SignedTurnOnStateBlock                   = 40719
+    SignedTurnOffStateBlock                  = 40967
+
+
+class SignedStateBlockOffsets(object):
+    Status                                   = 3
+
+
+class SignedStateBlockStatus(IntEnum):
+    VALID = 0
+    INVALID = 1
+    UPDATING = 2
+    FAILED = 3
+
+
 # --------------------------------------------------------------------------- # 
 # Common Functions
 # --------------------------------------------------------------------------- # 
@@ -160,7 +185,7 @@ def create_sunspec_sync_client(args):
     """
     modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud)
     modbus.connect()
-    client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size, raw_data=args.raw_data)
+    client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size)
     client.initialize()
     return client
 
@@ -172,7 +197,26 @@ def parse_args():
     parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=10)
     parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=True)
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=125)
-    parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
+
+    subparsers = parser.add_subparsers(help='sub commands')
+
+    test_parser = subparsers.add_parser('main', help='run original test code from main')
+    test_parser.set_defaults(func=test_main)
+    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
+
+    read_block_parser = subparsers.add_parser('read-block', help='read sunspec block')
+    read_block_parser.set_defaults(func=read_block)
+    read_block_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
+    read_block_parser.add_argument('--length', type=int, help='Block length (words)')
+
+    dump_parser = subparsers.add_parser('dump', help='Dump registers')
+    dump_parser.set_defaults(func=dump)
+    dump_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
+    dump_parser.add_argument('--length', type=int, help='Block length (words)')
+
+    snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot')
+    snapshot_parser.set_defaults(func=snapshot)
+    snapshot_parser.add_argument('name', help='Snapshot name')
 
     return parser.parse_args()
 
@@ -194,19 +238,20 @@ class SunspecDecoder(BinaryPayloadDecoder):
         byteorder = Endian.Big
         BinaryPayloadDecoder.__init__(self, payload, byteorder, wordorder)
 
+    def decode_binary_string(self, size=1):
+        return super().decode_string(size)
+
     def decode_string(self, size=1):
         """ Decodes a string from the buffer
 
         :param size: The size of the string to decode
         """
-        self._pointer += size
-        string = self._payload[self._pointer - size:self._pointer]
+        string = super().decode_string(size)
         return string.split(SunspecDefaultValue.String)[0]
-
 
 class SunspecClient(object):
 
-    def __init__(self, client, unit=None, chunk_size=125, raw_data=False):
+    def __init__(self, client, unit=None, chunk_size=125):
         """ Initialize a new instance of the client
 
         :param client: The modbus client to use
@@ -214,7 +259,6 @@ class SunspecClient(object):
         self.client = client
         self.unit = unit
         self.chunk_size = chunk_size
-        self.raw_data = raw_data
         self.offset = SunspecOffsets.CommonBlock
 
     def initialize(self):
@@ -276,7 +320,7 @@ class SunspecClient(object):
 
         return SunspecDecoder.fromRegisters(registers)
 
-    def get_all_device_blocks(self):
+    def get_all_device_blocks(self, raw_data=False):
         """ Retrieve all the available blocks in the supplied
         sunspec device.
 
@@ -299,7 +343,7 @@ class SunspecClient(object):
 
             offset += 2
 
-            if self.raw_data:
+            if raw_data:
                 decoder = self.get_device_block(offset, length)
 
             offset += length
@@ -312,13 +356,31 @@ class SunspecClient(object):
             })
         return blocks
 
+    def read_holding_registers(self, offset, length):
+        _logger.debug('reading registers {}..{}'.format(offset, offset + length))
+
+        registers = []
+        remaining = length
+
+        while remaining > 0:
+            current_chunk = min(remaining, self.chunk_size)
+            response = self.client.read_holding_registers(offset, current_chunk, unit=self.unit)
+
+            registers += response.registers
+            offset += current_chunk
+            remaining -= current_chunk
+
+        return registers
+
+    def write_registers(self, offset, values):
+        _logger.debug('write registers {} with {}'.format(offset, values))
+        self.client.write_registers(offset, values, unit=self.unit)
+
 
 #------------------------------------------------------------
 # A quick test runner
 #------------------------------------------------------------
-if __name__ == "__main__":
-    args = parse_args()
-
+def test_main(args):
     client = create_sunspec_sync_client(args)
 
     # print out all the device common block
@@ -329,8 +391,101 @@ if __name__ == "__main__":
         print("{:<20}: {}".format(key, value))
 
     # print out all the available device blocks
-    blocks = client.get_all_device_blocks()
+    blocks = client.get_all_device_blocks(args.raw_data)
     for block in blocks:
         print(block)
 
     client.client.close()
+
+
+def read_block(args):
+    client = create_sunspec_sync_client(args)
+    decoder = client.get_device_block(args.offset, args.length)
+
+    # FIXME: Complete and clean-up block decoding. Decode more than just signed
+    # state blocks.
+    entries = [
+        Item('Model ID', decoder.decode_16bit_uint()),
+        Item('Length', decoder.decode_16bit_uint()),
+        Item('Type', decoder.decode_16bit_uint()),
+        Item('Status', decoder.decode_16bit_uint()),
+        Item('Active Energy Exported Total', (decoder.decode_32bit_uint(), decoder.decode_16bit_int(), decoder.decode_16bit_uint())),
+        Item('Active Power Total', (decoder.decode_32bit_int(), decoder.decode_16bit_int(), decoder.decode_16bit_uint())),
+        Item('Server ID', decoder.decode_string(size=16)),
+        Item('Response Counter', decoder.decode_32bit_uint()),
+        Item('Operating Seconds', decoder.decode_32bit_uint()),
+        Item('Epoch Time UTC', decoder.decode_32bit_uint()),
+        Item('Local Time Zone Offset', decoder.decode_16bit_int()),
+        Item('Digital Input State', decoder.decode_16bit_uint()),
+        Item('Digital Output State', decoder.decode_16bit_uint()),
+        Item('Last Modification DI Operating Seconds', decoder.decode_32bit_uint()),
+        Item('Last Modification DI Epoch Time UTC', decoder.decode_32bit_uint()),
+        Item('Last Modification DI Local Time Zone Offset', decoder.decode_16bit_int()),
+        Item('Last Modification DO Operating Seconds', decoder.decode_32bit_uint()),
+        Item('Last Modification DO Epoch Time UTC', decoder.decode_32bit_uint()),
+        Item('Last Modification DO Local Time Zone Offset', decoder.decode_16bit_int()),
+        Item('Metadata 1', decoder.decode_string(size=140)),
+        Item('Metadata 2', decoder.decode_string(size=100)),
+        Item('Metadata 3', decoder.decode_string(size=100)),
+    ]
+
+    signature_length = decoder.decode_16bit_uint()
+    raw = decoder.decode_binary_string(size=74)
+    signature = raw[:signature_length]
+
+    entries.append(Item('Signature', signature))
+
+    pprint(entries)
+
+    client.client.close()
+
+
+def into_chunks(array, length):
+    for i in range(0, len(array), length):
+        yield array[i:i + length]
+
+
+def register_hexdump(registers, offset=0):
+    chunk_length = 8
+    chunks = list(into_chunks(registers, chunk_length))
+
+    for i in range(0, len(chunks)):
+        chunk = chunks[i]
+        start = i * len(chunk) + offset
+
+        hex_chunk = ' '.join(map(lambda x: '{:04x}'.format(x), chunk))
+
+        print('{:8}: {}'.format(start, hex_chunk))
+
+
+
+def dump(args):
+    client = create_sunspec_sync_client(args)
+
+    registers = client.read_holding_registers(args.offset, args.length)
+    register_hexdump(registers, args.offset)
+
+    client.client.close()
+
+
+def snapshot(args):
+    client = create_sunspec_sync_client(args)
+
+    trigger_offsets = \
+        {
+            'scs': SigningMeterOffsets.SignedCurrentStateBlock + SignedStateBlockOffsets.Status,
+            'stons': SigningMeterOffsets.SignedTurnOnStateBlock + SignedStateBlockOffsets.Status,
+            'stoffs': SigningMeterOffsets.SignedTurnOffStateBlock + SignedStateBlockOffsets.Status,
+        }
+
+    offset = trigger_offsets[args.name.lower()]
+
+    if offset != None:
+        client.write_registers(offset, SignedStateBlockStatus.UPDATING)
+
+    client.client.close()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    args.func(args)
