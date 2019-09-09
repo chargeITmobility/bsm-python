@@ -8,6 +8,11 @@ from pymodbus.constants import Endian
 from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.payload import BinaryPayloadDecoder
 from six import iteritems
+from struct import pack
+
+import binascii
+import os
+import string
 
 
 # --------------------------------------------------------------------------- #
@@ -191,29 +196,43 @@ def create_sunspec_sync_client(args):
 
 
 def parse_args():
-    parser = ArgumentParser(description='Signing Meter Modbus Tool')
-    parser.add_argument('--device', metavar='DEVICE', help='serial device', required=True)
-    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=115200)
-    parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=10)
-    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=True)
-    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=125)
+    # Attempt to retrieve communication paramter defaults from environment
+    # variables. This will allow short command lines for repeated invocations.
+    device = os.getenv('MBTOOL_DEVICE')
+    baud = os.getenv('MBTOOL_BAUD', 115200)
+    unit = os.getenv('MBTOOL_UNIT')
+    timeout = os.getenv('MBTOOL_TIMEOUT', 10)
+    chunk = os.getenv('MBTOOL_CHUNK', 125)
+
+    parser = ArgumentParser(description='Signing Meter Modbus Tool',
+        epilog='You may specify communication parameters also by environment variables. Use MBTOOL_DEVICE, MBTOOL_BAUD, MBTOOL_UNIT, MBTOOL_TIMEOUT, and MBTOOL_CHUNK.')
+    # Default parser for communication parameters.
+    parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
+    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)
+    parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=timeout)
+    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
+    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=chunk)
 
     subparsers = parser.add_subparsers(help='sub commands')
 
+    # The original main function from initial Modbus Tool.
     test_parser = subparsers.add_parser('main', help='run original test code from main')
     test_parser.set_defaults(func=test_main)
     test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
 
+    # Read and interpret SunSpec block.
     read_block_parser = subparsers.add_parser('read-block', help='read sunspec block')
     read_block_parser.set_defaults(func=read_block)
     read_block_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
     read_block_parser.add_argument('--length', type=int, help='Block length (words)')
 
+    # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
     dump_parser.set_defaults(func=dump)
     dump_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
     dump_parser.add_argument('--length', type=int, help='Block length (words)')
 
+    # Request generating a snapshot (for a given snapshot name).
     snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot')
     snapshot_parser.set_defaults(func=snapshot)
     snapshot_parser.add_argument('name', help='Snapshot name')
@@ -431,7 +450,7 @@ def read_block(args):
 
     signature_length = decoder.decode_16bit_uint()
     raw = decoder.decode_binary_string(size=74)
-    signature = raw[:signature_length]
+    signature = binascii.hexlify(raw[:signature_length])
 
     entries.append(Item('Signature', signature))
 
@@ -453,9 +472,14 @@ def register_hexdump(registers, offset=0):
         chunk = chunks[i]
         start = i * len(chunk) + offset
 
+        # Hex data of registers.
         hex_chunk = ' '.join(map(lambda x: '{:04x}'.format(x), chunk))
 
-        print('{:8}: {}'.format(start, hex_chunk))
+        # Printable characters from big-endian register data.
+        payload_chunk = b''.join(pack('>H', x) for x in chunk)
+        printable = ''.join(map(lambda x: chr(x) if x >= 32 and x < 127 else '.', payload_chunk))
+
+        print('{:8}: {:40} {}'.format(start, hex_chunk, printable))
 
 
 
