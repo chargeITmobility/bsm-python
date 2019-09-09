@@ -211,14 +211,27 @@ def create_sunspec_sync_client(args):
     return client
 
 
+def auto_int(x):
+    result = None
+
+    if isinstance(x, int):
+        # Pass-through integer values.
+        result = x
+    elif x != None:
+        # Parse everything else but 'None' with auto base detection.
+        result = int(x, 0)
+
+    return result
+
+
 def parse_args():
     # Attempt to retrieve communication paramter defaults from environment
     # variables. This will allow short command lines for repeated invocations.
     device = os.getenv('MBTOOL_DEVICE')
-    baud = os.getenv('MBTOOL_BAUD', 115200)
-    unit = os.getenv('MBTOOL_UNIT')
-    timeout = os.getenv('MBTOOL_TIMEOUT', 10)
-    chunk = os.getenv('MBTOOL_CHUNK', 125)
+    baud = auto_int(os.getenv('MBTOOL_BAUD', 115200))
+    unit = auto_int(os.getenv('MBTOOL_UNIT'))
+    timeout = auto_int(os.getenv('MBTOOL_TIMEOUT', 10))
+    chunk = auto_int(os.getenv('MBTOOL_CHUNK', 125))
 
     parser = ArgumentParser(description='Signing Meter Modbus Tool',
         epilog='You may specify communication parameters also by environment variables. Use MBTOOL_DEVICE, MBTOOL_BAUD, MBTOOL_UNIT, MBTOOL_TIMEOUT, and MBTOOL_CHUNK.')
@@ -239,20 +252,20 @@ def parse_args():
     # Read and interpret SunSpec block.
     read_block_parser = subparsers.add_parser('read-block', help='read sunspec block')
     read_block_parser.set_defaults(func=read_block)
-    read_block_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
-    read_block_parser.add_argument('--length', type=int, help='Block length (words)')
+    read_block_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
+    read_block_parser.add_argument('--length', type=auto_int, help='Block length (words)')
 
     # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
     dump_parser.set_defaults(func=dump)
-    dump_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
-    dump_parser.add_argument('--length', type=int, help='Block length (words)')
+    dump_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
+    dump_parser.add_argument('--length', type=auto_int, help='Block length (words)')
 
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
     set_parser.set_defaults(func=set_values )
-    set_parser.add_argument('--epoch-time', type=int, help='Epoch time UTC [seconds]')
-    set_parser.add_argument('--tz-offset', type=int, help='Local timezone UTC offset [minutes]')
+    set_parser.add_argument('--epoch-time', type=auto_int, help='Epoch time UTC [seconds]')
+    set_parser.add_argument('--tz-offset', type=auto_int, help='Local timezone UTC offset [minutes]')
     set_parser.add_argument('--meta1', help='Metadata string 1')
     set_parser.add_argument('--meta2', help='Metadata string 2')
     set_parser.add_argument('--meta3', help='Metadata string 3')
