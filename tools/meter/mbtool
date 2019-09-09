@@ -6,7 +6,7 @@ from enum import IntEnum
 from pprint import pprint
 from pymodbus.constants import Endian
 from pymodbus.client.sync import ModbusSerialClient
-from pymodbus.payload import BinaryPayloadDecoder
+from pymodbus.payload import BinaryPayloadBuilder, BinaryPayloadDecoder
 from six import iteritems
 from struct import pack
 
@@ -162,9 +162,25 @@ class SunspecOffsets(object):
 
 
 class SigningMeterOffsets(object):
+    SunSpecId                                = 40000
+    CommonBlock                              = 40002
+    MeterBlock                               = 40070
+    BsmMeterBlock                            = 40177
     SignedCurrentStateBlock                  = 40471
     SignedTurnOnStateBlock                   = 40719
     SignedTurnOffStateBlock                  = 40967
+
+
+class BsmMeterBlockOffsets(IntEnum):
+    EPOCH_TIME_UTC_SECONDS                   = 63
+    LOCAL_TIME_ZONE_OFFSET_MINUTES           = 65
+    DIGITAL_OUTPUT_STATE                     = 67
+    METADATA_1                               = 78
+    METADATA_1_LENGTH                        = 70
+    METADATA_2                               = 148
+    METADATA_2_LENGTH                        = 50
+    METADATA_3                               = 198
+    METADATA_3_LENGTH                        = 50
 
 
 class SignedStateBlockOffsets(object):
@@ -232,6 +248,15 @@ def parse_args():
     dump_parser.add_argument('--offset', type=int, help='Modbus block offset (words)')
     dump_parser.add_argument('--length', type=int, help='Block length (words)')
 
+    # Set meter time.
+    set_parser = subparsers.add_parser('set', help='Set values')
+    set_parser.set_defaults(func=set_values )
+    set_parser.add_argument('--epoch-time', type=int, help='Epoch time UTC [seconds]')
+    set_parser.add_argument('--tz-offset', type=int, help='Local timezone UTC offset [minutes]')
+    set_parser.add_argument('--meta1', help='Metadata string 1')
+    set_parser.add_argument('--meta2', help='Metadata string 2')
+    set_parser.add_argument('--meta3', help='Metadata string 3')
+
     # Request generating a snapshot (for a given snapshot name).
     snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot')
     snapshot_parser.set_defaults(func=snapshot)
@@ -267,6 +292,21 @@ class SunspecDecoder(BinaryPayloadDecoder):
         """
         string = super().decode_string(size)
         return string.split(SunspecDefaultValue.String)[0]
+
+class SunspecBuilder(BinaryPayloadBuilder):
+    def __init__(self, payload=None, byteorder=Endian.Big, wordorder=Endian.Big, repack=False):
+        BinaryPayloadBuilder.__init__(self, payload, byteorder, wordorder, repack)
+
+    def add_string(self, value, size=1):
+        assert(size % 2 == 0)
+        assert(len(value) <= size)
+
+        # TODO: How to deal with non-ASCII characters? The PyModbus stack
+        # operates on characters so we have to make assumptions about the
+        # encoding.
+
+        padding = '\x00' * (size - len(value))
+        super().add_string(value + padding)
 
 class SunspecClient(object):
 
@@ -488,6 +528,45 @@ def dump(args):
 
     registers = client.read_holding_registers(args.offset, args.length)
     register_hexdump(registers, args.offset)
+
+    client.client.close()
+
+
+def set_values(args):
+    client = create_sunspec_sync_client(args)
+    offset = None
+
+    # TODO: Add support for setting the remaining values.
+
+    if args.epoch_time != None:
+        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.EPOCH_TIME_UTC_SECONDS
+        builder = SunspecBuilder()
+        builder.add_32bit_uint(args.epoch_time)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.tz_offset != None:
+        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.LOCAL_TIME_ZONE_OFFSET_MINUTES
+        builder = SunspecBuilder()
+        builder.add_16bit_int(args.tz_offset)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.meta1 != None:
+        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_1
+        builder = SunspecBuilder()
+        builder.add_string(args.meta1, size=2 * BsmMeterBlockOffsets.METADATA_1_LENGTH)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.meta2 != None:
+        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_2
+        builder = SunspecBuilder()
+        builder.add_string(args.meta2, size=2 * BsmMeterBlockOffsets.METADATA_2_LENGTH)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.meta3 != None:
+        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_3
+        builder = SunspecBuilder()
+        builder.add_string(args.meta3, size=2 * BsmMeterBlockOffsets.METADATA_3_LENGTH)
+        client.write_registers(offset, builder.to_registers())
 
     client.client.close()
 
