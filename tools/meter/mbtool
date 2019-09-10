@@ -204,7 +204,7 @@ def create_sunspec_sync_client(args):
     :param args: command line arguments parsed by ArgumentParser
     :returns: an initialized SunspecClient
     """
-    modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud)
+    modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud, parity='E')
     modbus.connect()
     client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size)
     client.initialize()
