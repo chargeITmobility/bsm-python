@@ -521,9 +521,10 @@ def register_hexdump(registers, offset=0):
     chunk_length = 8
     chunks = list(into_chunks(registers, chunk_length))
 
+    start = offset
+
     for i in range(0, len(chunks)):
         chunk = chunks[i]
-        start = i * len(chunk) + offset
 
         # Hex data of registers.
         hex_chunk = ' '.join(map(lambda x: '{:04x}'.format(x), chunk))
@@ -533,7 +534,7 @@ def register_hexdump(registers, offset=0):
         printable = ''.join(map(lambda x: chr(x) if x >= 32 and x < 127 else '.', payload_chunk))
 
         print('{:8}: {:40} {}'.format(start, hex_chunk, printable))
-
+        start += len(chunk)
 
 
 def dump(args):
