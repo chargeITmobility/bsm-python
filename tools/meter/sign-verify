@@ -10,18 +10,12 @@
 
 from argparse import ArgumentParser
 from argparse import FileType
-from ecdsa import BadSignatureError
-from ecdsa import VerifyingKey
-from ecdsa import ellipticcurve
-from ecdsa import util
 from hashlib import sha256
 from crypto.curves import SECP256r1
+from crypto.util import verify_signed_digest
 
 import string
 import sys
-
-
-SEC1_UNCOMPRESSED_POINT_MARKER = 0x04
 
 
 
@@ -32,16 +26,6 @@ def hex_data_or_file(arg):
         return bytes.fromhex(arg)
     else:
         return open(arg, 'rb').read()
-
-
-def public_key_from_sec1_point_data(data):
-    assert len(data) == 65
-    assert data[0] == SEC1_UNCOMPRESSED_POINT_MARKER
-
-    x = int.from_bytes(data[1:33], 'big')
-    y = int.from_bytes(data[33:65], 'big')
-    point = ellipticcurve.Point(SECP256r1.curve, x, y)
-    return VerifyingKey.from_public_point(point, curve=SECP256r1, hashfunc=sha256)
 
 
 
@@ -65,16 +49,10 @@ parser.add_argument('--digest', metavar='HEX_DATA', required=True,
 args = parser.parse_args()
 
 
-digest = args.digest
-pubkey = public_key_from_sec1_point_data(args.pubkey)
-signature = args.signature
-
-
-try:
-    result = pubkey.verify_digest(signature, digest, sigdecode=util.sigdecode_der)
+if verify_signed_digest(SECP256r1, sha256, args.pubkey, args.signature, args.digest):
     if args.verbose:
         print('success')
     sys.exit(0)
-except BadSignatureError:
+else:
     print('failure', file=sys.stderr)
     sys.exit(1)
