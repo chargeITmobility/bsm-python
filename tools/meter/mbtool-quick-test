@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#
+# Very simple test for the Modbus Tool command line interface.
+#
+# Please set the environment variables MBTOOL_DEVICE and MBTOOL_UNIT for your
+# environment and run this script.
+#
+
+
+MBTOOL=./mbtool
+
+
+echo "Simple Modbus Tool invocation test."
+echo ""
+echo "serial device: $MBTOOL_DEVICE"
+echo "unit: $MBTOOL_UNIT"
+echo ""
+
+
+# Output Modbus Tool invocations.
+set -x
+
+
+$MBTOOL main
+$MBTOOL read-block --offset=40177
+$MBTOOL dump --offset=471 --length=294
+$MBTOOL set --meta1="This is a tribute ..."
+$MBTOOL snapshot scs
