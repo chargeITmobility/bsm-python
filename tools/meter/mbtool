@@ -267,21 +267,10 @@ def parse_args():
 
     subparsers = parser.add_subparsers(help='sub commands')
 
-    # The original main function from initial Modbus Tool.
-    test_parser = subparsers.add_parser('main', help='run original test code from main')
-    test_parser.set_defaults(func=test_main_command)
-    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
-
     # Read and interpret SunSpec block.
-    read_block_command_parser = subparsers.add_parser('read-block', help='read sunspec block')
-    read_block_command_parser.set_defaults(func=read_block_command)
-    read_block_command_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
-
-    # Hex-dump_command registers.
-    dump_parser = subparsers.add_parser('dump', help='Dump registers')
-    dump_parser.set_defaults(func=dump_command)
-    dump_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
-    dump_parser.add_argument('--length', type=auto_int, help='Block length (words)')
+    get_block_parser = subparsers.add_parser('get-block', help='read and interpret SunSpec block')
+    get_block_parser.set_defaults(func=get_block_command)
+    get_block_parser.add_argument('offsets', metavar='OFFSET', type=auto_int, nargs='+',  help='Modbus block offset (words)')
 
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
@@ -296,6 +285,17 @@ def parse_args():
     snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot_command')
     snapshot_parser.set_defaults(func=snapshot_command)
     snapshot_parser.add_argument('name', help='Snapshot name')
+
+    # Hex-dump_command registers.
+    dump_parser = subparsers.add_parser('dump', help='Dump registers')
+    dump_parser.set_defaults(func=dump_command)
+    dump_parser.add_argument('offset', metavar='OFFSET', type=auto_int, help='Modbus block offset (words)')
+    dump_parser.add_argument('length', metavar='LENGTH', type=auto_int, help='Block length (words)')
+
+    # The original main function from initial Modbus Tool.
+    test_parser = subparsers.add_parser('main', help='run original test code from main')
+    test_parser.set_defaults(func=test_main_command)
+    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
 
     return parser.parse_args()
 
@@ -341,21 +341,26 @@ def test_main_command(args):
     client.client.close()
 
 
-def read_block_command(args):
-    client = create_sunspec_sync_client(args)
-
+def get_block(client, offset):
     # Read and decode block header.
-    decoder = client.get_device_block(args.offset, SunspecOffsets.HeaderLength)
+    decoder = client.get_device_block(offset, SunspecOffsets.HeaderLength)
     model_id = decoder.decode_16bit_uint()
     length = decoder.decode_16bit_uint()
 
     # Read and decode block payload.
-    decoder = client.get_device_block(args.offset + SunspecOffsets.HeaderLength, length);
+    decoder = client.get_device_block(offset + SunspecOffsets.HeaderLength, length);
     payload = decode_block_payload(decoder, model_id, length);
 
-    data = SunspecModelData(model_id, length, payload)
-    # TODO: Provide a better readable output.
-    pprint(data)
+    return SunspecModelData(model_id, length, payload)
+
+
+def get_block_command(args):
+    client = create_sunspec_sync_client(args)
+
+    for offset in args.offsets:
+        data = get_block(client, offset)
+        # TODO: Provide a better readable output.
+        pprint(data)
 
     client.client.close()
 
