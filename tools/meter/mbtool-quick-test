@@ -18,12 +18,14 @@ echo "unit: $MBTOOL_UNIT"
 echo ""
 
 
-# Output Modbus Tool invocations.
+# Output Modbus Tool invocations and abort on error.
 set -x
+set -e
 
 
 $MBTOOL get-block 40177
 $MBTOOL set --meta1="This is a tribute ..."
-$MBTOOL snapshot scs
+$MBTOOL create-snapshot scs
+$MBTOOL get-snapshot scs
 $MBTOOL dump 40177 294
 $MBTOOL main

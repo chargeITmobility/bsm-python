@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 from collections import namedtuple
 from enum import IntEnum
-from pprint import pprint
+from pprint import pprint, pformat
 from pymodbus.client.sync import ModbusSerialClient
 from six import iteritems
 from struct import pack
@@ -13,6 +13,7 @@ from sunspec.constants import SunspecModel, SunspecOffsets, SunspecIdentifier, S
 import binascii
 import os
 import string
+import sys
 
 
 SunspecModelData = namedtuple('SunspecModelData',
@@ -67,6 +68,9 @@ SignedStateData = namedtuple('SignedStateData',
     ])
 
 
+BlockInfo = namedtuple('BlockInfo', 'name, short_name, model, offset, length, is_snapshot')
+
+
 
 # --------------------------------------------------------------------------- # 
 # Signing Meter Common Constants
@@ -88,8 +92,15 @@ class SigningMeterModels(IntEnum):
 
 
 class SigningMeterModelPayloadLengths(IntEnum):
-    SigningMeter                             = 294 - 2
-    SignedState                              = 248 - 2
+    SigningMeter                             = 292
+    SignedState                              = 246
+
+
+class SigningMeterLengths(IntEnum):
+    SigningMeterBlock                        = SigningMeterModelPayloadLengths.SigningMeter + SunspecOffsets.HeaderLength
+    SignedCurrentStateBlock                  = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
+    SignedTurnOnStateBlock                   = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
+    SignedTurnOffStateBlock                  = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
 
 
 class SigningMeterBlockOffsets(IntEnum):
@@ -130,9 +141,64 @@ class SignedStateBlockStatus(IntEnum):
     FAILED = 3
 
 
+# --------------------------------------------------------------------------- #
+# Block Information
+# --------------------------------------------------------------------------- #
+
+# FIXME: Complete block infos.
+BLOCK_INFOS = \
+    [
+        BlockInfo(
+            'Signed Current State',
+            'scs',
+            SigningMeterModels.SignedState,
+            SigningMeterOffsets.SignedCurrentStateBlock,
+            SigningMeterLengths.SignedCurrentStateBlock,
+            True),
+        BlockInfo(
+            'Signed Turn-On State',
+            'stons',
+            SigningMeterModels.SignedState,
+            SigningMeterOffsets.SignedTurnOnStateBlock,
+            SigningMeterLengths.SignedTurnOnStateBlock,
+            True),
+        BlockInfo(
+            'Signed Turn-Off State',
+            'stoffs',
+            SigningMeterModels.SignedState,
+            SigningMeterOffsets.SignedTurnOffStateBlock,
+            SigningMeterLengths.SignedTurnOffStateBlock,
+            True),
+    ]
+
+
 # --------------------------------------------------------------------------- # 
 # Common Functions
 # --------------------------------------------------------------------------- # 
+def auto_int(x):
+    result = None
+
+    if isinstance(x, int):
+        # Pass-through integer values.
+        result = x
+    elif x != None:
+        # Parse everything else but 'None' with auto base detection.
+        result = int(x, 0)
+
+    return result
+
+
+def block_info_for_short_name(short_name):
+    filtered = filter(lambda x: x.short_name == short_name, BLOCK_INFOS)
+    result = next(filtered, None)
+
+    # We expect at most one match.
+    assert next(filtered, None) == None
+
+    return result
+
+
+
 def create_sunspec_sync_client(args):
     """ A quick helper method to create a sunspec
     client.
@@ -145,19 +211,6 @@ def create_sunspec_sync_client(args):
     client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size)
     client.initialize()
     return client
-
-
-def auto_int(x):
-    result = None
-
-    if isinstance(x, int):
-        # Pass-through integer values.
-        result = x
-    elif x != None:
-        # Parse everything else but 'None' with auto base detection.
-        result = int(x, 0)
-
-    return result
 
 
 def decode_binary_string(decoder, size):
@@ -281,10 +334,16 @@ def parse_args():
     set_parser.add_argument('--meta2', help='Metadata string 2')
     set_parser.add_argument('--meta3', help='Metadata string 3')
 
-    # Request generating a snapshot_command (for a given snapshot_command name).
-    snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot_command')
-    snapshot_parser.set_defaults(func=snapshot_command)
-    snapshot_parser.add_argument('name', help='Snapshot name')
+    # Request generating a snapshot (for a given snapshot name).
+    create_snapshot_parser = subparsers.add_parser('create-snapshot', help='Create snapshot but don\'t fetch data')
+    create_snapshot_parser.set_defaults(func=create_snapshot_command)
+    create_snapshot_parser.add_argument('name', help='Snapshot name')
+
+    # Request snapshot, wait for completion and get data.
+    get_snapshot_parser = subparsers.add_parser('get-snapshot', help='Create snapshot and get data')
+    get_snapshot_parser.set_defaults(func=get_snapshot_command)
+    get_snapshot_parser.add_argument('name', help='Snapshot nanme')
+
 
     # Hex-dump_command registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
@@ -365,6 +424,15 @@ def get_block_command(args):
     client.client.close()
 
 
+def create_snapshot(client, block_info):
+    result = False
+
+    if block_info != None and block_info.is_snapshot and block_info.offset != None:
+        result = client.write_registers(info.offset + SignedStateBlockOffsets.Status, SignedStateBlockStatus.UPDATING)
+
+    return result
+
+
 def dump_command(args):
     client = create_sunspec_sync_client(args)
 
@@ -413,22 +481,44 @@ def set_values_command(args):
     client.client.close()
 
 
-def snapshot_command(args):
+def create_snapshot_command(args):
     client = create_sunspec_sync_client(args)
+    info = block_info_for_short_name(args.name.lower())
 
-    trigger_offsets = \
-        {
-            'scs': SigningMeterOffsets.SignedCurrentStateBlock + SignedStateBlockOffsets.Status,
-            'stons': SigningMeterOffsets.SignedTurnOnStateBlock + SignedStateBlockOffsets.Status,
-            'stoffs': SigningMeterOffsets.SignedTurnOffStateBlock + SignedStateBlockOffsets.Status,
-        }
-
-    offset = trigger_offsets[args.name.lower()]
-
-    if offset != None:
-        client.write_registers(offset, SignedStateBlockStatus.UPDATING)
+    if info != None and info.is_snapshot:
+        client.write_registers(info.offset + SignedStateBlockOffsets.Status, SignedStateBlockStatus.UPDATING)
 
     client.client.close()
+
+
+def get_snapshot_command(args):
+    client = create_sunspec_sync_client(args)
+    info = block_info_for_short_name(args.name.lower())
+    result = False
+
+    if info != None and info.is_snapshot:
+        status_offset = info.offset + SignedStateBlockOffsets.Status
+
+        # Request snapshot update by writing to the snapshot's status register.
+        client.write_registers(status_offset, SignedStateBlockStatus.UPDATING)
+
+        # Pull snapshot status until it is no longer updating.
+        status = SignedStateBlockStatus.UPDATING
+        while status == SignedStateBlockStatus.UPDATING:
+            status = client.read_holding_registers(status_offset, 1)[0]
+
+        # Updating is done. Get and display snapshot data in case of success.
+        if status == SignedStateBlockStatus.VALID:
+            print('Updating \'{}\' succeeded: {}'.format(info.short_name, status))
+            print('Snapshot data: {}'.format(pformat(get_block(client, info.offset))))
+            result = True
+        else:
+            print('Updating \'{}\' failed: {}'.format(info.short_name, status))
+            result = False
+
+    client.client.close()
+    if not result:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
