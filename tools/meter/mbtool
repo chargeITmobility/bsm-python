@@ -15,36 +15,112 @@ import os
 import string
 
 
-Item = namedtuple('Item', 'name, value')
+SunspecModelData = namedtuple('SunspecModelData',
+    [
+        'model_id',
+        'length',
+        'payload',
+    ])
+ScaledValue = namedtuple('ScaledValue', 'value, scaler, unit')
+SnapshotTimestamp = namedtuple('SnapshotTimestamp', 'operating_seconds, epoch_time_utc_seconds, local_timezone_offset_minutes')
+SigningMeterData = namedtuple('SigningMeterData',
+    [
+        'modbus_address',
+        'modbus_baud_rate',
+        'error_code',
+        'serial_number_meter',
+        'serial_number_communication_module',
+        'software_version_meter',
+        'software_version_communication_module',
+        'meter_address_1',
+        'meter_address_2',
+        'power_down_counter',
+        'response_counter',
+        'current_time',
+        'di_state',
+        'do_state',
+        'last_di_modification',
+        'last_do_modification',
+        'metadata_1',
+        'metadata_2',
+        'metadata_3',
+        'ecdsa_curve_name',
+        'ecdsa_public_key',
+    ])
+SignedStateData = namedtuple('SignedStateData',
+    [
+        'type',
+        'status',
+        'active_energy_exported_total',
+        'active_power_total',
+        'server_id',
+        'response_counter',
+        'timestamp',
+        'di_state',
+        'do_state',
+        'last_di_modification',
+        'last_do_modification',
+        'metadata_1',
+        'metadata_2',
+        'metadata_3',
+        'signature',
+    ])
+
 
 
 # --------------------------------------------------------------------------- # 
 # Signing Meter Common Constants
 # --------------------------------------------------------------------------- # 
-class SigningMeterOffsets(object):
+class SigningMeterOffsets(IntEnum):
     SunSpecId                                = 40000
     CommonBlock                              = 40002
-    MeterBlock                               = 40070
-    BsmMeterBlock                            = 40177
+    ThreePhaseMeterBlock                     = 40070
+    SigningMeterBlock                        = 40177
     SignedCurrentStateBlock                  = 40471
     SignedTurnOnStateBlock                   = 40719
     SignedTurnOffStateBlock                  = 40967
+    EndOfSunSpecMapBlock                     = 41215
 
 
-class BsmMeterBlockOffsets(IntEnum):
-    EPOCH_TIME_UTC_SECONDS                   = 63
-    LOCAL_TIME_ZONE_OFFSET_MINUTES           = 65
-    DIGITAL_OUTPUT_STATE                     = 67
-    METADATA_1                               = 78
-    METADATA_1_LENGTH                        = 70
-    METADATA_2                               = 148
-    METADATA_2_LENGTH                        = 50
-    METADATA_3                               = 198
-    METADATA_3_LENGTH                        = 50
+class SigningMeterModels(IntEnum):
+    SigningMeter                             = SunspecModel.VendorPrivateStart + 0
+    SignedState                              = SunspecModel.VendorPrivateStart + 1
+
+
+class SigningMeterModelPayloadLengths(IntEnum):
+    SigningMeter                             = 294 - 2
+    SignedState                              = 248 - 2
+
+
+class SigningMeterBlockOffsets(IntEnum):
+    ErrorCodeLength                          = 4
+    SerialNumberMeterLength                  = 8
+    SerialNumberCommunicationModuleLength    = 8
+    SoftwareVersionMeterLength               = 8
+    SoftwareVersionCommunicationModuleLength = 8
+    MeterAddress1Length                      = 8
+    MeterAddress2Length                      = 8
+    EpochTimeUtcSeconds                      = 63
+    LocalTimezoneOffsetMinutes               = 65
+    DigitalOutputState                       = 67
+    Metadata1                                = 78
+    Metadata1Length                          = 70
+    Metadata2                                = 148
+    Metadata2Length                          = 50
+    Metadata3                                = 198
+    Metadata3Length                          = 50
+    EcdsaCurveNameLength                     = 8
+    EcdsaPublicKeyLength                     = 37
 
 
 class SignedStateBlockOffsets(object):
     Status                                   = 3
+    ServerId                                 = 12
+    ServerIdLength                           = 8
+    Metadata1Length                          = SigningMeterBlockOffsets.Metadata1Length
+    Metadata2Length                          = SigningMeterBlockOffsets.Metadata2Length
+    Metadata3Length                          = SigningMeterBlockOffsets.Metadata3Length
+    SignatureLength                          = 37
 
 
 class SignedStateBlockStatus(IntEnum):
@@ -159,44 +235,100 @@ def test_main(args):
     client.client.close()
 
 
+def decode_binary_string(decoder, size):
+    length = decoder.decode_16bit_uint()
+    string = decoder.decode_binary_string(size=size)
+
+    assert length <= size
+    return string[:length]
+
+
+def decode_block_payload(decoder, model_id, length):
+    result = None
+
+    # FIXME: Add support for remaining blocks of signing meter.
+
+    if model_id == SigningMeterModels.SigningMeter and length == SigningMeterModelPayloadLengths.SigningMeter:
+        result = SigningMeterData(
+            modbus_address=decoder.decode_16bit_uint(),
+            modbus_baud_rate=decoder.decode_32bit_uint(),
+            error_code=decoder.decode_string(size=2 * SigningMeterBlockOffsets.ErrorCodeLength),
+            serial_number_meter=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SerialNumberMeterLength),
+            serial_number_communication_module=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SerialNumberCommunicationModuleLength),
+            software_version_meter=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SoftwareVersionMeterLength),
+            software_version_communication_module=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SoftwareVersionCommunicationModuleLength),
+            meter_address_1=decoder.decode_string(size=2 * SigningMeterBlockOffsets.MeterAddress1Length),
+            meter_address_2=decoder.decode_string(size=2 * SigningMeterBlockOffsets.MeterAddress2Length),
+            power_down_counter=decoder.decode_32bit_uint(),
+            response_counter=decoder.decode_32bit_uint(),
+            current_time=decode_timestamp(decoder),
+            di_state=decoder.decode_16bit_uint(),
+            do_state=decoder.decode_16bit_uint(),
+            last_di_modification=decode_timestamp(decoder),
+            last_do_modification=decode_timestamp(decoder),
+            metadata_1=decoder.decode_string(size=2 * SigningMeterBlockOffsets.Metadata1Length),
+            metadata_2=decoder.decode_string(size=2 * SigningMeterBlockOffsets.Metadata2Length),
+            metadata_3=decoder.decode_string(size=2 * SigningMeterBlockOffsets.Metadata3Length),
+            ecdsa_curve_name=decoder.decode_string(size=2 * SigningMeterBlockOffsets.EcdsaCurveNameLength),
+            ecdsa_public_key=decode_binary_string(decoder, size=2 * SigningMeterBlockOffsets.EcdsaPublicKeyLength),
+            )
+    elif model_id == SigningMeterModels.SignedState and length == SigningMeterModelPayloadLengths.SignedState:
+        result = SignedStateData(
+            type=decoder.decode_16bit_uint(),
+            status=decoder.decode_16bit_uint(),
+            active_energy_exported_total=decode_scaled_uint32(decoder),
+            active_power_total=decode_scaled_int32(decoder),
+            server_id=decoder.decode_string(size=2 * SignedStateBlockOffsets.ServerIdLength),
+            response_counter=decoder.decode_32bit_uint(),
+            timestamp=decode_timestamp(decoder),
+            di_state=decoder.decode_16bit_uint(),
+            do_state=decoder.decode_16bit_uint(),
+            last_di_modification=decode_timestamp(decoder),
+            last_do_modification=decode_timestamp(decoder),
+            metadata_1=decoder.decode_string(size=2 * SignedStateBlockOffsets.Metadata1Length),
+            metadata_2=decoder.decode_string(size=2 * SignedStateBlockOffsets.Metadata2Length),
+            metadata_3=decoder.decode_string(size=2 * SignedStateBlockOffsets.Metadata3Length),
+            signature=decode_binary_string(decoder, size=2 * SignedStateBlockOffsets.SignatureLength),
+            )
+    else:
+        # TODO: Add a method for extracting binary data from decoder.
+        result = decoder._payload[decoder._pointer:]
+
+    return result
+
+
+def decode_scaled_int32(decoder):
+    return ScaledValue(
+        value=decoder.decode_32bit_int(),
+        scaler=decoder.decode_16bit_int(),
+        unit=decoder.decode_16bit_uint())
+
+
+def decode_scaled_uint32(decoder):
+    return ScaledValue(
+        value=decoder.decode_32bit_uint(),
+        scaler=decoder.decode_16bit_int(),
+        unit=decoder.decode_16bit_uint())
+
+
+def decode_timestamp(decoder):
+    return SnapshotTimestamp(
+        operating_seconds=decoder.decode_32bit_uint(),
+        epoch_time_utc_seconds=decoder.decode_32bit_uint(),
+        local_timezone_offset_minutes=decoder.decode_16bit_int())
+
+
 def read_block(args):
     client = create_sunspec_sync_client(args)
     decoder = client.get_device_block(args.offset, args.length)
 
-    # FIXME: Complete and clean-up block decoding. Decode more than just signed
-    # state blocks.
-    entries = [
-        Item('Model ID', decoder.decode_16bit_uint()),
-        Item('Length', decoder.decode_16bit_uint()),
-        Item('Type', decoder.decode_16bit_uint()),
-        Item('Status', decoder.decode_16bit_uint()),
-        Item('Active Energy Exported Total', (decoder.decode_32bit_uint(), decoder.decode_16bit_int(), decoder.decode_16bit_uint())),
-        Item('Active Power Total', (decoder.decode_32bit_int(), decoder.decode_16bit_int(), decoder.decode_16bit_uint())),
-        Item('Server ID', decoder.decode_string(size=16)),
-        Item('Response Counter', decoder.decode_32bit_uint()),
-        Item('Operating Seconds', decoder.decode_32bit_uint()),
-        Item('Epoch Time UTC', decoder.decode_32bit_uint()),
-        Item('Local Time Zone Offset', decoder.decode_16bit_int()),
-        Item('Digital Input State', decoder.decode_16bit_uint()),
-        Item('Digital Output State', decoder.decode_16bit_uint()),
-        Item('Last Modification DI Operating Seconds', decoder.decode_32bit_uint()),
-        Item('Last Modification DI Epoch Time UTC', decoder.decode_32bit_uint()),
-        Item('Last Modification DI Local Time Zone Offset', decoder.decode_16bit_int()),
-        Item('Last Modification DO Operating Seconds', decoder.decode_32bit_uint()),
-        Item('Last Modification DO Epoch Time UTC', decoder.decode_32bit_uint()),
-        Item('Last Modification DO Local Time Zone Offset', decoder.decode_16bit_int()),
-        Item('Metadata 1', decoder.decode_string(size=140)),
-        Item('Metadata 2', decoder.decode_string(size=100)),
-        Item('Metadata 3', decoder.decode_string(size=100)),
-    ]
+    model_id = decoder.decode_16bit_uint()
+    length = decoder.decode_16bit_uint()
+    payload = decode_block_payload(decoder, model_id, length)
+    data = SunspecModelData(model_id, length, payload)
 
-    signature_length = decoder.decode_16bit_uint()
-    raw = decoder.decode_binary_string(size=74)
-    signature = binascii.hexlify(raw[:signature_length])
-
-    entries.append(Item('Signature', signature))
-
-    pprint(entries)
+    # TODO: Provide a better readable output.
+    pprint(data)
 
     client.client.close()
 
@@ -242,33 +374,33 @@ def set_values(args):
     # TODO: Add support for setting the remaining values.
 
     if args.epoch_time != None:
-        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.EPOCH_TIME_UTC_SECONDS
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds
         builder = SunspecBuilder()
         builder.add_32bit_uint(args.epoch_time)
         client.write_registers(offset, builder.to_registers())
 
     if args.tz_offset != None:
-        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.LOCAL_TIME_ZONE_OFFSET_MINUTES
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes
         builder = SunspecBuilder()
         builder.add_16bit_int(args.tz_offset)
         client.write_registers(offset, builder.to_registers())
 
     if args.meta1 != None:
-        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_1
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1
         builder = SunspecBuilder()
-        builder.add_string(args.meta1, size=2 * BsmMeterBlockOffsets.METADATA_1_LENGTH)
+        builder.add_string(args.meta1, size=2 * SigningMeterBlockOffsets.Metadata1Length)
         client.write_registers(offset, builder.to_registers())
 
     if args.meta2 != None:
-        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_2
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2
         builder = SunspecBuilder()
-        builder.add_string(args.meta2, size=2 * BsmMeterBlockOffsets.METADATA_2_LENGTH)
+        builder.add_string(args.meta2, size=2 * SigningMeterBlockOffsets.Metadata2Length)
         client.write_registers(offset, builder.to_registers())
 
     if args.meta3 != None:
-        offset = SigningMeterOffsets.BsmMeterBlock + BsmMeterBlockOffsets.METADATA_3
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3
         builder = SunspecBuilder()
-        builder.add_string(args.meta3, size=2 * BsmMeterBlockOffsets.METADATA_3_LENGTH)
+        builder.add_string(args.meta3, size=2 * SigningMeterBlockOffsets.Metadata3Length)
         client.write_registers(offset, builder.to_registers())
 
     client.client.close()

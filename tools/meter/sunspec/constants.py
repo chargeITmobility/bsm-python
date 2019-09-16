@@ -109,7 +109,8 @@ class SunspecModel(object):
     #---------------------------------------------
     # 64xxx Vender Extension Block
     #---------------------------------------------
-    BsmSignedState                           = 64901
+    VendorPrivateStart                       = 64900
+    VendorPrivateEnd                         = 64910
 
     EndOfSunSpecMap                          = 65535
 
