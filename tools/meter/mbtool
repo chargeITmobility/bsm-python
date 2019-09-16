@@ -160,80 +160,6 @@ def auto_int(x):
     return result
 
 
-def parse_args():
-    # Attempt to retrieve communication paramter defaults from environment
-    # variables. This will allow short command lines for repeated invocations.
-    device = os.getenv('MBTOOL_DEVICE')
-    baud = auto_int(os.getenv('MBTOOL_BAUD', 115200))
-    unit = auto_int(os.getenv('MBTOOL_UNIT'))
-    timeout = auto_int(os.getenv('MBTOOL_TIMEOUT', 10))
-    chunk = auto_int(os.getenv('MBTOOL_CHUNK', 125))
-
-    parser = ArgumentParser(description='Signing Meter Modbus Tool',
-        epilog='You may specify communication parameters also by environment variables. Use MBTOOL_DEVICE, MBTOOL_BAUD, MBTOOL_UNIT, MBTOOL_TIMEOUT, and MBTOOL_CHUNK.')
-    # Default parser for communication parameters.
-    parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
-    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)
-    parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=timeout)
-    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
-    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=chunk)
-
-    subparsers = parser.add_subparsers(help='sub commands')
-
-    # The original main function from initial Modbus Tool.
-    test_parser = subparsers.add_parser('main', help='run original test code from main')
-    test_parser.set_defaults(func=test_main)
-    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
-
-    # Read and interpret SunSpec block.
-    read_block_parser = subparsers.add_parser('read-block', help='read sunspec block')
-    read_block_parser.set_defaults(func=read_block)
-    read_block_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
-
-    # Hex-dump registers.
-    dump_parser = subparsers.add_parser('dump', help='Dump registers')
-    dump_parser.set_defaults(func=dump)
-    dump_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
-    dump_parser.add_argument('--length', type=auto_int, help='Block length (words)')
-
-    # Set meter time.
-    set_parser = subparsers.add_parser('set', help='Set values')
-    set_parser.set_defaults(func=set_values )
-    set_parser.add_argument('--epoch-time', type=auto_int, help='Epoch time UTC [seconds]')
-    set_parser.add_argument('--tz-offset', type=auto_int, help='Local timezone UTC offset [minutes]')
-    set_parser.add_argument('--meta1', help='Metadata string 1')
-    set_parser.add_argument('--meta2', help='Metadata string 2')
-    set_parser.add_argument('--meta3', help='Metadata string 3')
-
-    # Request generating a snapshot (for a given snapshot name).
-    snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot')
-    snapshot_parser.set_defaults(func=snapshot)
-    snapshot_parser.add_argument('name', help='Snapshot name')
-
-    return parser.parse_args()
-
-
-#------------------------------------------------------------
-# A quick test runner
-#------------------------------------------------------------
-def test_main(args):
-    client = create_sunspec_sync_client(args)
-
-    # print out all the device common block
-    common = client.get_common_block()
-    for key, value in iteritems(common):
-        if key == "SunSpec_DID":
-            value = SunspecModel.lookup(value)
-        print("{:<20}: {}".format(key, value))
-
-    # print out all the available device blocks
-    blocks = client.get_all_device_blocks(args.raw_data)
-    for block in blocks:
-        print(block)
-
-    client.client.close()
-
-
 def decode_binary_string(decoder, size):
     length = decoder.decode_16bit_uint()
     string = decoder.decode_binary_string(size=size)
@@ -316,28 +242,62 @@ def decode_timestamp(decoder):
         local_timezone_offset_minutes=decoder.decode_16bit_int())
 
 
-def read_block(args):
-    client = create_sunspec_sync_client(args)
-
-    # Read and decode block header.
-    decoder = client.get_device_block(args.offset, SunspecOffsets.HeaderLength)
-    model_id = decoder.decode_16bit_uint()
-    length = decoder.decode_16bit_uint()
-
-    # Read and decode block payload.
-    decoder = client.get_device_block(args.offset + SunspecOffsets.HeaderLength, length);
-    payload = decode_block_payload(decoder, model_id, length);
-
-    data = SunspecModelData(model_id, length, payload)
-    # TODO: Provide a better readable output.
-    pprint(data)
-
-    client.client.close()
-
-
 def into_chunks(array, length):
     for i in range(0, len(array), length):
         yield array[i:i + length]
+
+
+def parse_args():
+    # Attempt to retrieve communication paramter defaults from environment
+    # variables. This will allow short command lines for repeated invocations.
+    device = os.getenv('MBTOOL_DEVICE')
+    baud = auto_int(os.getenv('MBTOOL_BAUD', 115200))
+    unit = auto_int(os.getenv('MBTOOL_UNIT'))
+    timeout = auto_int(os.getenv('MBTOOL_TIMEOUT', 10))
+    chunk = auto_int(os.getenv('MBTOOL_CHUNK', 125))
+
+    parser = ArgumentParser(description='Signing Meter Modbus Tool',
+        epilog='You may specify communication parameters also by environment variables. Use MBTOOL_DEVICE, MBTOOL_BAUD, MBTOOL_UNIT, MBTOOL_TIMEOUT, and MBTOOL_CHUNK.')
+    # Default parser for communication parameters.
+    parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
+    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)
+    parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=timeout)
+    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
+    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=chunk)
+
+    subparsers = parser.add_subparsers(help='sub commands')
+
+    # The original main function from initial Modbus Tool.
+    test_parser = subparsers.add_parser('main', help='run original test code from main')
+    test_parser.set_defaults(func=test_main_command)
+    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
+
+    # Read and interpret SunSpec block.
+    read_block_command_parser = subparsers.add_parser('read-block', help='read sunspec block')
+    read_block_command_parser.set_defaults(func=read_block_command)
+    read_block_command_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
+
+    # Hex-dump_command registers.
+    dump_parser = subparsers.add_parser('dump', help='Dump registers')
+    dump_parser.set_defaults(func=dump_command)
+    dump_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
+    dump_parser.add_argument('--length', type=auto_int, help='Block length (words)')
+
+    # Set meter time.
+    set_parser = subparsers.add_parser('set', help='Set values')
+    set_parser.set_defaults(func=set_values_command )
+    set_parser.add_argument('--epoch-time', type=auto_int, help='Epoch time UTC [seconds]')
+    set_parser.add_argument('--tz-offset', type=auto_int, help='Local timezone UTC offset [minutes]')
+    set_parser.add_argument('--meta1', help='Metadata string 1')
+    set_parser.add_argument('--meta2', help='Metadata string 2')
+    set_parser.add_argument('--meta3', help='Metadata string 3')
+
+    # Request generating a snapshot_command (for a given snapshot_command name).
+    snapshot_parser = subparsers.add_parser('snapshot', help='Create snapshot_command')
+    snapshot_parser.set_defaults(func=snapshot_command)
+    snapshot_parser.add_argument('name', help='Snapshot name')
+
+    return parser.parse_args()
 
 
 def register_hexdump(registers, offset=0):
@@ -360,7 +320,47 @@ def register_hexdump(registers, offset=0):
         start += len(chunk)
 
 
-def dump(args):
+#------------------------------------------------------------
+# Program command implementations
+#------------------------------------------------------------
+def test_main_command(args):
+    client = create_sunspec_sync_client(args)
+
+    # print out all the device common block
+    common = client.get_common_block()
+    for key, value in iteritems(common):
+        if key == "SunSpec_DID":
+            value = SunspecModel.lookup(value)
+        print("{:<20}: {}".format(key, value))
+
+    # print out all the available device blocks
+    blocks = client.get_all_device_blocks(args.raw_data)
+    for block in blocks:
+        print(block)
+
+    client.client.close()
+
+
+def read_block_command(args):
+    client = create_sunspec_sync_client(args)
+
+    # Read and decode block header.
+    decoder = client.get_device_block(args.offset, SunspecOffsets.HeaderLength)
+    model_id = decoder.decode_16bit_uint()
+    length = decoder.decode_16bit_uint()
+
+    # Read and decode block payload.
+    decoder = client.get_device_block(args.offset + SunspecOffsets.HeaderLength, length);
+    payload = decode_block_payload(decoder, model_id, length);
+
+    data = SunspecModelData(model_id, length, payload)
+    # TODO: Provide a better readable output.
+    pprint(data)
+
+    client.client.close()
+
+
+def dump_command(args):
     client = create_sunspec_sync_client(args)
 
     registers = client.read_holding_registers(args.offset, args.length)
@@ -369,7 +369,7 @@ def dump(args):
     client.client.close()
 
 
-def set_values(args):
+def set_values_command(args):
     client = create_sunspec_sync_client(args)
     offset = None
 
@@ -408,7 +408,7 @@ def set_values(args):
     client.client.close()
 
 
-def snapshot(args):
+def snapshot_command(args):
     client = create_sunspec_sync_client(args)
 
     trigger_offsets = \
