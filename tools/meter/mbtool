@@ -291,8 +291,7 @@ def decode_block_payload(decoder, model_id, length):
             signature=decode_binary_string(decoder, size=2 * SignedStateBlockOffsets.SignatureLength),
             )
     else:
-        # TODO: Add a method for extracting binary data from decoder.
-        result = decoder._payload[decoder._pointer:]
+        result = decoder.decode_binary_string(size=2 * length)
 
     return result
 
@@ -324,7 +323,7 @@ def read_block(args):
 
     model_id = decoder.decode_16bit_uint()
     length = decoder.decode_16bit_uint()
-    payload = decode_block_payload(decoder, model_id, length)
+    payload = decode_block_payload(decoder, model_id, args.length - 2)
     data = SunspecModelData(model_id, length, payload)
 
     # TODO: Provide a better readable output.
