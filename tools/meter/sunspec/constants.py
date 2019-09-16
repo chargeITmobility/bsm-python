@@ -131,6 +131,7 @@ class SunspecOffsets(object):
     """ Well known offsets that are used throughout
     the sunspec protocol
     """
+    HeaderLength            = 2
     CommonBlock             = 40000
     CommonBlockLength       = 70
     AlternateCommonBlock    = 50000

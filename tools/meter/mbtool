@@ -189,7 +189,6 @@ def parse_args():
     read_block_parser = subparsers.add_parser('read-block', help='read sunspec block')
     read_block_parser.set_defaults(func=read_block)
     read_block_parser.add_argument('--offset', type=auto_int, help='Modbus block offset (words)')
-    read_block_parser.add_argument('--length', type=auto_int, help='Block length (words)')
 
     # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
@@ -319,13 +318,17 @@ def decode_timestamp(decoder):
 
 def read_block(args):
     client = create_sunspec_sync_client(args)
-    decoder = client.get_device_block(args.offset, args.length)
 
+    # Read and decode block header.
+    decoder = client.get_device_block(args.offset, SunspecOffsets.HeaderLength)
     model_id = decoder.decode_16bit_uint()
     length = decoder.decode_16bit_uint()
-    payload = decode_block_payload(decoder, model_id, args.length - 2)
-    data = SunspecModelData(model_id, length, payload)
 
+    # Read and decode block payload.
+    decoder = client.get_device_block(args.offset + SunspecOffsets.HeaderLength, length);
+    payload = decode_block_payload(decoder, model_id, length);
+
+    data = SunspecModelData(model_id, length, payload)
     # TODO: Provide a better readable output.
     pprint(data)
 
