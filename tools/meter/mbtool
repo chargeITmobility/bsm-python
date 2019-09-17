@@ -2,7 +2,11 @@
 
 from argparse import ArgumentParser
 from collections import namedtuple
+from crypto.curves import SECP256r1
+from crypto.util import verify_signed_digest
 from enum import IntEnum
+from hashlib import sha256
+from hexdump import hexdump
 from pprint import pprint, pformat
 from pymodbus.client.sync import ModbusSerialClient
 from six import iteritems
@@ -139,6 +143,14 @@ class SignedStateBlockStatus(IntEnum):
     INVALID = 1
     UPDATING = 2
     FAILED = 3
+
+
+class DlmsUnits(IntEnum):
+    MINUTES = 6
+    SECONDS = 7
+    WATTS = 27
+    WATT_HOURS = 30
+    UNITLESS = 255
 
 
 # --------------------------------------------------------------------------- #
@@ -295,9 +307,67 @@ def decode_timestamp(decoder):
         local_timezone_offset_minutes=decoder.decode_16bit_int())
 
 
+def update_md_from_scaled_int32(md, value, scaler, unit):
+    data = pack('>lbB', value, scaler, unit)
+    # TODO: Clean up logging MD data.
+    hexdump(data)
+    md.update(data)
+
+
+def update_md_from_scaled_uint32(md, value, scaler, unit):
+    data = pack('>LbB', value, scaler, unit)
+    # TODO: Clean up logging MD data.
+    hexdump(data)
+    md.update(data)
+
+
+def update_md_from_string(md, string):
+    length = pack('>L', len(string))
+    # TODO: Clean up logging MD data.
+    hexdump(length)
+    hexdump(string)
+    md.update(length)
+    md.update(string)
+
+
+def digest_for_snapshot_data(md, data):
+    payload = data.payload
+    digest = md()
+
+    update_md_from_scaled_uint32(digest, payload.type, 0, DlmsUnits.UNITLESS)
+    update_md_from_scaled_uint32(digest, payload.active_energy_exported_total.value,
+        payload.active_energy_exported_total.scaler,
+        payload.active_energy_exported_total.unit)
+    update_md_from_scaled_int32(digest, payload.active_power_total.value,
+        payload.active_power_total.scaler,
+        payload.active_power_total.unit)
+    update_md_from_string(digest, payload.server_id)
+    update_md_from_scaled_uint32(digest, payload.response_counter, 0, DlmsUnits.UNITLESS)
+    update_md_from_scaled_uint32(digest, payload.timestamp.operating_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_uint32(digest, payload.timestamp.epoch_time_utc_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_int32(digest, payload.timestamp.local_timezone_offset_minutes, 0, DlmsUnits.MINUTES)
+    update_md_from_scaled_uint32(digest, payload.di_state, 0, DlmsUnits.UNITLESS)
+    update_md_from_scaled_uint32(digest, payload.do_state, 0, DlmsUnits.UNITLESS)
+    update_md_from_scaled_uint32(digest, payload.last_di_modification.operating_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_uint32(digest, payload.last_di_modification.epoch_time_utc_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_int32(digest, payload.last_di_modification.local_timezone_offset_minutes, 0, DlmsUnits.MINUTES)
+    update_md_from_scaled_uint32(digest, payload.last_do_modification.operating_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_uint32(digest, payload.last_do_modification.epoch_time_utc_seconds, 0, DlmsUnits.SECONDS)
+    update_md_from_scaled_int32(digest, payload.last_do_modification.local_timezone_offset_minutes, 0, DlmsUnits.MINUTES)
+    update_md_from_string(digest, payload.metadata_1)
+    update_md_from_string(digest, payload.metadata_2)
+    update_md_from_string(digest, payload.metadata_3)
+
+    return digest.digest()
+
+
 def into_chunks(array, length):
     for i in range(0, len(array), length):
         yield array[i:i + length]
+
+
+def is_snapshot_block_info(info):
+    return info != None and info.is_snapshot
 
 
 def parse_args():
@@ -342,8 +412,12 @@ def parse_args():
     # Request snapshot, wait for completion and get data.
     get_snapshot_parser = subparsers.add_parser('get-snapshot', help='Create snapshot and get data')
     get_snapshot_parser.set_defaults(func=get_snapshot_command)
-    get_snapshot_parser.add_argument('name', help='Snapshot nanme')
+    get_snapshot_parser.add_argument('name', help='Snapshot name')
 
+    # Verify snapshot signature.
+    verify_snapshot_parser = subparsers.add_parser('verify-snapshot', help='Verifies signature of snapshot (but does not create it)')
+    verify_snapshot_parser.set_defaults(func=verify_snapshot_command)
+    verify_snapshot_parser.add_argument('name', help='Snapshot name')
 
     # Hex-dump_command registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
@@ -485,7 +559,10 @@ def create_snapshot_command(args):
     client = create_sunspec_sync_client(args)
     info = block_info_for_short_name(args.name.lower())
 
-    if info != None and info.is_snapshot:
+    if not is_snapshot_block_info(info):
+        print('\'{}\' is not a valid snapshot name.'.format(args.name))
+        sys.exit(1)
+    else:
         client.write_registers(info.offset + SignedStateBlockOffsets.Status, SignedStateBlockStatus.UPDATING)
 
     client.client.close()
@@ -496,7 +573,10 @@ def get_snapshot_command(args):
     info = block_info_for_short_name(args.name.lower())
     result = False
 
-    if info != None and info.is_snapshot:
+    if not is_snapshot_block_info(info):
+        print('\'{}\' is not a valid snapshot name.'.format(args.name))
+        sys.exit(1)
+    else:
         status_offset = info.offset + SignedStateBlockOffsets.Status
 
         # Request snapshot update by writing to the snapshot's status register.
@@ -515,6 +595,52 @@ def get_snapshot_command(args):
         else:
             print('Updating \'{}\' failed: {}'.format(info.short_name, status))
             result = False
+
+    client.client.close()
+    if not result:
+        sys.exit(1)
+
+
+def verify_snapshot_command(args):
+    client = create_sunspec_sync_client(args)
+    info = block_info_for_short_name(args.name.lower())
+    result = False
+
+    signing_meter_data = get_block(client, SigningMeterOffsets.SigningMeterBlock)
+
+    if not is_snapshot_block_info(info):
+        print('\'{}\' is not a valid snapshot name.'.format(args.name))
+        sys.exit(1)
+    else:
+        snapshot_data = get_block(client, info.offset)
+
+        curve_name = signing_meter_data.payload.ecdsa_curve_name
+        public_key = signing_meter_data.payload.ecdsa_public_key
+        signature = snapshot_data.payload.signature
+
+        print('Curve: {}'.format(signing_meter_data.payload.ecdsa_curve_name))
+        print('Public key: {}'.format(binascii.hexlify(signing_meter_data.payload.ecdsa_public_key)))
+        print('Snapshot data: {}'.format(pformat(snapshot_data)))
+        print('Signature: {}'.format(binascii.hexlify(snapshot_data.payload.signature)))
+
+        assert curve_name == b'secp256r1'
+        curve = SECP256r1
+        md = sha256
+
+        print('Computing SHA-256 digest for snapshot data:')
+        digest = digest_for_snapshot_data(md, snapshot_data)
+        print('Snapshot data SHA-256 digest: {}'.format(binascii.hexlify(digest)))
+
+        if len(signature) == 0:
+            print('Failed. No signature given.')
+            result = False
+        else:
+            if verify_signed_digest(curve, md, public_key, signature, digest):
+                print('Success.')
+                result = True
+            else:
+                print('Failed.')
+                result = False
 
     client.client.close()
     if not result:

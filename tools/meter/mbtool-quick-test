@@ -27,5 +27,6 @@ $MBTOOL get-block 40177
 $MBTOOL set --meta1="This is a tribute ..."
 $MBTOOL create-snapshot scs
 $MBTOOL get-snapshot scs
+$MBTOOL verify-snapshot scs
 $MBTOOL dump 40177 294
 $MBTOOL main
