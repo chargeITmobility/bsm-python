@@ -57,7 +57,9 @@ SignedStateData = namedtuple('SignedStateData',
         'type',
         'status',
         'active_energy_exported_total',
+        'active_energy_exported_total_scale_factor',
         'active_power_total',
+        'active_power_total_scale_factor',
         'server_id',
         'response_counter',
         'timestamp',
@@ -85,9 +87,9 @@ class SigningMeterOffsets(IntEnum):
     ThreePhaseMeterBlock                     = 40070
     SigningMeterBlock                        = 40177
     SignedCurrentStateBlock                  = 40471
-    SignedTurnOnStateBlock                   = 40719
-    SignedTurnOffStateBlock                  = 40967
-    EndOfSunSpecMapBlock                     = 41215
+    SignedTurnOnStateBlock                   = 40717
+    SignedTurnOffStateBlock                  = 40963
+    EndOfSunSpecMapBlock                     = 41209
 
 
 class SigningMeterModels(IntEnum):
@@ -97,7 +99,7 @@ class SigningMeterModels(IntEnum):
 
 class SigningMeterModelPayloadLengths(IntEnum):
     SigningMeter                             = 292
-    SignedState                              = 246
+    SignedState                              = 244
 
 
 class SigningMeterLengths(IntEnum):
@@ -266,8 +268,10 @@ def decode_block_payload(decoder, model_id, length):
         result = SignedStateData(
             type=decoder.decode_16bit_uint(),
             status=decoder.decode_16bit_uint(),
-            active_energy_exported_total=decode_scaled_uint32(decoder),
-            active_power_total=decode_scaled_int32(decoder),
+            active_energy_exported_total=decoder.decode_32bit_uint(),
+            active_energy_exported_total_scale_factor=decoder.decode_16bit_int(),
+            active_power_total=decoder.decode_32bit_int(),
+            active_power_total_scale_factor=decoder.decode_16bit_int(),
             server_id=decoder.decode_string(size=2 * SignedStateBlockOffsets.ServerIdLength),
             response_counter=decoder.decode_32bit_uint(),
             timestamp=decode_timestamp(decoder),
@@ -284,20 +288,6 @@ def decode_block_payload(decoder, model_id, length):
         result = decoder.decode_binary_string(size=2 * length)
 
     return result
-
-
-def decode_scaled_int32(decoder):
-    return ScaledValue(
-        value=decoder.decode_32bit_int(),
-        scaler=decoder.decode_16bit_int(),
-        unit=decoder.decode_16bit_uint())
-
-
-def decode_scaled_uint32(decoder):
-    return ScaledValue(
-        value=decoder.decode_32bit_uint(),
-        scaler=decoder.decode_16bit_int(),
-        unit=decoder.decode_16bit_uint())
 
 
 def decode_timestamp(decoder):
@@ -335,12 +325,10 @@ def digest_for_snapshot_data(md, data):
     digest = md()
 
     update_md_from_scaled_uint32(digest, payload.type, 0, DlmsUnits.UNITLESS)
-    update_md_from_scaled_uint32(digest, payload.active_energy_exported_total.value,
-        payload.active_energy_exported_total.scaler,
-        payload.active_energy_exported_total.unit)
-    update_md_from_scaled_int32(digest, payload.active_power_total.value,
-        payload.active_power_total.scaler,
-        payload.active_power_total.unit)
+    update_md_from_scaled_uint32(digest, payload.active_energy_exported_total,
+        payload.active_energy_exported_total_scale_factor, DlmsUnits.WATT_HOURS)
+    update_md_from_scaled_int32(digest, payload.active_power_total,
+        payload.active_power_total_scale_factor, DlmsUnits.WATTS)
     update_md_from_string(digest, payload.server_id)
     update_md_from_scaled_uint32(digest, payload.response_counter, 0, DlmsUnits.UNITLESS)
     update_md_from_scaled_uint32(digest, payload.timestamp.operating_seconds, 0, DlmsUnits.SECONDS)
