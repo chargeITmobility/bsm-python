@@ -448,6 +448,14 @@ def parse_args():
     return parser.parse_args()
 
 
+def print_model_data(data):
+    print('    model_id: {}'.format(data.model_id))
+    print('    length: {}'.format(data.length))
+    if data.payload != None:
+        for name, value in data.payload._asdict().items():
+            print('    {}: {}'.format(name, pformat(value)))
+
+
 def register_hexdump(registers, offset=0):
     chunk_length = 8
     chunks = list(into_chunks(registers, chunk_length))
@@ -494,8 +502,7 @@ def get_block_command(args):
 
     for offset in args.offsets:
         data = get_block(client, offset)
-        # TODO: Provide a better readable output.
-        pprint(data)
+        print_model_data(data)
 
     client.client.close()
 
@@ -619,8 +626,10 @@ def get_snapshot_command(args):
 
         # Updating is done. Get and display snapshot data in case of success.
         if status == SignedStateBlockStatus.VALID:
+            data = get_block(client, info.offset)
             print('Updating \'{}\' succeeded: {}'.format(info.short_name, status))
-            print('Snapshot data: {}'.format(pformat(get_block(client, info.offset))))
+            print('Snapshot data:')
+            print_model_data(data)
             result = True
         else:
             print('Updating \'{}\' failed: {}'.format(info.short_name, status))
@@ -650,7 +659,8 @@ def verify_snapshot_command(args):
 
         print('Curve: {}'.format(signing_meter_data.payload.ecdsa_curve_name))
         print('Public key: {}'.format(binascii.hexlify(signing_meter_data.payload.ecdsa_public_key)))
-        print('Snapshot data: {}'.format(pformat(snapshot_data)))
+        print('Snapshot data:')
+        print_model_data(snapshot_data)
         print('Signature: {}'.format(binascii.hexlify(snapshot_data.payload.signature)))
 
         assert curve_name == b'secp256r1'
