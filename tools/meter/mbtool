@@ -619,8 +619,11 @@ def verify_snapshot_command(args):
         digest = digest_for_snapshot_data(md, snapshot_data)
         print('Snapshot data SHA-256 digest: {}'.format(binascii.hexlify(digest)))
 
-        if len(signature) == 0:
-            print('Failed. No signature given.')
+        if len(public_key) == 0:
+            print('Failed. Device has no public key.')
+            result = False
+        elif len(signature) == 0:
+            print('Failed. Snapshot contains no signature.')
             result = False
         else:
             if verify_signed_digest(curve, md, public_key, signature, digest):
