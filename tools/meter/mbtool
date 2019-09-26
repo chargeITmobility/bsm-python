@@ -110,6 +110,10 @@ class SigningMeterLengths(IntEnum):
 
 
 class SigningMeterBlockOffsets(IntEnum):
+    ModbusDeviceAddress                      = 2
+    ModbusDeviceAddressLength                = 1
+    ModbusBaudRate                           = 3
+    ModbusBaudRateLength                     = 2
     ErrorCodeLength                          = 4
     SerialNumberMeterLength                  = 8
     SerialNumberCommunicationModuleLength    = 8
@@ -162,6 +166,13 @@ class DlmsUnits(IntEnum):
 # FIXME: Complete block infos.
 BLOCK_INFOS = \
     [
+        BlockInfo(
+            'Signing Meter',
+            'sm',
+            SigningMeterModels.SigningMeter,
+            SigningMeterOffsets.SigningMeterBlock,
+            SigningMeterLengths.SigningMeterBlock,
+            True),
         BlockInfo(
             'Signed Current State',
             'scs',
@@ -349,6 +360,19 @@ def digest_for_snapshot_data(md, data):
     return digest.digest()
 
 
+def get_block(client, offset):
+    # Read and decode block header.
+    decoder = client.get_device_block(offset, SunspecOffsets.HeaderLength)
+    model_id = decoder.decode_16bit_uint()
+    length = decoder.decode_16bit_uint()
+
+    # Read and decode block payload.
+    decoder = client.get_device_block(offset + SunspecOffsets.HeaderLength, length);
+    payload = decode_block_payload(decoder, model_id, length);
+
+    return SunspecModelData(model_id, length, payload)
+
+
 def into_chunks(array, length):
     for i in range(0, len(array), length):
         yield array[i:i + length]
@@ -386,8 +410,11 @@ def parse_args():
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
     set_parser.set_defaults(func=set_values_command )
+    set_parser.add_argument('--device-address', type=auto_int, help='Modbus device address')
+    set_parser.add_argument('--baud-rate', type=auto_int, help='Modbus baud rate')
     set_parser.add_argument('--epoch-time', type=auto_int, help='Epoch time UTC [seconds]')
     set_parser.add_argument('--tz-offset', type=auto_int, help='Local timezone UTC offset [minutes]')
+    set_parser.add_argument('--digital-output', type=auto_int, help='Digital output state')
     set_parser.add_argument('--meta1', help='Metadata string 1')
     set_parser.add_argument('--meta2', help='Metadata string 2')
     set_parser.add_argument('--meta3', help='Metadata string 3')
@@ -462,19 +489,6 @@ def test_main_command(args):
     client.client.close()
 
 
-def get_block(client, offset):
-    # Read and decode block header.
-    decoder = client.get_device_block(offset, SunspecOffsets.HeaderLength)
-    model_id = decoder.decode_16bit_uint()
-    length = decoder.decode_16bit_uint()
-
-    # Read and decode block payload.
-    decoder = client.get_device_block(offset + SunspecOffsets.HeaderLength, length);
-    payload = decode_block_payload(decoder, model_id, length);
-
-    return SunspecModelData(model_id, length, payload)
-
-
 def get_block_command(args):
     client = create_sunspec_sync_client(args)
 
@@ -508,7 +522,29 @@ def set_values_command(args):
     client = create_sunspec_sync_client(args)
     offset = None
 
-    # TODO: Add support for setting the remaining values.
+    # We are currently ignoring the device address from common block and the
+    # snapshot status registers. Snapshots can be triggered by
+    # 'create-snapshot' and 'get-snapshot'.
+
+    # Quirks for setting device address AND baud rate in a single write
+    # request.
+    #
+    # TODO: What about a more generic approach which works for other
+    # consecutive values as well?
+    if args.device_address != None:
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress
+        builder = SunspecBuilder()
+        builder.add_16bit_uint(args.device_address)
+        if args.baud_rate != None:
+            builder.add_32bit_uint(args.baud_rate)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.device_address == None and args.baud_rate != None:
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate
+        builder = SunspecBuilder()
+        builder.add_32bit_uint(args.baud_rate)
+        client.write_registers(offset, builder.to_registers())
+
 
     if args.epoch_time != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds
@@ -520,6 +556,12 @@ def set_values_command(args):
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes
         builder = SunspecBuilder()
         builder.add_16bit_int(args.tz_offset)
+        client.write_registers(offset, builder.to_registers())
+
+    if args.digital_output != None:
+        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState
+        builder = SunspecBuilder()
+        builder.add_16bit_uint(args.digital_output)
         client.write_registers(offset, builder.to_registers())
 
     if args.meta1 != None:
