@@ -394,8 +394,8 @@ def parse_args():
     # Attempt to retrieve communication paramter defaults from environment
     # variables. This will allow short command lines for repeated invocations.
     device = os.getenv('MBTOOL_DEVICE')
-    baud = auto_int(os.getenv('MBTOOL_BAUD', 115200))
-    unit = auto_int(os.getenv('MBTOOL_UNIT'))
+    baud = auto_int(os.getenv('MBTOOL_BAUD', 19200))
+    unit = auto_int(os.getenv('MBTOOL_UNIT', 42))
     timeout = auto_int(os.getenv('MBTOOL_TIMEOUT', 10))
     chunk = auto_int(os.getenv('MBTOOL_CHUNK', 125))
 
