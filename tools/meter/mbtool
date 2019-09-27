@@ -20,6 +20,9 @@ import string
 import sys
 
 
+MODEL_DATA_INDENT = '    '
+
+
 SunspecModelData = namedtuple('SunspecModelData',
     [
         'model_id',
@@ -378,6 +381,11 @@ def into_chunks(array, length):
         yield array[i:i + length]
 
 
+def is_namedtuple(value):
+    # Quirks for identifying namedtuples.
+    return isinstance(value, tuple) and type(value) != tuple
+
+
 def is_snapshot_block_info(info):
     return info != None and info.is_snapshot
 
@@ -448,12 +456,13 @@ def parse_args():
     return parser.parse_args()
 
 
-def print_model_data(data):
-    print('    model_id: {}'.format(data.model_id))
-    print('    length: {}'.format(data.length))
-    if data.payload != None:
-        for name, value in data.payload._asdict().items():
-            print('    {}: {}'.format(name, pformat(value)))
+def print_model_data(data, indent=MODEL_DATA_INDENT):
+    for name, value in data._asdict().items():
+        if is_namedtuple(value):
+            print('{}{}:'.format(indent, name))
+            print_model_data(value, indent + MODEL_DATA_INDENT)
+        else:
+            print('{}{}: {}'.format(indent, name, value))
 
 
 def register_hexdump(registers, offset=0):

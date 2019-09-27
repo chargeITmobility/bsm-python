@@ -23,7 +23,7 @@ set -x
 set -e
 
 
-$MBTOOL get-block 40177
+$MBTOOL get-block 40002 40177 41209
 $MBTOOL set --meta1="This is a tribute ..."
 $MBTOOL create-snapshot scs
 $MBTOOL get-snapshot scs
