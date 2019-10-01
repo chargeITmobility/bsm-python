@@ -181,6 +181,6 @@ class SunspecClient(object):
 
     def write_registers(self, offset, values):
         _logger.debug('write registers {} with {}'.format(offset, values))
-        self.client.write_registers(offset, values, unit=self.unit)
+        return self.client.write_registers(offset, values, unit=self.unit)
 
 
