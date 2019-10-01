@@ -9,6 +9,7 @@ from hashlib import sha256
 from hexdump import hexdump
 from pprint import pprint, pformat
 from pymodbus.client.sync import ModbusSerialClient
+from pymodbus.register_write_message import WriteMultipleRegistersResponse
 from six import iteritems
 from struct import pack
 from sunspec.client import SunspecClient, SunspecBuilder
@@ -225,6 +226,14 @@ def block_info_for_short_name(short_name):
 
     return result
 
+
+def check_write_result(result):
+    if isinstance(result, WriteMultipleRegistersResponse):
+        # Nothing to see here ...
+        pass
+    else:
+        print('Writing registers failed ({}).'.format(result), file=sys.stderr)
+        sys.exit(1);
 
 
 def create_sunspec_sync_client(args):
@@ -536,7 +545,6 @@ def dump_command(args):
 
 def set_values_command(args):
     client = create_sunspec_sync_client(args)
-    offset = None
 
     # We are currently ignoring the device address from common block and the
     # snapshot status registers. Snapshots can be triggered by
@@ -553,50 +561,50 @@ def set_values_command(args):
         builder.add_16bit_uint(args.device_address)
         if args.baud_rate != None:
             builder.add_32bit_uint(args.baud_rate)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.device_address == None and args.baud_rate != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate
         builder = SunspecBuilder()
         builder.add_32bit_uint(args.baud_rate)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
 
     if args.epoch_time != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds
         builder = SunspecBuilder()
         builder.add_32bit_uint(args.epoch_time)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.tz_offset != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes
         builder = SunspecBuilder()
         builder.add_16bit_int(args.tz_offset)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.digital_output != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState
         builder = SunspecBuilder()
         builder.add_16bit_uint(args.digital_output)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.meta1 != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1
         builder = SunspecBuilder()
         builder.add_string(args.meta1, size=2 * SigningMeterBlockOffsets.Metadata1Length)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.meta2 != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2
         builder = SunspecBuilder()
         builder.add_string(args.meta2, size=2 * SigningMeterBlockOffsets.Metadata2Length)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     if args.meta3 != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3
         builder = SunspecBuilder()
         builder.add_string(args.meta3, size=2 * SigningMeterBlockOffsets.Metadata3Length)
-        client.write_registers(offset, builder.to_registers())
+        check_write_result(client.write_registers(offset, builder.to_registers()))
 
     client.client.close()
 
