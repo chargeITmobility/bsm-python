@@ -756,25 +756,28 @@ def set_values_command(args):
         if args.baud_rate != None:
             builder.add_32bit_uint(args.baud_rate)
         check_write_result(client.write_registers(offset, builder.to_registers()))
-
-    if args.device_address == None and args.baud_rate != None:
+    elif args.baud_rate != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate
         builder = SunspecBuilder()
         builder.add_32bit_uint(args.baud_rate)
         check_write_result(client.write_registers(offset, builder.to_registers()))
 
 
+    # Quirks for setting epoch time and timezone offset in a single write
+    # request.
     if args.epoch_time != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds
         builder = SunspecBuilder()
         builder.add_32bit_uint(args.epoch_time)
+        if args.tz_offset != None:
+            builder.add_16bit_int(args.tz_offset)
         check_write_result(client.write_registers(offset, builder.to_registers()))
-
-    if args.tz_offset != None:
+    elif args.tz_offset != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes
         builder = SunspecBuilder()
         builder.add_16bit_int(args.tz_offset)
         check_write_result(client.write_registers(offset, builder.to_registers()))
+
 
     if args.digital_output != None:
         offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState
