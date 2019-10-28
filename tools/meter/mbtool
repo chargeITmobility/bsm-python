@@ -13,7 +13,7 @@ from pymodbus.register_write_message import WriteMultipleRegistersResponse
 from six import iteritems
 from struct import pack
 from sunspec.client import SunspecClient, SunspecBuilder
-from sunspec.constants import SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue
+from sunspec.constants import CommonBlockOffsets, SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue, SunspecModelPayloadLengths
 
 import binascii
 import os
@@ -30,8 +30,92 @@ SunspecModelData = namedtuple('SunspecModelData',
         'length',
         'payload',
     ])
-ScaledValue = namedtuple('ScaledValue', 'value, scaler, unit')
 SnapshotTimestamp = namedtuple('SnapshotTimestamp', 'operating_seconds, epoch_time_utc_seconds, local_timezone_offset_minutes')
+CommonBlockData = namedtuple('CommonBlockData',
+    [
+        'manufacturer',
+        'model',
+        'options',
+        'version',
+        'serial_number',
+        'device_address',
+        'padding',
+    ])
+ThreePhaseMeterData = namedtuple('ThreePhaseMeterData',
+    [
+        'current_total',
+        'current_l1',
+        'current_l2',
+        'current_l3',
+        'scale_factor_current',
+        'voltage',
+        'voltage_l1',
+        'voltage_l2',
+        'voltage_l3',
+        'voltage_ll',
+        'voltage_l1_l2',
+        'voltage_l2_l3',
+        'voltage_l3_l1',
+        'scale_factor_voltage',
+        'frequency',
+        'scale_factor_frequency',
+        'active_power_total',
+        'active_power_l1',
+        'active_power_l2',
+        'active_power_l3',
+        'scale_factor_active_power',
+        'apparent_power_total',
+        'apparent_power_l1',
+        'apparent_power_l2',
+        'apparent_power_l3',
+        'scale_factor_apparent_power',
+        'reactive_power_total',
+        'reactive_power_l1',
+        'reactive_power_l2',
+        'reactive_power_l3',
+        'scale_factor_reactive_power',
+        'power_factor',
+        'power_factor_l1',
+        'power_factor_l2',
+        'power_factor_l3',
+        'scale_factor_power_factor',
+        'active_energy_exported_total',
+        'active_energy_exported_l1',
+        'active_energy_exported_l2',
+        'active_energy_exported_l3',
+        'active_energy_imported_total',
+        'active_energy_imported_l1',
+        'active_energy_imported_l2',
+        'active_energy_imported_l3',
+        'scale_factor_active_energy',
+        'apparent_energy_exported_total',
+        'apparent_energy_exported_l1',
+        'apparent_energy_exported_l2',
+        'apparent_energy_exported_l3',
+        'apparent_energy_imported_total',
+        'apparent_energy_imported_l1',
+        'apparent_energy_imported_l2',
+        'apparent_energy_imported_l3',
+        'scale_factor_apparent_energy',
+        'reactive_energy_imported_q1_total',
+        'reactive_energy_imported_q1_l1',
+        'reactive_energy_imported_q1_l2',
+        'reactive_energy_imported_q1_l3',
+        'reactive_energy_imported_q2_total',
+        'reactive_energy_imported_q2_l1',
+        'reactive_energy_imported_q2_l2',
+        'reactive_energy_imported_q2_l3',
+        'reactive_energy_exported_q3_total',
+        'reactive_energy_exported_q3_l1',
+        'reactive_energy_exported_q3_l2',
+        'reactive_energy_exported_q3_l3',
+        'reactive_energy_exported_q4_total',
+        'reactive_energy_exported_q4_l1',
+        'reactive_energy_exported_q4_l2',
+        'reactive_energy_exported_q4_l3',
+        'scale_factor_reactive_energy',
+        'events',
+    ])
 SigningMeterData = namedtuple('SigningMeterData',
     [
         'modbus_address',
@@ -107,6 +191,8 @@ class SigningMeterModelPayloadLengths(IntEnum):
 
 
 class SigningMeterLengths(IntEnum):
+    CommonBlock                              = SunspecModelPayloadLengths.CommonBlock + SunspecOffsets.HeaderLength
+    ThreePhaseMeterBlock                     = SunspecModelPayloadLengths.ThreePhaseMeter + SunspecOffsets.HeaderLength
     SigningMeterBlock                        = SigningMeterModelPayloadLengths.SigningMeter + SunspecOffsets.HeaderLength
     SignedCurrentStateBlock                  = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
     SignedTurnOnStateBlock                   = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
@@ -167,16 +253,29 @@ class DlmsUnits(IntEnum):
 # Block Information
 # --------------------------------------------------------------------------- #
 
-# FIXME: Complete block infos.
 BLOCK_INFOS = \
     [
+        BlockInfo(
+            'Common Block',
+            'cb',
+            SunspecModel.CommonBlock,
+            SigningMeterOffsets.CommonBlock,
+            SigningMeterLengths.CommonBlock,
+            False),
+        BlockInfo(
+            'Three Phase Meter',
+            'tpm',
+            SunspecModel.ThreePhaseMeter,
+            SigningMeterOffsets.ThreePhaseMeterBlock,
+            SigningMeterLengths.ThreePhaseMeterBlock,
+            False),
         BlockInfo(
             'Signing Meter',
             'sm',
             SigningMeterModels.SigningMeter,
             SigningMeterOffsets.SigningMeterBlock,
             SigningMeterLengths.SigningMeterBlock,
-            True),
+            False),
         BlockInfo(
             'Signed Current State',
             'scs',
@@ -261,9 +360,103 @@ def decode_binary_string(decoder, size):
 def decode_block_payload(decoder, model_id, length):
     result = None
 
-    # FIXME: Add support for remaining blocks of signing meter.
-
-    if model_id == SigningMeterModels.SigningMeter and length == SigningMeterModelPayloadLengths.SigningMeter:
+    if model_id == SunspecModel.CommonBlock and length == SunspecModelPayloadLengths.CommonBlock:
+        result = CommonBlockData(
+                manufacturer=decoder.decode_string(size=2 * CommonBlockOffsets.ManufacturerLength),
+                model=decoder.decode_string(size=2 * CommonBlockOffsets.ModelLength),
+                options=decoder.decode_string(size=2 * CommonBlockOffsets.OptionsLength),
+                version=decoder.decode_string(size=2 * CommonBlockOffsets.VersionLength),
+                serial_number=decoder.decode_string(size=2 * CommonBlockOffsets.SerialNumberLength),
+                device_address=decoder.decode_16bit_uint(),
+                padding=decoder.decode_16bit_uint(),
+            )
+    elif model_id == SunspecModel.ThreePhaseMeter and length == SunspecModelPayloadLengths.ThreePhaseMeter:
+        result = ThreePhaseMeterData(
+            # Current.
+            current_total=decoder.decode_16bit_int(),
+            current_l1=decoder.decode_16bit_int(),
+            current_l2=decoder.decode_16bit_int(),
+            current_l3=decoder.decode_16bit_int(),
+            scale_factor_current=decoder.decode_16bit_int(),
+            # Voltage.
+            voltage=decoder.decode_16bit_int(),
+            voltage_l1=decoder.decode_16bit_int(),
+            voltage_l2=decoder.decode_16bit_int(),
+            voltage_l3=decoder.decode_16bit_int(),
+            voltage_ll=decoder.decode_16bit_int(),
+            voltage_l1_l2=decoder.decode_16bit_int(),
+            voltage_l2_l3=decoder.decode_16bit_int(),
+            voltage_l3_l1=decoder.decode_16bit_int(),
+            scale_factor_voltage=decoder.decode_16bit_int(),
+            # Frequency.
+            frequency=decoder.decode_16bit_int(),
+            scale_factor_frequency=decoder.decode_16bit_int(),
+            # Active power.
+            active_power_total=decoder.decode_16bit_int(),
+            active_power_l1=decoder.decode_16bit_int(),
+            active_power_l2=decoder.decode_16bit_int(),
+            active_power_l3=decoder.decode_16bit_int(),
+            scale_factor_active_power=decoder.decode_16bit_int(),
+            # Apparent power.
+            apparent_power_total=decoder.decode_16bit_int(),
+            apparent_power_l1=decoder.decode_16bit_int(),
+            apparent_power_l2=decoder.decode_16bit_int(),
+            apparent_power_l3=decoder.decode_16bit_int(),
+            scale_factor_apparent_power=decoder.decode_16bit_int(),
+            # Reactive power.
+            reactive_power_total=decoder.decode_16bit_int(),
+            reactive_power_l1=decoder.decode_16bit_int(),
+            reactive_power_l2=decoder.decode_16bit_int(),
+            reactive_power_l3=decoder.decode_16bit_int(),
+            scale_factor_reactive_power=decoder.decode_16bit_int(),
+            # Power factor.
+            power_factor=decoder.decode_16bit_int(),
+            power_factor_l1=decoder.decode_16bit_int(),
+            power_factor_l2=decoder.decode_16bit_int(),
+            power_factor_l3=decoder.decode_16bit_int(),
+            scale_factor_power_factor=decoder.decode_16bit_int(),
+            # Active energy.
+            active_energy_exported_total=decoder.decode_32bit_uint(),
+            active_energy_exported_l1=decoder.decode_32bit_uint(),
+            active_energy_exported_l2=decoder.decode_32bit_uint(),
+            active_energy_exported_l3=decoder.decode_32bit_uint(),
+            active_energy_imported_total=decoder.decode_32bit_uint(),
+            active_energy_imported_l1=decoder.decode_32bit_uint(),
+            active_energy_imported_l2=decoder.decode_32bit_uint(),
+            active_energy_imported_l3=decoder.decode_32bit_uint(),
+            scale_factor_active_energy=decoder.decode_16bit_int(),
+            # Apparent energy.
+            apparent_energy_exported_total=decoder.decode_32bit_uint(),
+            apparent_energy_exported_l1=decoder.decode_32bit_uint(),
+            apparent_energy_exported_l2=decoder.decode_32bit_uint(),
+            apparent_energy_exported_l3=decoder.decode_32bit_uint(),
+            apparent_energy_imported_total=decoder.decode_32bit_uint(),
+            apparent_energy_imported_l1=decoder.decode_32bit_uint(),
+            apparent_energy_imported_l2=decoder.decode_32bit_uint(),
+            apparent_energy_imported_l3=decoder.decode_32bit_uint(),
+            scale_factor_apparent_energy=decoder.decode_16bit_int(),
+            # Reactive energy.
+            reactive_energy_imported_q1_total=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q1_l1=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q1_l2=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q1_l3=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q2_total=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q2_l1=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q2_l2=decoder.decode_32bit_uint(),
+            reactive_energy_imported_q2_l3=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q3_total=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q3_l1=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q3_l2=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q3_l3=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q4_total=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q4_l1=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q4_l2=decoder.decode_32bit_uint(),
+            reactive_energy_exported_q4_l3=decoder.decode_32bit_uint(),
+            scale_factor_reactive_energy=decoder.decode_16bit_int(),
+            # Events.
+            events=decoder.decode_32bit_uint(),
+        )
+    elif model_id == SigningMeterModels.SigningMeter and length == SigningMeterModelPayloadLengths.SigningMeter:
         result = SigningMeterData(
             modbus_address=decoder.decode_16bit_uint(),
             modbus_baud_rate=decoder.decode_32bit_uint(),

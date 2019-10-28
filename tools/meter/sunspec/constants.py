@@ -1,4 +1,5 @@
 from six import iteritems
+from enum import IntEnum
 
 
 # --------------------------------------------------------------------------- # 
@@ -135,3 +136,27 @@ class SunspecOffsets(object):
     CommonBlock             = 40000
     CommonBlockLength       = 70
     AlternateCommonBlock    = 50000
+
+
+class SunspecModelPayloadLengths(IntEnum):
+    """ Payload lengths of SunSpec Model blocks
+
+    These are the actual payload lengths without header. Such lengths are given
+    at other Enums from this file but they include block headers and for the
+    common block the SunSpec ID as well. Let's have the pure payload lengths
+    here.
+    """
+    CommonBlock                              = 66
+    ThreePhaseMeter                          = 105
+    EndOfSunSpecMapBlock                     = 0
+
+
+class CommonBlockOffsets(IntEnum):
+    """ Offsets and field lengths of SunSpec Common Block. """
+    ManufacturerLength                       = 16
+    ModelLength                              = 16
+    OptionsLength                            = 8
+    VersionLength                            = 8
+    SerialNumberLength                       = 16
+    DeviceAddressLength                      = 1
+    PaddingLength                            = 1
