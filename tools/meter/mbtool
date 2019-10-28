@@ -615,7 +615,7 @@ def parse_args():
     # Read and interpret SunSpec block.
     get_block_parser = subparsers.add_parser('get-block', help='read and interpret SunSpec block')
     get_block_parser.set_defaults(func=get_block_command)
-    get_block_parser.add_argument('offsets', metavar='OFFSET', type=auto_int, nargs='+',  help='Modbus block offset (words)')
+    get_block_parser.add_argument('names', metavar='NAME', nargs='+',  help='Block names')
 
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
@@ -711,8 +711,9 @@ def test_main_command(args):
 def get_block_command(args):
     client = create_sunspec_sync_client(args)
 
-    for offset in args.offsets:
-        data = get_block(client, offset)
+    for name in args.names:
+        info = block_info_for_short_name(name.lower())
+        data = get_block(client, info.offset)
         print_model_data(data)
 
     client.client.close()
