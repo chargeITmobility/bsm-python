@@ -7,6 +7,7 @@ from crypto.util import verify_signed_digest
 from enum import IntEnum
 from hashlib import sha256
 from hexdump import hexdump
+from operator import attrgetter
 from pprint import pprint, pformat
 from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.register_write_message import WriteMultipleRegistersResponse
@@ -165,6 +166,26 @@ SignedStateData = namedtuple('SignedStateData',
 BlockInfo = namedtuple('BlockInfo', 'name, short_name, model, offset, length, is_snapshot')
 
 
+class WriteableValue:
+    def __init__(self, arg_name, offset, length, generator):
+        self.arg_name = arg_name
+        self.offset = offset
+        self.length = length
+        self.generator = generator
+
+    def __str__(self):
+        return 'WriteableValue(\'{}\', {}, {}, ...)'.format(self.arg_name, self.offset, self.length)
+
+    def has_arg(self, args):
+        return getattr(args, self.arg_name) != None
+
+    def generate_registers(self, builder, args):
+        return self.generator(builder, getattr(args, self.arg_name))
+
+
+WriteJob = namedtuple('WriteJob', 'offset registers')
+
+
 
 # --------------------------------------------------------------------------- # 
 # Signing Meter Common Constants
@@ -212,8 +233,11 @@ class SigningMeterBlockOffsets(IntEnum):
     MeterAddress1Length                      = 8
     MeterAddress2Length                      = 8
     EpochTimeUtcSeconds                      = 63
+    EpochTimeUtcSecondsLength                = 2
     LocalTimezoneOffsetMinutes               = 65
+    LocalTimezoneOffsetMinutesLength         = 1
     DigitalOutputState                       = 67
+    DigitalOutputStateLength                 = 1
     Metadata1                                = 78
     Metadata1Length                          = 70
     Metadata2                                = 148
@@ -298,6 +322,48 @@ BLOCK_INFOS = \
             SigningMeterLengths.SignedTurnOffStateBlock,
             True),
     ]
+
+
+# We are currently ignoring the device address from common block and the
+# snapshot status registers. Snapshots can be triggered by 'create-snapshot'
+# and 'get-snapshot'.
+WRITEABLE_VALUES = \
+    sorted([
+        # FIXME: Add device address in common block.
+        WriteableValue('device_address',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress,
+            SigningMeterBlockOffsets.ModbusDeviceAddressLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
+        WriteableValue('baud_rate',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate,
+            SigningMeterBlockOffsets.ModbusBaudRateLength,
+            lambda builder, arg: builder.add_32bit_uint(arg)),
+        WriteableValue('epoch_time',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds,
+            SigningMeterBlockOffsets.EpochTimeUtcSecondsLength,
+            lambda builder, arg: builder.add_32bit_uint(arg)),
+        WriteableValue('tz_offset',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes,
+            SigningMeterBlockOffsets.LocalTimezoneOffsetMinutesLength,
+            lambda builder, arg: builder.add_16bit_int(arg)),
+        WriteableValue('digital_output',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState,
+            SigningMeterBlockOffsets.DigitalOutputStateLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
+        WriteableValue('meta1',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1,
+            SigningMeterBlockOffsets.Metadata1Length,
+            lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata1Length)),
+        WriteableValue('meta2',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2,
+            SigningMeterBlockOffsets.Metadata2Length,
+            lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata2Length)),
+        WriteableValue('meta3',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3,
+            SigningMeterBlockOffsets.Metadata3Length,
+            lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata3Length)),
+        # FIXME: Add snapshot status registers.
+    ], key=attrgetter('offset'))
 
 
 # --------------------------------------------------------------------------- # 
@@ -628,6 +694,7 @@ def parse_args():
     set_parser.add_argument('--meta1', help='Metadata string 1')
     set_parser.add_argument('--meta2', help='Metadata string 2')
     set_parser.add_argument('--meta3', help='Metadata string 3')
+    set_parser.add_argument('--write-lead', metavar='REGS', type=auto_int, help='Length of lead to add to each write chunk (for testing purposes, it will likely mess up multi-chunk writes)', default=0)
 
     # Request generating a snapshot (for a given snapshot name).
     create_snapshot_parser = subparsers.add_parser('create-snapshot', help='Create snapshot but don\'t fetch data')
@@ -687,6 +754,64 @@ def register_hexdump(registers, offset=0):
         start += len(chunk)
 
 
+def write_jobs_for_args(args):
+    jobs = []
+
+    # State of work-in-progress for current job.
+    start = None
+    offset = None
+    builder = None
+
+    for writeable in WRITEABLE_VALUES:
+        if writeable.has_arg(args):
+            # Data ahead! Let's add it to the current job-in-progress.
+
+            # If the current writeable value does not fit into the current job's
+            # chunk, finish it and prepare for the next.
+            if start != None and writeable.offset + writeable.length - start > args.chunk_size:
+                jobs.append(WriteJob(start, builder.to_registers()))
+                start = None
+                offset = None
+                builder = None
+
+            # Start new job.
+            if start == None:
+                builder = SunspecBuilder()
+                if args.write_lead > 0:
+                    start = writeable.offset - args.write_lead
+                    offset = writeable.offset
+                    builder.add_string('', 2 * args.write_lead)
+                else:
+                    start = writeable.offset
+                    offset = start
+
+            # Pad space between the last writeable value and this one.
+            if offset < writeable.offset:
+                padding_regs = writeable.offset - offset
+                builder.add_string('', 2 * padding_regs)
+                offset += padding_regs
+
+            # Finally add the current data.
+            writeable.generate_registers(builder, args)
+            offset += writeable.length
+        else:
+           # We've encountered a writeable value with no data given. We can not
+           # write over this value. Finis current job and prepare for next.
+           if start != None:
+               jobs.append(WriteJob(start, builder.to_registers()))
+               start = None
+               offset = None
+               builder = None
+
+    # Finish current job if there is work-in-progress.
+    if start != None:
+        jobs.append(WriteJob(start, builder.to_registers()))
+
+    return jobs
+
+
+
+
 #------------------------------------------------------------
 # Program command implementations
 #------------------------------------------------------------
@@ -738,70 +863,11 @@ def dump_command(args):
 
 
 def set_values_command(args):
+    jobs = write_jobs_for_args(args)
     client = create_sunspec_sync_client(args)
 
-    # We are currently ignoring the device address from common block and the
-    # snapshot status registers. Snapshots can be triggered by
-    # 'create-snapshot' and 'get-snapshot'.
-
-    # Quirks for setting device address AND baud rate in a single write
-    # request.
-    #
-    # TODO: What about a more generic approach which works for other
-    # consecutive values as well?
-    if args.device_address != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress
-        builder = SunspecBuilder()
-        builder.add_16bit_uint(args.device_address)
-        if args.baud_rate != None:
-            builder.add_32bit_uint(args.baud_rate)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-    elif args.baud_rate != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate
-        builder = SunspecBuilder()
-        builder.add_32bit_uint(args.baud_rate)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-
-
-    # Quirks for setting epoch time and timezone offset in a single write
-    # request.
-    if args.epoch_time != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds
-        builder = SunspecBuilder()
-        builder.add_32bit_uint(args.epoch_time)
-        if args.tz_offset != None:
-            builder.add_16bit_int(args.tz_offset)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-    elif args.tz_offset != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes
-        builder = SunspecBuilder()
-        builder.add_16bit_int(args.tz_offset)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-
-
-    if args.digital_output != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState
-        builder = SunspecBuilder()
-        builder.add_16bit_uint(args.digital_output)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-
-    if args.meta1 != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1
-        builder = SunspecBuilder()
-        builder.add_string(args.meta1, size=2 * SigningMeterBlockOffsets.Metadata1Length)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-
-    if args.meta2 != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2
-        builder = SunspecBuilder()
-        builder.add_string(args.meta2, size=2 * SigningMeterBlockOffsets.Metadata2Length)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
-
-    if args.meta3 != None:
-        offset = SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3
-        builder = SunspecBuilder()
-        builder.add_string(args.meta3, size=2 * SigningMeterBlockOffsets.Metadata3Length)
-        check_write_result(client.write_registers(offset, builder.to_registers()))
+    for job in jobs:
+        check_write_result(client.write_registers(job.offset, job.registers))
 
     client.client.close()
 
