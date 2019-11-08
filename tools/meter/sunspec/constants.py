@@ -151,12 +151,20 @@ class SunspecModelPayloadLengths(IntEnum):
     EndOfSunSpecMapBlock                     = 0
 
 
+# TODO: Complete block information.
 class CommonBlockOffsets(IntEnum):
     """ Offsets and field lengths of SunSpec Common Block. """
+    Manufacturer                             = 0
     ManufacturerLength                       = 16
+    Model                                    = 16
     ModelLength                              = 16
+    Options                                  = 32
     OptionsLength                            = 8
+    Version                                  = 40
     VersionLength                            = 8
+    SerialNumber                             = 48
     SerialNumberLength                       = 16
+    DeviceAddress                            = 64
     DeviceAddressLength                      = 1
+    Padding                                  = 65
     PaddingLength                            = 1

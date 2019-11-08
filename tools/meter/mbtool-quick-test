@@ -24,7 +24,7 @@ set -e
 
 
 $MBTOOL get-block sm
-$MBTOOL set --meta1="This is a tribute ..."
+$MBTOOL set --meta-1="This is a tribute ..."
 $MBTOOL create-snapshot scs
 $MBTOOL get-snapshot scs
 $MBTOOL verify-snapshot scs

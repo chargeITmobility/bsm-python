@@ -248,8 +248,11 @@ class SigningMeterBlockOffsets(IntEnum):
     EcdsaPublicKeyLength                     = 37
 
 
+# TODO: Complete block information. What about splitting into offsets and
+# lengths?
 class SignedStateBlockOffsets(object):
     Status                                   = 3
+    StatusLength                             = 1
     ServerId                                 = 12
     ServerIdLength                           = 8
     Metadata1Length                          = SigningMeterBlockOffsets.Metadata1Length
@@ -324,12 +327,12 @@ BLOCK_INFOS = \
     ]
 
 
-# We are currently ignoring the device address from common block and the
-# snapshot status registers. Snapshots can be triggered by 'create-snapshot'
-# and 'get-snapshot'.
 WRITEABLE_VALUES = \
     sorted([
-        # FIXME: Add device address in common block.
+        WriteableValue('device_address_common',
+            SigningMeterOffsets.CommonBlock + CommonBlockOffsets.DeviceAddress,
+            SigningMeterBlockOffsets.ModbusDeviceAddressLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('device_address',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress,
             SigningMeterBlockOffsets.ModbusDeviceAddressLength,
@@ -350,19 +353,30 @@ WRITEABLE_VALUES = \
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState,
             SigningMeterBlockOffsets.DigitalOutputStateLength,
             lambda builder, arg: builder.add_16bit_uint(arg)),
-        WriteableValue('meta1',
+        WriteableValue('meta_1',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1,
             SigningMeterBlockOffsets.Metadata1Length,
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata1Length)),
-        WriteableValue('meta2',
+        WriteableValue('meta_2',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2,
             SigningMeterBlockOffsets.Metadata2Length,
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata2Length)),
-        WriteableValue('meta3',
+        WriteableValue('meta_3',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3,
             SigningMeterBlockOffsets.Metadata3Length,
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata3Length)),
-        # FIXME: Add snapshot status registers.
+        WriteableValue('scs_status',
+            SigningMeterOffsets.SignedCurrentStateBlock + SignedStateBlockOffsets.Status,
+            SignedStateBlockOffsets.StatusLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
+        WriteableValue('stons_status',
+            SigningMeterOffsets.SignedTurnOnStateBlock + SignedStateBlockOffsets.Status,
+            SignedStateBlockOffsets.StatusLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
+        WriteableValue('stoffs_status',
+            SigningMeterOffsets.SignedTurnOffStateBlock + SignedStateBlockOffsets.Status,
+            SignedStateBlockOffsets.StatusLength,
+            lambda builder, arg: builder.add_16bit_uint(arg)),
     ], key=attrgetter('offset'))
 
 
@@ -686,14 +700,18 @@ def parse_args():
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
     set_parser.set_defaults(func=set_values_command )
-    set_parser.add_argument('--device-address', type=auto_int, help='Modbus device address')
-    set_parser.add_argument('--baud-rate', type=auto_int, help='Modbus baud rate')
-    set_parser.add_argument('--epoch-time', type=auto_int, help='Epoch time UTC [seconds]')
-    set_parser.add_argument('--tz-offset', type=auto_int, help='Local timezone UTC offset [minutes]')
-    set_parser.add_argument('--digital-output', type=auto_int, help='Digital output state')
-    set_parser.add_argument('--meta1', help='Metadata string 1')
-    set_parser.add_argument('--meta2', help='Metadata string 2')
-    set_parser.add_argument('--meta3', help='Metadata string 3')
+    set_parser.add_argument('--device-address-common', metavar='ADDRESS', type=auto_int, help='Modbus device address (Common Block)')
+    set_parser.add_argument('--device-address', metavar='ADDRESS', type=auto_int, help='Modbus device address (Signing Meter Block)')
+    set_parser.add_argument('--baud-rate', metavar='BAUD', type=auto_int, help='Modbus baud rate')
+    set_parser.add_argument('--epoch-time', metavar='SECONDS', type=auto_int, help='Epoch time UTC [seconds]')
+    set_parser.add_argument('--tz-offset', metavar='MINUTES', type=auto_int, help='Local timezone UTC offset [minutes]')
+    set_parser.add_argument('--digital-output', metavar='VALUE', type=auto_int, help='Digital output state')
+    set_parser.add_argument('--meta-1', help='Metadata string 1')
+    set_parser.add_argument('--meta-2', help='Metadata string 2')
+    set_parser.add_argument('--meta-3', help='Metadata string 3')
+    set_parser.add_argument('--scs-status', metavar='STATUS', type=auto_int, help='Signed current state state status')
+    set_parser.add_argument('--stons-status', metavar='STATUS',  type=auto_int, help='Signed turn-on state status')
+    set_parser.add_argument('--stoffs-status', metavar='STATUS', type=auto_int, help='Signed turn-off state status')
     set_parser.add_argument('--write-lead', metavar='REGS', type=auto_int, help='Length of lead to add to each write chunk (for testing purposes, it will likely mess up multi-chunk writes)', default=0)
 
     # Request generating a snapshot (for a given snapshot name).
