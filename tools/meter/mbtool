@@ -673,6 +673,11 @@ def is_snapshot_block_info(info):
 
 
 def parse_args():
+    # TODO: Streamline casing in parameter descriptions.
+
+    block_short_name_help = 'block short name (see output of \'list-blocks\')'
+    snapshot_short_name_help = 'snapshot ' + block_short_name_help
+
     # Attempt to retrieve communication paramter defaults from environment
     # variables. This will allow short command lines for repeated invocations.
     device = os.getenv('MBTOOL_DEVICE')
@@ -692,10 +697,14 @@ def parse_args():
 
     subparsers = parser.add_subparsers(help='sub commands')
 
+    # List block information.
+    list_blocks_parser = subparsers.add_parser('list-blocks', help='list SunSpec blocks')
+    list_blocks_parser.set_defaults(func=list_blocks_command)
+
     # Read and interpret SunSpec block.
     get_block_parser = subparsers.add_parser('get-block', help='read and interpret SunSpec block')
     get_block_parser.set_defaults(func=get_block_command)
-    get_block_parser.add_argument('names', metavar='NAME', nargs='+',  help='Block names')
+    get_block_parser.add_argument('names', metavar='NAME', nargs='+',  help=block_short_name_help)
 
     # Set meter time.
     set_parser = subparsers.add_parser('set', help='Set values')
@@ -717,17 +726,17 @@ def parse_args():
     # Request generating a snapshot (for a given snapshot name).
     create_snapshot_parser = subparsers.add_parser('create-snapshot', help='Create snapshot but don\'t fetch data')
     create_snapshot_parser.set_defaults(func=create_snapshot_command)
-    create_snapshot_parser.add_argument('name', help='Snapshot name')
+    create_snapshot_parser.add_argument('name', help=snapshot_short_name_help)
 
     # Request snapshot, wait for completion and get data.
     get_snapshot_parser = subparsers.add_parser('get-snapshot', help='Create snapshot and get data')
     get_snapshot_parser.set_defaults(func=get_snapshot_command)
-    get_snapshot_parser.add_argument('name', help='Snapshot name')
+    get_snapshot_parser.add_argument('name', help=snapshot_short_name_help)
 
     # Verify snapshot signature.
     verify_snapshot_parser = subparsers.add_parser('verify-snapshot', help='Verifies signature of snapshot (but does not create it)')
     verify_snapshot_parser.set_defaults(func=verify_snapshot_command)
-    verify_snapshot_parser.add_argument('name', help='Snapshot name')
+    verify_snapshot_parser.add_argument('name', help=snapshot_short_name_help)
 
     # Hex-dump_command registers.
     dump_parser = subparsers.add_parser('dump', help='Dump registers')
@@ -849,6 +858,13 @@ def test_main_command(args):
         print(block)
 
     client.client.close()
+
+
+def list_blocks_command(args):
+    line_format = '{:<8} {:<24} {:<8} {:<8} {:<16}'
+    print(line_format.format('Short', 'Name', 'Offset', 'Length', 'SunSpec Model'))
+    for block in BLOCK_INFOS:
+        print(line_format.format(block.short_name, block.name, block.offset, block.length, block.model))
 
 
 def get_block_command(args):
