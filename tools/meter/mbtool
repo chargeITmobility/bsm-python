@@ -31,7 +31,8 @@ SunspecModelData = namedtuple('SunspecModelData',
         'length',
         'payload',
     ])
-SnapshotTimestamp = namedtuple('SnapshotTimestamp', 'operating_seconds, epoch_time_utc_seconds, local_timezone_offset_minutes')
+Timestamp = namedtuple('Timestamp', 'operating_seconds, epoch_time_utc_seconds, local_timezone_offset_minutes')
+TimeSetInfo = namedtuple('TimeSetInfo', 'counter operating_seconds')
 CommonBlockData = namedtuple('CommonBlockData',
     [
         'manufacturer',
@@ -131,6 +132,7 @@ SigningMeterData = namedtuple('SigningMeterData',
         'power_down_counter',
         'response_counter',
         'current_time',
+        'time_set',
         'di_state',
         'do_state',
         'last_di_modification',
@@ -152,6 +154,7 @@ SignedStateData = namedtuple('SignedStateData',
         'server_id',
         'response_counter',
         'timestamp',
+        'time_set',
         'di_state',
         'do_state',
         'last_di_modification',
@@ -195,10 +198,10 @@ class SigningMeterOffsets(IntEnum):
     CommonBlock                              = 40002
     ThreePhaseMeterBlock                     = 40070
     SigningMeterBlock                        = 40177
-    SignedCurrentStateBlock                  = 40471
-    SignedTurnOnStateBlock                   = 40717
-    SignedTurnOffStateBlock                  = 40963
-    EndOfSunSpecMapBlock                     = 41209
+    SignedCurrentStateBlock                  = 40475
+    SignedTurnOnStateBlock                   = 40725
+    SignedTurnOffStateBlock                  = 40975
+    EndOfSunSpecMapBlock                     = 41225
 
 
 class SigningMeterModels(IntEnum):
@@ -207,8 +210,8 @@ class SigningMeterModels(IntEnum):
 
 
 class SigningMeterModelPayloadLengths(IntEnum):
-    SigningMeter                             = 292
-    SignedState                              = 244
+    SigningMeter                             = 296
+    SignedState                              = 248
 
 
 class SigningMeterLengths(IntEnum):
@@ -236,13 +239,15 @@ class SigningMeterBlockOffsets(IntEnum):
     EpochTimeUtcSecondsLength                = 2
     LocalTimezoneOffsetMinutes               = 65
     LocalTimezoneOffsetMinutesLength         = 1
-    DigitalOutputState                       = 67
+    TimeSetCounterLength                     = 2
+    TimeSetAtOperatingSecondsLength          = 2
+    DigitalOutputState                       = 69
     DigitalOutputStateLength                 = 1
-    Metadata1                                = 78
+    Metadata1                                = 82
     Metadata1Length                          = 70
-    Metadata2                                = 148
+    Metadata2                                = 154
     Metadata2Length                          = 50
-    Metadata3                                = 198
+    Metadata3                                = 202
     Metadata3Length                          = 50
     EcdsaCurveNameLength                     = 8
     EcdsaPublicKeyLength                     = 37
@@ -550,6 +555,7 @@ def decode_block_payload(decoder, model_id, length):
             power_down_counter=decoder.decode_32bit_uint(),
             response_counter=decoder.decode_32bit_uint(),
             current_time=decode_timestamp(decoder),
+            time_set=decode_time_set_info(decoder),
             di_state=decoder.decode_16bit_uint(),
             do_state=decoder.decode_16bit_uint(),
             last_di_modification=decode_timestamp(decoder),
@@ -571,6 +577,7 @@ def decode_block_payload(decoder, model_id, length):
             server_id=decoder.decode_string(size=2 * SignedStateBlockOffsets.ServerIdLength),
             response_counter=decoder.decode_32bit_uint(),
             timestamp=decode_timestamp(decoder),
+            time_set=decode_time_set_info(decoder),
             di_state=decoder.decode_16bit_uint(),
             do_state=decoder.decode_16bit_uint(),
             last_di_modification=decode_timestamp(decoder),
@@ -587,10 +594,16 @@ def decode_block_payload(decoder, model_id, length):
 
 
 def decode_timestamp(decoder):
-    return SnapshotTimestamp(
+    return Timestamp(
         operating_seconds=decoder.decode_32bit_uint(),
         epoch_time_utc_seconds=decoder.decode_32bit_uint(),
         local_timezone_offset_minutes=decoder.decode_16bit_int())
+
+
+def decode_time_set_info(decoder):
+    return TimeSetInfo(
+        counter=decoder.decode_32bit_uint(),
+        operating_seconds=decoder.decode_32bit_uint())
 
 
 def update_md_from_scaled_int32(md, value, scaler, unit):
@@ -630,6 +643,8 @@ def digest_for_snapshot_data(md, data):
     update_md_from_scaled_uint32(digest, payload.timestamp.operating_seconds, 0, DlmsUnits.SECONDS)
     update_md_from_scaled_uint32(digest, payload.timestamp.epoch_time_utc_seconds, 0, DlmsUnits.SECONDS)
     update_md_from_scaled_int32(digest, payload.timestamp.local_timezone_offset_minutes, 0, DlmsUnits.MINUTES)
+    update_md_from_scaled_uint32(digest, payload.time_set.counter, 0, DlmsUnits.UNITLESS)
+    update_md_from_scaled_uint32(digest, payload.time_set.operating_seconds, 0, DlmsUnits.SECONDS)
     update_md_from_scaled_uint32(digest, payload.di_state, 0, DlmsUnits.UNITLESS)
     update_md_from_scaled_uint32(digest, payload.do_state, 0, DlmsUnits.UNITLESS)
     update_md_from_scaled_uint32(digest, payload.last_di_modification.operating_seconds, 0, DlmsUnits.SECONDS)
