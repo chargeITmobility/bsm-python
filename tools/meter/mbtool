@@ -710,7 +710,7 @@ def parse_args():
     parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=chunk)
 
-    subparsers = parser.add_subparsers(help='sub commands')
+    subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands', required=True)
 
     # List block information.
     list_blocks_parser = subparsers.add_parser('list-blocks', help='list SunSpec blocks')
