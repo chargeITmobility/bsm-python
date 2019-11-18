@@ -169,18 +169,38 @@ SignedStateData = namedtuple('SignedStateData',
 BlockInfo = namedtuple('BlockInfo', 'name, short_name, model, offset, length, is_snapshot')
 
 
-class WriteableValue:
-    def __init__(self, arg_name, offset, length, generator):
+class ReadableValue:
+    def __init__(self, arg_name, offset, length, parser):
         self.arg_name = arg_name
         self.offset = offset
         self.length = length
+        self.parser = parser
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return 'ReadableValue(\'{}\', {}, {})'.format(self.arg_name, self.offset, self.length)
+
+    def get_arg(self, args):
+        result = None
+
+        if hasattr(args, self.arg_name):
+            result = getattr(args, self.arg_name)
+
+        return result
+
+    def parse_registers(self, decoder):
+        return self.parser(decoder)
+
+
+class WriteableValue(ReadableValue):
+    def __init__(self, arg_name, offset, length, parser, generator):
+        super().__init__(arg_name, offset, length, parser)
         self.generator = generator
 
     def __str__(self):
         return 'WriteableValue(\'{}\', {}, {}, ...)'.format(self.arg_name, self.offset, self.length)
-
-    def has_arg(self, args):
-        return getattr(args, self.arg_name) != None
 
     def generate_registers(self, builder, args):
         return self.generator(builder, getattr(args, self.arg_name))
@@ -239,9 +259,11 @@ class SigningMeterBlockOffsets(IntEnum):
     EpochTimeUtcSecondsLength                = 2
     LocalTimezoneOffsetMinutes               = 65
     LocalTimezoneOffsetMinutesLength         = 1
+    TimeSetCounter                           = 66
     TimeSetCounterLength                     = 2
-    TimeSetAtOperatingSecondsLength          = 2
-    DigitalOutputState                       = 69
+    TimeSetAt                                = 68
+    TimeSetAtLength                          = 2
+    DigitalOutputState                       = 71
     DigitalOutputStateLength                 = 1
     Metadata1                                = 82
     Metadata1Length                          = 70
@@ -332,57 +354,85 @@ BLOCK_INFOS = \
     ]
 
 
+READ_ONLY_VALUES = \
+    sorted([
+        ReadableValue('time_set_counter',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.TimeSetCounter,
+            SigningMeterBlockOffsets.TimeSetCounterLength,
+            lambda decoder: decoder.decode_32bit_uint()),
+        ReadableValue('time_set_at',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.TimeSetAt,
+            SigningMeterBlockOffsets.TimeSetAtLength,
+            lambda decoder: decoder.decode_32bit_uint()),
+    ], key=attrgetter('offset'))
+
+
 WRITEABLE_VALUES = \
     sorted([
         WriteableValue('device_address_common',
             SigningMeterOffsets.CommonBlock + CommonBlockOffsets.DeviceAddress,
             SigningMeterBlockOffsets.ModbusDeviceAddressLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('device_address',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress,
             SigningMeterBlockOffsets.ModbusDeviceAddressLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('baud_rate',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate,
             SigningMeterBlockOffsets.ModbusBaudRateLength,
+            lambda decoder: decoder.decode_32bit_uint(),
             lambda builder, arg: builder.add_32bit_uint(arg)),
         WriteableValue('epoch_time',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.EpochTimeUtcSeconds,
             SigningMeterBlockOffsets.EpochTimeUtcSecondsLength,
+            lambda decoder: decoder.decode_32bit_uint(),
             lambda builder, arg: builder.add_32bit_uint(arg)),
         WriteableValue('tz_offset',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.LocalTimezoneOffsetMinutes,
             SigningMeterBlockOffsets.LocalTimezoneOffsetMinutesLength,
+            lambda decoder: decoder.decode_16bit_int(),
             lambda builder, arg: builder.add_16bit_int(arg)),
         WriteableValue('digital_output',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalOutputState,
             SigningMeterBlockOffsets.DigitalOutputStateLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('meta_1',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata1,
             SigningMeterBlockOffsets.Metadata1Length,
+            lambda decoder: decoder.decode_string(2 * SigningMeterBlockOffsets.Metadata1Length),
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata1Length)),
         WriteableValue('meta_2',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata2,
             SigningMeterBlockOffsets.Metadata2Length,
+            lambda decoder: decoder.decode_string(2 * SigningMeterBlockOffsets.Metadata2Length),
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata2Length)),
         WriteableValue('meta_3',
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.Metadata3,
             SigningMeterBlockOffsets.Metadata3Length,
+            lambda decoder: decoder.decode_string(2 * SigningMeterBlockOffsets.Metadata3Length),
             lambda builder, arg: builder.add_string(arg, 2 * SigningMeterBlockOffsets.Metadata3Length)),
         WriteableValue('scs_status',
             SigningMeterOffsets.SignedCurrentStateBlock + SignedStateBlockOffsets.Status,
             SignedStateBlockOffsets.StatusLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('stons_status',
             SigningMeterOffsets.SignedTurnOnStateBlock + SignedStateBlockOffsets.Status,
             SignedStateBlockOffsets.StatusLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('stoffs_status',
             SigningMeterOffsets.SignedTurnOffStateBlock + SignedStateBlockOffsets.Status,
             SignedStateBlockOffsets.StatusLength,
+            lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
     ], key=attrgetter('offset'))
+
+
+ALL_VALUES = sorted(READ_ONLY_VALUES + WRITEABLE_VALUES, key=attrgetter('offset'))
 
 
 # --------------------------------------------------------------------------- # 
@@ -417,7 +467,7 @@ def check_write_result(result):
         pass
     else:
         print('Writing registers failed ({}).'.format(result), file=sys.stderr)
-        sys.exit(1);
+        sys.exit(1)
 
 
 def create_sunspec_sync_client(args):
@@ -430,7 +480,8 @@ def create_sunspec_sync_client(args):
     modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud, parity='E')
     modbus.connect()
     client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size)
-    client.initialize()
+    # No need for calling client.initialize() as this checks the SunSpec ID and
+    # sets up an offset we are not relying on.
     return client
 
 
@@ -667,10 +718,17 @@ def get_block(client, offset):
     length = decoder.decode_16bit_uint()
 
     # Read and decode block payload.
-    decoder = client.get_device_block(offset + SunspecOffsets.HeaderLength, length);
-    payload = decode_block_payload(decoder, model_id, length);
+    decoder = client.get_device_block(offset + SunspecOffsets.HeaderLength, length)
+    payload = decode_block_payload(decoder, model_id, length)
 
     return SunspecModelData(model_id, length, payload)
+
+
+def get_value(client, value):
+    # TODO: What about assinging 'get_device_block' a more appropriate name? It
+    # just returns register data.
+    decoder = client.get_device_block(value.offset, value.length)
+    return value.parse_registers(decoder)
 
 
 def into_chunks(array, length):
@@ -721,9 +779,29 @@ def parse_args():
     get_block_parser.set_defaults(func=get_block_command)
     get_block_parser.add_argument('names', metavar='NAME', nargs='+',  help=block_short_name_help)
 
-    # Set meter time.
+    # Get some values.
+    #
+    # TODO: This subcommand is heavy work in progress.
+    get_parser = subparsers.add_parser('get', help='get individual values')
+    get_parser.set_defaults(func=get_values_command)
+    get_parser.add_argument('--device-address-common', action='store_true', help='Modbus device address (Common Block)')
+    get_parser.add_argument('--device-address', action='store_true', help='Modbus device address (Signing Meter Block)')
+    get_parser.add_argument('--baud-rate', action='store_true', help='Modbus baud rate')
+    get_parser.add_argument('--epoch-time', action='store_true', help='Epoch time UTC [seconds]')
+    get_parser.add_argument('--tz-offset', action='store_true', help='Local timezone UTC offset [minutes]')
+    get_parser.add_argument('--time-set-counter', action='store_true', help='Time set counter')
+    get_parser.add_argument('--time-set-at', action='store_true', help='Time last set at [operating seconds]')
+    get_parser.add_argument('--digital-output', action='store_true', help='Digital output state')
+    get_parser.add_argument('--meta-1', action='store_true', help='Metadata string 1')
+    get_parser.add_argument('--meta-2', action='store_true', help='Metadata string 2')
+    get_parser.add_argument('--meta-3', action='store_true', help='Metadata string 3')
+    get_parser.add_argument('--scs-status', action='store_true', help='Signed current state state status')
+    get_parser.add_argument('--stons-status', action='store_true', help='Signed turn-on state status')
+    get_parser.add_argument('--stoffs-status', action='store_true', help='Signed turn-off state status')
+
+    # Set writeable values.
     set_parser = subparsers.add_parser('set', help='Set values')
-    set_parser.set_defaults(func=set_values_command )
+    set_parser.set_defaults(func=set_values_command)
     set_parser.add_argument('--device-address-common', metavar='ADDRESS', type=auto_int, help='Modbus device address (Common Block)')
     set_parser.add_argument('--device-address', metavar='ADDRESS', type=auto_int, help='Modbus device address (Signing Meter Block)')
     set_parser.add_argument('--baud-rate', metavar='BAUD', type=auto_int, help='Modbus baud rate')
@@ -776,6 +854,10 @@ def print_model_data(data, indent=MODEL_DATA_INDENT):
             print('{}{}: {}'.format(indent, name, value))
 
 
+def readable_values_for_args(args):
+    return list(filter(lambda v: v.get_arg(args) is True, ALL_VALUES))
+
+
 def register_hexdump(registers, offset=0):
     chunk_length = 8
     chunks = list(into_chunks(registers, chunk_length))
@@ -805,7 +887,7 @@ def write_jobs_for_args(args):
     builder = None
 
     for writeable in WRITEABLE_VALUES:
-        if writeable.has_arg(args):
+        if writeable.get_arg(args) is not None:
             # Data ahead! Let's add it to the current job-in-progress.
 
             # If the current writeable value does not fit into the current job's
@@ -909,6 +991,18 @@ def dump_command(args):
     register_hexdump(registers, args.offset)
 
     client.client.close()
+
+
+def get_values_command(args):
+    values = readable_values_for_args(args)
+    client = create_sunspec_sync_client(args)
+
+    for value in values:
+        data = get_value(client, value)
+        print('{}'.format(data))
+
+    client.client.close()
+
 
 
 def set_values_command(args):
