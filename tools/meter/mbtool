@@ -245,7 +245,7 @@ class SigningMeterBlockOffsets(IntEnum):
     DigitalOutputStateLength                 = 1
     Metadata1                                = 82
     Metadata1Length                          = 70
-    Metadata2                                = 154
+    Metadata2                                = 152
     Metadata2Length                          = 50
     Metadata3                                = 202
     Metadata3Length                          = 50
