@@ -263,6 +263,8 @@ class SigningMeterBlockOffsets(IntEnum):
     TimeSetCounterLength                     = 2
     TimeSetAt                                = 68
     TimeSetAtLength                          = 2
+    DigitalInputState                        = 70
+    DigitalInputStateLength                  = 1
     DigitalOutputState                       = 71
     DigitalOutputStateLength                 = 1
     Metadata1                                = 82
@@ -364,6 +366,10 @@ READ_ONLY_VALUES = \
             SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.TimeSetAt,
             SigningMeterBlockOffsets.TimeSetAtLength,
             lambda decoder: decoder.decode_32bit_uint()),
+        ReadableValue('digital_input',
+            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.DigitalInputState,
+            SigningMeterBlockOffsets.DigitalInputStateLength,
+            lambda decoder: decoder.decode_16bit_uint()),
     ], key=attrgetter('offset'))
 
 
@@ -791,6 +797,7 @@ def parse_args():
     get_parser.add_argument('--tz-offset', action='store_true', help='Local timezone UTC offset [minutes]')
     get_parser.add_argument('--time-set-counter', action='store_true', help='Time set counter')
     get_parser.add_argument('--time-set-at', action='store_true', help='Time last set at [operating seconds]')
+    get_parser.add_argument('--digital-input', action='store_true', help='Digital input state')
     get_parser.add_argument('--digital-output', action='store_true', help='Digital output state')
     get_parser.add_argument('--meta-1', action='store_true', help='Metadata string 1')
     get_parser.add_argument('--meta-2', action='store_true', help='Metadata string 2')
