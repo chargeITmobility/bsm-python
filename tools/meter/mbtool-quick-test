@@ -27,6 +27,7 @@ $MBTOOL --help
 $MBTOOL list-blocks
 $MBTOOL get-block sm
 $MBTOOL set --meta-1="Greetings from Simple Modbus Tool test!"
+$MBTOOL get --meta-1
 $MBTOOL create-snapshot scs
 $MBTOOL get-snapshot scs
 $MBTOOL verify-snapshot scs
