@@ -129,6 +129,8 @@ SigningMeterData = namedtuple('SigningMeterData',
         'software_version_communication_module',
         'meter_address_1',
         'meter_address_2',
+        'reference_cumulative_register',
+        'scale_factor_reference_cumulative_register',
         'power_down_counter',
         'response_counter',
         'current_time',
@@ -142,6 +144,7 @@ SigningMeterData = namedtuple('SigningMeterData',
         'metadata_3',
         'ecdsa_curve_name',
         'ecdsa_public_key',
+        'padding',
     ])
 SignedStateData = namedtuple('SignedStateData',
     [
@@ -218,10 +221,10 @@ class SigningMeterOffsets(IntEnum):
     CommonBlock                              = 40002
     ThreePhaseMeterBlock                     = 40070
     SigningMeterBlock                        = 40177
-    SignedCurrentStateBlock                  = 40475
-    SignedTurnOnStateBlock                   = 40725
-    SignedTurnOffStateBlock                  = 40975
-    EndOfSunSpecMapBlock                     = 41225
+    SignedCurrentStateBlock                  = 40479
+    SignedTurnOnStateBlock                   = 40729
+    SignedTurnOffStateBlock                  = 40979
+    EndOfSunSpecMapBlock                     = 41229
 
 
 class SigningMeterModels(IntEnum):
@@ -230,7 +233,7 @@ class SigningMeterModels(IntEnum):
 
 
 class SigningMeterModelPayloadLengths(IntEnum):
-    SigningMeter                             = 296
+    SigningMeter                             = 300
     SignedState                              = 248
 
 
@@ -255,23 +258,23 @@ class SigningMeterBlockOffsets(IntEnum):
     SoftwareVersionCommunicationModuleLength = 8
     MeterAddress1Length                      = 8
     MeterAddress2Length                      = 8
-    EpochTimeUtcSeconds                      = 63
+    EpochTimeUtcSeconds                      = 66
     EpochTimeUtcSecondsLength                = 2
-    LocalTimezoneOffsetMinutes               = 65
+    LocalTimezoneOffsetMinutes               = 68
     LocalTimezoneOffsetMinutesLength         = 1
-    TimeSetCounter                           = 66
+    TimeSetCounter                           = 69
     TimeSetCounterLength                     = 2
-    TimeSetAt                                = 68
+    TimeSetAt                                = 71
     TimeSetAtLength                          = 2
-    DigitalInputState                        = 70
+    DigitalInputState                        = 73
     DigitalInputStateLength                  = 1
-    DigitalOutputState                       = 71
+    DigitalOutputState                       = 74
     DigitalOutputStateLength                 = 1
-    Metadata1                                = 82
+    Metadata1                                = 85
     Metadata1Length                          = 70
-    Metadata2                                = 152
+    Metadata2                                = 155
     Metadata2Length                          = 50
-    Metadata3                                = 202
+    Metadata3                                = 205
     Metadata3Length                          = 50
     EcdsaCurveNameLength                     = 8
     EcdsaPublicKeyLength                     = 37
@@ -609,6 +612,8 @@ def decode_block_payload(decoder, model_id, length):
             software_version_communication_module=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SoftwareVersionCommunicationModuleLength),
             meter_address_1=decoder.decode_string(size=2 * SigningMeterBlockOffsets.MeterAddress1Length),
             meter_address_2=decoder.decode_string(size=2 * SigningMeterBlockOffsets.MeterAddress2Length),
+            reference_cumulative_register=decoder.decode_32bit_uint(),
+            scale_factor_reference_cumulative_register=decoder.decode_16bit_int(),
             power_down_counter=decoder.decode_32bit_uint(),
             response_counter=decoder.decode_32bit_uint(),
             current_time=decode_timestamp(decoder),
@@ -622,6 +627,7 @@ def decode_block_payload(decoder, model_id, length):
             metadata_3=decoder.decode_string(size=2 * SigningMeterBlockOffsets.Metadata3Length),
             ecdsa_curve_name=decoder.decode_string(size=2 * SigningMeterBlockOffsets.EcdsaCurveNameLength),
             ecdsa_public_key=decode_binary_string(decoder, size=2 * SigningMeterBlockOffsets.EcdsaPublicKeyLength),
+            padding=decoder.decode_16bit_uint(),
             )
     elif model_id == SigningMeterModels.SignedState and length == SigningMeterModelPayloadLengths.SignedState:
         result = SignedStateData(
