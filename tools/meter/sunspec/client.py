@@ -80,27 +80,6 @@ class SunspecClient(object):
         decoder  = self.get_device_block(self.offset, 2)
         return decoder.decode_32bit_uint() == SunspecIdentifier.Sunspec
 
-    def get_common_block(self):
-        """ Read and return the sunspec common information
-        block.
-
-        :returns: A dictionary of the common block information
-        """
-        length  = SunspecOffsets.CommonBlockLength
-        decoder = self.get_device_block(self.offset, length)
-        return {
-            'SunSpec_ID':       decoder.decode_32bit_uint(),
-            'SunSpec_DID':      decoder.decode_16bit_uint(),
-            'SunSpec_Length':   decoder.decode_16bit_uint(),
-            'Manufacturer':     decoder.decode_string(size=32),
-            'Model':            decoder.decode_string(size=32),
-            'Options':          decoder.decode_string(size=16),
-            'Version':          decoder.decode_string(size=16),
-            'SerialNumber':     decoder.decode_string(size=32),
-            'DeviceAddress':    decoder.decode_16bit_uint(),
-            'Pad':              decoder.decode_16bit_uint(),
-        }
-
     def get_device_block(self, offset, size):
         """ A helper method to retrieve the next device block
 
@@ -126,42 +105,6 @@ class SunspecClient(object):
                 remaining -= current_chunk
 
         return SunspecDecoder.fromRegisters(registers)
-
-    def get_all_device_blocks(self, raw_data=False):
-        """ Retrieve all the available blocks in the supplied
-        sunspec device.
-
-        .. note:: Since we do not know how to decode the available
-        blocks, this returns a list of dictionaries of the form:
-
-            decoder: the-binary-decoder,
-            model:   the-model-identifier (name)
-
-        :returns: A list of the available blocks
-        """
-        blocks = []
-        offset = self.offset + 2
-        model  = SunspecModel.CommonBlock
-        while model != SunspecModel.EndOfSunSpecMap:
-            decoder = self.get_device_block(offset, 2)
-            model   = decoder.decode_16bit_uint()
-            start   = offset
-            length  = decoder.decode_16bit_uint()
-
-            offset += 2
-
-            if raw_data:
-                decoder = self.get_device_block(offset, length)
-
-            offset += length
-
-            blocks.append({
-                'model' : model,
-                'name'  : SunspecModel.lookup(model),
-                'start' : start,
-                'length': length,
-            })
-        return blocks
 
     def read_holding_registers(self, offset, length):
         _logger.debug('reading registers {}..{}'.format(offset, offset + length))

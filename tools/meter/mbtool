@@ -850,11 +850,6 @@ def parse_args():
     dump_parser.add_argument('offset', metavar='OFFSET', type=auto_int, help='Modbus block offset (words)')
     dump_parser.add_argument('length', metavar='LENGTH', type=auto_int, help='Block length (words)')
 
-    # The original main function from initial Modbus Tool.
-    test_parser = subparsers.add_parser('main', help='run original test code from main')
-    test_parser.set_defaults(func=test_main_command)
-    test_parser.add_argument('--raw-data', action='store_true', help='Fetch raw data for unknown blocks')
-
     return parser.parse_args()
 
 
@@ -952,24 +947,6 @@ def write_jobs_for_args(args):
 #------------------------------------------------------------
 # Program command implementations
 #------------------------------------------------------------
-def test_main_command(args):
-    client = create_sunspec_sync_client(args)
-
-    # print out all the device common block
-    common = client.get_common_block()
-    for key, value in iteritems(common):
-        if key == "SunSpec_DID":
-            value = SunspecModel.lookup(value)
-        print("{:<20}: {}".format(key, value))
-
-    # print out all the available device blocks
-    blocks = client.get_all_device_blocks(args.raw_data)
-    for block in blocks:
-        print(block)
-
-    client.client.close()
-
-
 def list_blocks_command(args):
     line_format = '{:<8} {:<24} {:<8} {:<8} {:<16}'
     print(line_format.format('Short', 'Name', 'Offset', 'Length', 'SunSpec Model'))
