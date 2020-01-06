@@ -14,7 +14,7 @@ from pymodbus.register_write_message import WriteMultipleRegistersResponse
 from six import iteritems
 from struct import pack
 from sunspec.client import SunspecClient, SunspecBuilder
-from sunspec.constants import CommonBlockOffsets, SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue, SunspecModelPayloadLengths
+from sunspec.constants import CommonBlockOffsets, SerialInterfaceOffsets, SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue, SunspecModelPayloadLengths
 
 import binascii
 import os
@@ -42,6 +42,18 @@ CommonBlockData = namedtuple('CommonBlockData',
         'serial_number',
         'device_address',
         'padding',
+    ])
+InterfaceHeaderData = namedtuple('InterfaceHeaderData', 'status control type padding')
+SerialInterfaceData = namedtuple('SerialInterfaceData',
+    [
+        'name',
+        'baud_rate',
+        'bits',
+        'parity',
+        'duplex',
+        'flow_control',
+        'interface_type',
+        'protocol'
     ])
 ThreePhaseMeterData = namedtuple('ThreePhaseMeterData',
     [
@@ -120,8 +132,6 @@ ThreePhaseMeterData = namedtuple('ThreePhaseMeterData',
     ])
 SigningMeterData = namedtuple('SigningMeterData',
     [
-        'modbus_address',
-        'modbus_baud_rate',
         'error_code',
         'serial_number_meter',
         'serial_number_communication_module',
@@ -144,7 +154,6 @@ SigningMeterData = namedtuple('SigningMeterData',
         'metadata_3',
         'ecdsa_curve_name',
         'ecdsa_public_key',
-        'padding',
     ])
 SignedStateData = namedtuple('SignedStateData',
     [
@@ -219,12 +228,14 @@ WriteJob = namedtuple('WriteJob', 'offset registers')
 class SigningMeterOffsets(IntEnum):
     SunSpecId                                = 40000
     CommonBlock                              = 40002
-    ThreePhaseMeterBlock                     = 40070
-    SigningMeterBlock                        = 40177
-    SignedCurrentStateBlock                  = 40479
-    SignedTurnOnStateBlock                   = 40729
-    SignedTurnOffStateBlock                  = 40979
-    EndOfSunSpecMapBlock                     = 41229
+    SerialInterfaceHeaderBlock               = 40070
+    SerialInterfaceBlock                     = 40076
+    ThreePhaseMeterBlock                     = 40090
+    SigningMeterBlock                        = 40197
+    SignedCurrentStateBlock                  = 40495
+    SignedTurnOnStateBlock                   = 40745
+    SignedTurnOffStateBlock                  = 40995
+    EndOfSunSpecMapBlock                     = 41245
 
 
 class SigningMeterModels(IntEnum):
@@ -233,12 +244,14 @@ class SigningMeterModels(IntEnum):
 
 
 class SigningMeterModelPayloadLengths(IntEnum):
-    SigningMeter                             = 300
+    SigningMeter                             = 296
     SignedState                              = 248
 
 
 class SigningMeterLengths(IntEnum):
     CommonBlock                              = SunspecModelPayloadLengths.CommonBlock + SunspecOffsets.HeaderLength
+    SerialInterfaceHeaderBlock               = SunspecModelPayloadLengths.InterfaceHeader + SunspecOffsets.HeaderLength
+    SerialInterfaceBlock                     = SunspecModelPayloadLengths.SerialInterface + SunspecOffsets.HeaderLength
     ThreePhaseMeterBlock                     = SunspecModelPayloadLengths.ThreePhaseMeter + SunspecOffsets.HeaderLength
     SigningMeterBlock                        = SigningMeterModelPayloadLengths.SigningMeter + SunspecOffsets.HeaderLength
     SignedCurrentStateBlock                  = SigningMeterModelPayloadLengths.SignedState + SunspecOffsets.HeaderLength
@@ -247,10 +260,6 @@ class SigningMeterLengths(IntEnum):
 
 
 class SigningMeterBlockOffsets(IntEnum):
-    ModbusDeviceAddress                      = 2
-    ModbusDeviceAddressLength                = 1
-    ModbusBaudRate                           = 3
-    ModbusBaudRateLength                     = 2
     ErrorCodeLength                          = 4
     SerialNumberMeterLength                  = 8
     SerialNumberCommunicationModuleLength    = 8
@@ -258,23 +267,23 @@ class SigningMeterBlockOffsets(IntEnum):
     SoftwareVersionCommunicationModuleLength = 8
     MeterAddress1Length                      = 8
     MeterAddress2Length                      = 8
-    EpochTimeUtcSeconds                      = 66
+    EpochTimeUtcSeconds                      = 63
     EpochTimeUtcSecondsLength                = 2
-    LocalTimezoneOffsetMinutes               = 68
+    LocalTimezoneOffsetMinutes               = 65
     LocalTimezoneOffsetMinutesLength         = 1
-    TimeSetCounter                           = 69
+    TimeSetCounter                           = 66
     TimeSetCounterLength                     = 2
-    TimeSetAt                                = 71
+    TimeSetAt                                = 68
     TimeSetAtLength                          = 2
-    DigitalInputState                        = 73
+    DigitalInputState                        = 70
     DigitalInputStateLength                  = 1
-    DigitalOutputState                       = 74
+    DigitalOutputState                       = 71
     DigitalOutputStateLength                 = 1
-    Metadata1                                = 85
+    Metadata1                                = 82
     Metadata1Length                          = 70
-    Metadata2                                = 155
+    Metadata2                                = 152
     Metadata2Length                          = 50
-    Metadata3                                = 205
+    Metadata3                                = 202
     Metadata3Length                          = 50
     EcdsaCurveNameLength                     = 8
     EcdsaPublicKeyLength                     = 37
@@ -320,6 +329,20 @@ BLOCK_INFOS = \
             SunspecModel.CommonBlock,
             SigningMeterOffsets.CommonBlock,
             SigningMeterLengths.CommonBlock,
+            False),
+        BlockInfo(
+            'Serial Interface Header',
+            'sih',
+            SunspecModel.InterfaceHeader,
+            SigningMeterOffsets.SerialInterfaceHeaderBlock,
+            SigningMeterLengths.SerialInterfaceHeaderBlock,
+            False),
+        BlockInfo(
+            'Serial Interface',
+            'si',
+            SunspecModel.SerialInterface,
+            SigningMeterOffsets.SerialInterfaceBlock,
+            SigningMeterLengths.SerialInterfaceBlock,
             False),
         BlockInfo(
             'Three Phase Meter',
@@ -378,19 +401,14 @@ READ_ONLY_VALUES = \
 
 WRITEABLE_VALUES = \
     sorted([
-        WriteableValue('device_address_common',
-            SigningMeterOffsets.CommonBlock + CommonBlockOffsets.DeviceAddress,
-            SigningMeterBlockOffsets.ModbusDeviceAddressLength,
-            lambda decoder: decoder.decode_16bit_uint(),
-            lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('device_address',
-            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusDeviceAddress,
-            SigningMeterBlockOffsets.ModbusDeviceAddressLength,
+            SigningMeterOffsets.CommonBlock + CommonBlockOffsets.DeviceAddress,
+            CommonBlockOffsets.DeviceAddressLength,
             lambda decoder: decoder.decode_16bit_uint(),
             lambda builder, arg: builder.add_16bit_uint(arg)),
         WriteableValue('baud_rate',
-            SigningMeterOffsets.SigningMeterBlock + SigningMeterBlockOffsets.ModbusBaudRate,
-            SigningMeterBlockOffsets.ModbusBaudRateLength,
+            SigningMeterOffsets.SerialInterfaceBlock + SerialInterfaceOffsets.BaudRate,
+            SerialInterfaceOffsets.BaudRateLength,
             lambda decoder: decoder.decode_32bit_uint(),
             lambda builder, arg: builder.add_32bit_uint(arg)),
         WriteableValue('epoch_time',
@@ -515,6 +533,24 @@ def decode_block_payload(decoder, model_id, length):
                 device_address=decoder.decode_16bit_uint(),
                 padding=decoder.decode_16bit_uint(),
             )
+    elif model_id == SunspecModel.InterfaceHeader and length == SunspecModelPayloadLengths.InterfaceHeader:
+        result = InterfaceHeaderData(
+            status=decoder.decode_16bit_uint(),
+            control=decoder.decode_16bit_uint(),
+            type=decoder.decode_16bit_uint(),
+            padding=decoder.decode_16bit_uint(),
+        )
+    elif model_id == SunspecModel.SerialInterface and length == SunspecModelPayloadLengths.SerialInterface:
+        result = SerialInterfaceData(
+            name=decoder.decode_string(size=2 * SerialInterfaceOffsets.NameLength),
+            baud_rate=decoder.decode_32bit_uint(),
+            bits=decoder.decode_16bit_uint(),
+            parity=decoder.decode_16bit_uint(),
+            duplex=decoder.decode_16bit_uint(),
+            flow_control=decoder.decode_16bit_uint(),
+            interface_type=decoder.decode_16bit_uint(),
+            protocol=decoder.decode_16bit_uint(),
+        )
     elif model_id == SunspecModel.ThreePhaseMeter and length == SunspecModelPayloadLengths.ThreePhaseMeter:
         result = ThreePhaseMeterData(
             # Current.
@@ -603,8 +639,6 @@ def decode_block_payload(decoder, model_id, length):
         )
     elif model_id == SigningMeterModels.SigningMeter and length == SigningMeterModelPayloadLengths.SigningMeter:
         result = SigningMeterData(
-            modbus_address=decoder.decode_16bit_uint(),
-            modbus_baud_rate=decoder.decode_32bit_uint(),
             error_code=decoder.decode_string(size=2 * SigningMeterBlockOffsets.ErrorCodeLength),
             serial_number_meter=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SerialNumberMeterLength),
             serial_number_communication_module=decoder.decode_string(size=2 * SigningMeterBlockOffsets.SerialNumberCommunicationModuleLength),
@@ -627,7 +661,6 @@ def decode_block_payload(decoder, model_id, length):
             metadata_3=decoder.decode_string(size=2 * SigningMeterBlockOffsets.Metadata3Length),
             ecdsa_curve_name=decoder.decode_string(size=2 * SigningMeterBlockOffsets.EcdsaCurveNameLength),
             ecdsa_public_key=decode_binary_string(decoder, size=2 * SigningMeterBlockOffsets.EcdsaPublicKeyLength),
-            padding=decoder.decode_16bit_uint(),
             )
     elif model_id == SigningMeterModels.SignedState and length == SigningMeterModelPayloadLengths.SignedState:
         result = SignedStateData(
@@ -796,8 +829,7 @@ def parse_args():
     # TODO: This subcommand is heavy work in progress.
     get_parser = subparsers.add_parser('get', help='get individual values')
     get_parser.set_defaults(func=get_values_command)
-    get_parser.add_argument('--device-address-common', action='store_true', help='Modbus device address (Common Block)')
-    get_parser.add_argument('--device-address', action='store_true', help='Modbus device address (Signing Meter Block)')
+    get_parser.add_argument('--device-address', action='store_true', help='Modbus device address')
     get_parser.add_argument('--baud-rate', action='store_true', help='Modbus baud rate')
     get_parser.add_argument('--epoch-time', action='store_true', help='Epoch time UTC [seconds]')
     get_parser.add_argument('--tz-offset', action='store_true', help='Local timezone UTC offset [minutes]')
@@ -815,7 +847,6 @@ def parse_args():
     # Set writeable values.
     set_parser = subparsers.add_parser('set', help='Set values')
     set_parser.set_defaults(func=set_values_command)
-    set_parser.add_argument('--device-address-common', metavar='ADDRESS', type=auto_int, help='Modbus device address (Common Block)')
     set_parser.add_argument('--device-address', metavar='ADDRESS', type=auto_int, help='Modbus device address (Signing Meter Block)')
     set_parser.add_argument('--baud-rate', metavar='BAUD', type=auto_int, help='Modbus baud rate')
     set_parser.add_argument('--epoch-time', metavar='SECONDS', type=auto_int, help='Epoch time UTC [seconds]')

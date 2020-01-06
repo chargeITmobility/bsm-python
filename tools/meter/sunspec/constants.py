@@ -48,6 +48,8 @@ class SunspecModel(object):
     #---------------------------------------------
     CommonBlock                              = 1
     AggregatorBlock                          = 2
+    InterfaceHeader                          = 10
+    SerialInterface                          = 17
 
     #---------------------------------------------
     # 1xx Inverter Models
@@ -147,6 +149,8 @@ class SunspecModelPayloadLengths(IntEnum):
     here.
     """
     CommonBlock                              = 66
+    InterfaceHeader                          = 4
+    SerialInterface                          = 12
     ThreePhaseMeter                          = 105
     EndOfSunSpecMapBlock                     = 0
 
@@ -154,17 +158,26 @@ class SunspecModelPayloadLengths(IntEnum):
 # TODO: Complete block information.
 class CommonBlockOffsets(IntEnum):
     """ Offsets and field lengths of SunSpec Common Block. """
-    Manufacturer                             = 0
+    Manufacturer                             = 2
     ManufacturerLength                       = 16
-    Model                                    = 16
+    Model                                    = 18
     ModelLength                              = 16
-    Options                                  = 32
+    Options                                  = 34
     OptionsLength                            = 8
-    Version                                  = 40
+    Version                                  = 42
     VersionLength                            = 8
-    SerialNumber                             = 48
+    SerialNumber                             = 50
     SerialNumberLength                       = 16
-    DeviceAddress                            = 64
+    DeviceAddress                            = 66
     DeviceAddressLength                      = 1
-    Padding                                  = 65
+    Padding                                  = 67
     PaddingLength                            = 1
+
+
+# TODO: Complete block information.
+class SerialInterfaceOffsets(IntEnum):
+    """ Selected offsets and field lengths of SunSpec SerialInterfaceBlock. """
+    Name                                     = 2
+    NameLength                               = 4
+    BaudRate                                 = 6
+    BaudRateLength                           = 2
