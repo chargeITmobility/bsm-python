@@ -990,6 +990,9 @@ def get_block_command(args):
 
     for name in args.names:
         info = block_info_for_short_name(name.lower())
+        if not info:
+            print('Unknown block \'{}\'.'.format(name), file=sys.stderr)
+            sys.exit(1)
         data = get_block(client, info.offset)
         print_model_data(data)
 
