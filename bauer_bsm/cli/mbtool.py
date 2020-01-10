@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
+
+from ..crypto.curves import SECP256r1
+from ..crypto.util import verify_signed_digest
+from ..sunspec.client import SunspecClient, SunspecBuilder
+from ..sunspec.constants import CommonBlockOffsets, SerialInterfaceOffsets, SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue, SunspecModelPayloadLengths
 from argparse import ArgumentParser
 from collections import namedtuple
-from crypto.curves import SECP256r1
-from crypto.util import verify_signed_digest
 from enum import IntEnum
 from hashlib import sha256
 from hexdump import hexdump
@@ -13,8 +16,6 @@ from pymodbus.client.sync import ModbusSerialClient
 from pymodbus.register_write_message import WriteMultipleRegistersResponse
 from six import iteritems
 from struct import pack
-from sunspec.client import SunspecClient, SunspecBuilder
-from sunspec.constants import CommonBlockOffsets, SerialInterfaceOffsets, SunspecModel, SunspecOffsets, SunspecIdentifier, SunspecDefaultValue, SunspecModelPayloadLengths
 
 import binascii
 import os
@@ -1137,6 +1138,10 @@ def verify_snapshot_command(args):
         sys.exit(1)
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     args.func(args)
+
+
+if __name__ == "__main__":
+    main()
