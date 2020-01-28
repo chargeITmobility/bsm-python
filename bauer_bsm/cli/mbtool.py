@@ -505,7 +505,7 @@ def create_sunspec_sync_client(args):
     :param args: command line arguments parsed by ArgumentParser
     :returns: an initialized SunspecClient
     """
-    modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud, parity='E')
+    modbus = ModbusSerialClient(method='rtu', port=args.device, timeout=args.timeout, baudrate=args.baud, parity='E', strict=(not args.relax))
     modbus.connect()
     client = SunspecClient(modbus, unit=args.unit, chunk_size=args.chunk_size)
     # No need for calling client.initialize() as this checks the SunSpec ID and
@@ -811,8 +811,11 @@ def parse_args():
     parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
     parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)
     parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=timeout)
+    parser.add_argument('--relax', dest='relax', action='store_true', help='use a relaxed timing for receiving Modbus data (default on Windows)')
+    parser.add_argument('--no-relax', dest='relax', action='store_false', help='use strict timing for receiving Modbus data (default on other platforms)')
     parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='Maximum amount of registers to read at once', default=chunk)
+    parser.set_defaults(relax=relax_default_for_platform())
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -916,6 +919,10 @@ def register_hexdump(registers, offset=0):
 
         print('{:8}: {:40} {}'.format(start, hex_chunk, printable))
         start += len(chunk)
+
+
+def relax_default_for_platform():
+    return True if sys.platform == 'win32' else False
 
 
 def write_jobs_for_args(args):
