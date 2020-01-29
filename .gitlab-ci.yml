@@ -1,0 +1,33 @@
+image: python:3.8-alpine
+
+stages:
+  - package
+
+
+package-master:
+  stage: package
+  script:
+    - python3 setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/*.tar.gz
+      - dist/*.whl
+  only:
+    - master
+
+
+package-dev:
+  stage: package
+  script:
+    - python3 setup.py sdist bdist_wheel
+  artifacts:
+    paths:
+      - dist/*.tar.gz
+      - dist/*.whl
+    expire_in: 1 week
+  only:
+     - /^feature\/.*$/
+     - /^hotfix\/.*$/
+     - /^release\/.*$/
+     - dev
+
