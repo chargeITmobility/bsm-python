@@ -20,20 +20,31 @@ in your environment.
     * We have tested it with 3.7 and 3.8
     * We recommend version 3.8
 
-* Several Python packages listed in `requirements.txt`. You may install them as follows:
+
+# Installation
+
+* From a pre-built distribution package
 ```
-$ pip3 install -r requirements.txt
+$ pip3 install --user bauer_bsm-YOUR_VERSION_HERE-py3-none-any.whl
 ```
+
+* For development directly from this repository
+```
+$ pip3 install --user --editable .
+```
+
+* Omit the argument `--user` for installing this package globally/for
+  all users on your system.
 
 
 # Getting help
 
 To display the built-in help for the tool and general arguments use:
 ```
-$ ./mbtool --help
+$ bsmtool --help
 ```
 To get help for an individual subcommand, give `--help` after the subcommand.
 For example for help on creating and fetching snapshots use:
 ```
-$ ./mbtool get-snapshot --help
+$ bsmtool get-snapshot --help
 ```
