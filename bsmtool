@@ -12,8 +12,8 @@ import sys
 repo = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, repo)
 
-from bauer_bsm.cli import mbtool
+from bauer_bsm.cli import bsmtool
 
 
 if __name__ == '__main__':
-    sys.exit(mbtool.main())
+    sys.exit(bsmtool.main())

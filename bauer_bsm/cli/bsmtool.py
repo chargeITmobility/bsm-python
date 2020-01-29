@@ -799,14 +799,14 @@ def parse_args():
 
     # Attempt to retrieve communication paramter defaults from environment
     # variables. This will allow short command lines for repeated invocations.
-    device = os.getenv('MBTOOL_DEVICE')
-    baud = auto_int(os.getenv('MBTOOL_BAUD', 19200))
-    unit = auto_int(os.getenv('MBTOOL_UNIT', 42))
-    timeout = auto_int(os.getenv('MBTOOL_TIMEOUT', 10))
-    chunk = auto_int(os.getenv('MBTOOL_CHUNK', 125))
+    device = os.getenv('BSMTOOL_DEVICE')
+    baud = auto_int(os.getenv('BSMTOOL_BAUD', 19200))
+    unit = auto_int(os.getenv('BSMTOOL_UNIT', 42))
+    timeout = auto_int(os.getenv('BSMTOOL_TIMEOUT', 10))
+    chunk = auto_int(os.getenv('BSMTOOL_CHUNK', 125))
 
-    parser = ArgumentParser(description='Signing Meter Modbus Tool',
-        epilog='You may specify communication parameters also by environment variables. Use MBTOOL_DEVICE, MBTOOL_BAUD, MBTOOL_UNIT, MBTOOL_TIMEOUT, and MBTOOL_CHUNK.')
+    parser = ArgumentParser(description='BSM Modbus Tool',
+        epilog='You may specify communication parameters also by environment variables. Use BSMTOOL_DEVICE, BSMTOOL_BAUD, BSMTOOL_UNIT, BSMTOOL_TIMEOUT, and BSMTOOL_CHUNK.')
     # Default parser for communication parameters.
     parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
     parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)

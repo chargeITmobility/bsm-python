@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'bsmtool=bauer_bsm.cli.mbtool:main',
+            'bsmtool=bauer_bsm.cli.bsmtool:main',
             'bsmverify=bauer_bsm.cli.sign_verify:main',
         ],
     },
