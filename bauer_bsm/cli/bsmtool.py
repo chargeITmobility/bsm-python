@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+from . import version
 from ..crypto.curves import SECP256r1
 from ..crypto.util import verify_signed_digest
 from ..sunspec.client import SunspecClient, SunspecBuilder
@@ -19,6 +20,7 @@ from struct import pack
 
 import binascii
 import os
+import pkg_resources
 import string
 import sys
 
@@ -885,6 +887,10 @@ def parse_args():
     dump_parser.add_argument('offset', metavar='OFFSET', type=auto_int, help='Modbus block offset (words)')
     dump_parser.add_argument('length', metavar='LENGTH', type=auto_int, help='Block length (words)')
 
+    # Print version information.
+    version_parser = subparsers.add_parser('version', help='Print version')
+    version_parser.set_defaults(func=version_command)
+
     return parser.parse_args()
 
 
@@ -1143,6 +1149,10 @@ def verify_snapshot_command(args):
     client.client.close()
     if not result:
         sys.exit(1)
+
+
+def version_command(args):
+    print(version.version)
 
 
 def main():

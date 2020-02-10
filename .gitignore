@@ -4,3 +4,4 @@
 __pycache__/
 build/
 dist/
+bauer_bsm/cli/version.py
