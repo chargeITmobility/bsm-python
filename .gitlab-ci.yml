@@ -7,6 +7,8 @@ stages:
 package-master:
   stage: package
   script:
+    # TODO: Clean up quick-and-dirty adding Git for package vesion information.
+    - apk add git
     - python3 setup.py sdist bdist_wheel
   artifacts:
     paths:
@@ -19,6 +21,8 @@ package-master:
 package-dev:
   stage: package
   script:
+    # TODO: Clean up quick-and-dirty adding Git for package vesion information.
+    - apk add git
     - python3 setup.py sdist bdist_wheel
   artifacts:
     paths:
