@@ -1,0 +1,224 @@
+<sunSpecModels v="1">
+  <model id="64900" len="292" name="bsm">
+    <block len="260">
+      <point id="ErrM" offset="0" type="string" len="4" />
+      <point id="SNM" offset="4" type="string" len="8" />
+      <point id="SNC" offset="12" type="string" len="8" />
+      <point id="VrM" offset="20" type="string" len="8" />
+      <point id="VrC" offset="28" type="string" len="8" />
+      <point id="MA1" offset="36" type="string" len="8" />
+      <point id="MA2" offset="44" type="string" len="8" />
+      <point id="RCR" offset="52" type="uint32" sf="RCR_SF" units="Wh" />
+      <point id="RCR_SF" offset="54" type="sunssf" />
+      <point id="PDCnt" offset="55" type="uint32" />
+      <point id="RCnt" offset="57" type="uint32" />
+      <point id="OS" offset="59" type="uint32" units="s" />
+      <point id="Epoch" offset="61" type="uint32" units="s" access="rw" />
+      <point id="TZO" offset="63" type="int16" units="min" access="rw" />
+      <point id="EpochSetCnt" offset="64" type="uint32" />
+      <point id="EpochSetOS" offset="66" type="uint32" units="s" />
+      <point id="DI" offset="68" type="uint16" access="r" />
+      <point id="DO" offset="69" type="uint16" access="rw" />
+      <point id="DIChgOS" offset="70" type="uint32" units="s" />
+      <point id="DIChgEpoch" offset="72" type="uint32" units="s" />
+      <point id="DIChgTZO" offset="74" type="int16" units="min" />
+      <point id="DOChgOS" offset="75" type="uint32" units="s" />
+      <point id="DOChgEpoch" offset="77" type="uint32" units="s" />
+      <point id="DOChgTZO" offset="79" type="int16" units="min" />
+      <point id="Meta1" offset="80" type="string" len="70" access="rw" />
+      <point id="Meta2" offset="150" type="string" len="50" access="rw" />
+      <point id="Meta3" offset="200" type="string" len="50" access="rw" />
+      <point id="Curve" offset="250" type="string" len="8" />
+      <point id="NPK" offset="258" type="uint16" />
+      <point id="Pad" offset="259" type="pad" />
+    </block>
+    <block len="1" type="repeating">
+      <point id="PK" offset="0" type="uint16" len="1" />
+    </block>
+  </model>
+  <strings id="64900" locale="en">
+    <model>
+      <label>BSM Meter</label>
+      <description>Meter data which goes beyond the scope of an AC meter.</description>
+    </model>
+    <!-- FIXME: Complete model description. -->
+    <point id="ErrM">
+      <label>Error Code Meter</label>
+      <description>Meter module error code</description>
+      <!-- TODO: Provide more details. -->
+    </point>
+    <point id="SNM">
+      <label>Serial Number Meter</label>
+      <description>Serial number meter module</description>
+      <notes>This serial number is also provided as 'SN' in common model (1).</notes>
+    </point>
+    <point id="SNC">
+      <label>Serial Number Communication Module</label>
+      <description>Serial number of the meter's communication module</description>
+    </point>
+    <point id="VrM">
+      <label>Software Version Meter</label>
+      <description>Meter firmware version and checksum</description>
+      <notes>This version informatin is also provided as 'Vr' in common model (1).</notes>
+    </point>
+    <point id="VrC">
+      <label>Software Version Communication Module</label>
+      <description>Communication module firmware version</description>
+      <notes>This version informatin is also provided as 'Vr' in common model (1).</notes>
+    </point>
+    <point id="MA1">
+      <label>Meter Address 1</label>
+      <description>Meter address 1</description>
+      <!-- TODO: Provide more details. -->
+    </point>
+    <point id="MA2">
+      <label>Meter Address 2</label>
+      <description>Meter address 2</description>
+      <!-- TODO: Provide more details. -->
+    </point>
+    <point id="RCR">
+      <label>Real Energy Exported Since Last Turn-On Sequence</label>
+      <description>Real energy exported since the last execution of the turn-on sequence</description>
+      <notes>
+        This data point value gets reset to zero during the turn-on
+        sequence.
+      </notes>
+    </point>
+    <point id="RCR_SF">
+      <label>Real Energy Exported Since Last Turn-On Sequence Scale Factor</label>
+    </point>
+    <point id="PDCnt">
+      <label>Power Down Counter</label>
+    </point>
+    <point id="RCnt">
+      <label>Response Counter</label>
+      <description>A counter incremented with each snapshot</description>
+      <notes>
+        This is a counter which gets incremented with and included in each
+        created snapshot. It is used among all snapshot instances.
+      </notes>
+    </point>
+    <point id="OS">
+      <label>Operation-Seconds Counter</label>
+    </point>
+    <point id="Epoch">
+      <label>Current Epoch Time</label>
+      <description>Current local time in seconds since 1970</description>
+      <notes>
+        Set both, 'Epoch' and 'TZO' in a single write operation for initially
+        setting the time (if the time is invalid, for example after a
+        power-up).
+      </notes>
+    </point>
+    <point id="TZO">
+      <label>Timezone Offset</label>
+      <description>Timezone offset of local epoch time time to UTC</description>
+      <notes>
+        Positive values refer to time zones east/ahead of UTC, negative values
+        to time zones west/behind of UTC. Set both, 'Epoch' and 'TZO' in a
+        single write operation for initially setting the time (if the time is
+        invalid, for example after a power-up).
+      </notes>
+    </point>
+    <point id="EpochSetCnt">
+      <label>Time Set Counter</label>
+      <description>How many time epoch time and timezone offset have been set</description>
+    </point>
+    <point id="EpochSetOS">
+      <label>Time Last Set At Operation-Seconds</label>
+      <description>Operation-seconds when the time has been set the last time</description>
+    </point>
+    <point id="DI">
+      <label>Digital Input State</label>
+      <description>Status of the digital inputs</description>
+    </point>
+    <point id="DO">
+      <label>Digital Output State</label>
+      <description>Status of the digital outputs</description>
+    </point>
+    <point id="DIChgOS">
+      <label>Digital Inputs Last Changed At Operation-Seconds</label>
+      <description>
+        The point in time (operation-seconds) when the digital inputs changed
+        last
+      </description>
+    </point>
+    <point id="DIChgEpoch">
+      <label>Digital Inputs Last Changed At Epoch Time</label>
+      <description>
+        The point in time (epoch time) when the digital inputs changed
+        last
+      </description>
+    </point>
+    <point id="DIChgTZO">
+      <label>Digital Inputs Last Changed Timezone Offset</label>
+      <description>
+        The timezone offset when digital input changed last
+      </description>
+    </point>
+    <point id="DOChgOS">
+      <label>Digital Outputs Last Changed At Operation-Seconds</label>
+      <description>
+        The point in time (operation-seconds) when the digital outputs changed
+        last
+      </description>
+    </point>
+    <point id="DOChgEpoch">
+      <label>Digital Outputs Last Changed At Epoch Time</label>
+      <description>
+        The point in time (epoch time) when the digital outputs changed
+        last
+      </description>
+    </point>
+    <point id="DOChgTZO">
+      <label>Digital Outputs Last Changed Timezone Offset</label>
+      <description>
+        The timezone offset when digital outputs changed last
+      </description>
+    </point>
+    <point id="Meta1">
+      <label>Metadata 1</label>
+      <description>User metadata 1</description>
+      <notes>
+        Use this data point for including custom data into signed
+        snapshots.
+      </notes>
+    </point>
+    <point id="Meta2">
+      <label>Metadata 2</label>
+      <description>User metadata 2</description>
+      <notes>
+        Use this data point for including custom data into signed
+        snapshots.
+      </notes>
+    </point>
+    <point id="Meta3">
+      <label>Metadata 3</label>
+      <description>User metadata 3</description>
+      <notes>
+        Use this data point for including custom data into signed
+        snapshots.
+      </notes>
+    </point>
+    <point id="Curve">
+      <label>Signing Curve Name</label>
+      <description>The elliptic curve used for signing data</description>
+    </point>
+    <point id="NPK">
+      <label>Number Of Public-Key Registers</label>
+      <description>The number of registers comprising the public key data</description>
+    </point>
+    <point id="Pad">
+      <label>Pad</label>
+      <description>Pad register</description>
+    </point>
+    <point id="PK">
+      <label>Public Key</label>
+      <description>The meter's public key used for signing</description>
+      <notes>
+        The public key covers all registers from its block. The first NPK/2
+        registers contain x, the last NPK/2 registers contain y in big endian.
+      </notes>
+    </point>
+  </strings>
+</sunSpecModels>

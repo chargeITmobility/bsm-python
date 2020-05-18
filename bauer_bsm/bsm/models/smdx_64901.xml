@@ -1,0 +1,303 @@
+<sunSpecModels v="1">
+  <model id="64901" len="242" name="bsm_snapshot">
+    <block len="210">
+      <point id="Typ" offset="0" type="enum16">
+        <symbol id="CURRENT">0</symbol>
+        <symbol id="TURN_ON">1</symbol>
+        <symbol id="TURN_OFF">2</symbol>
+      </point>
+      <point id="Sta" offset="1" type="enum16" access="rw">
+        <symbol id="VALID">0</symbol>
+        <symbol id="INVALID">1</symbol>
+        <symbol id="UPDATING">2</symbol>
+        <symbol id="FAILED_GENERAL">3</symbol>
+        <symbol id="FAILED_NOT_ENABLED">4</symbol>
+        <symbol id="FAILED_FEEDBACK">5</symbol>
+      </point>
+      <point id="TotWhExp" offset="2" type="acc32" sf="TotWh_SF" units="Wh" />
+      <point id="TotWh_SF" offset="4" type="sunssf" />
+      <point id="W" offset="5" type="int16" sf="W_SF" units="W" />
+      <point id="W_SF" offset="6" type="sunssf"  />
+      <point id="MA2" offset="7" type="string" len="8" />
+      <point id="RCnt" offset="15" type="uint32" />
+      <point id="OS" offset="17" type="uint32" units ="s" />
+      <point id="Epoch" offset="19" type="uint32" units="s" />
+      <point id="TZO" offset="21" type="int16" units="min" />
+      <point id="EpochSetCnt" offset="22" type="uint32" />
+      <point id="EpochSetOS" offset="24" type="uint32" units="s" />
+      <point id="DI" offset="26" type="uint16" access="r" />
+      <point id="DO" offset="27" type="uint16" access="rw" />
+      <point id="DIChgOS" offset="28" type="uint32" units="s" />
+      <point id="DIChgEpoch" offset="30" type="uint32" units="s" />
+      <point id="DIChgTZO" offset="32" type="int16" units="min" />
+      <point id="DOChgOS" offset="33" type="uint32" units="s" />
+      <point id="DOChgEpoch" offset="35" type="uint32" units="s" />
+      <point id="DOChgTZO" offset="37" type="int16" units="min" />
+      <point id="Meta1" offset="38" type="string" len="70" />
+      <point id="Meta2" offset="108" type="string" len="50" />
+      <point id="Meta3" offset="158" type="string" len="50" />
+      <point id="NSig" offset="208" type="uint16" />
+      <point id="Pad" offset="209" type="pad" />
+    </block>
+    <block type="repeating" len="1">
+      <point id="Sig" offset="0" type="uint16" len="1" />
+    </block>
+  </model>
+  <strings id="64901" locale="en">
+    <model>
+      <label>BSM Signed Snapshot</label>
+      <description>A signed snapshot of data from different model instances</description>
+      <notes>See notes on 'Sta' for snapshot creation.</notes>
+    </model>
+    <point id="Typ">
+      <label>Snapshot Type</label>
+      <description>Which snapshot type is represented by this model instance</description>
+      <symbol id="CURRENT">
+        <label>Signed Current Snapshot</label>
+        <description>
+          Signed snapshot of the current meter data at the time of its
+          creation
+        </description>
+        <notes>
+          Creating this snapshot just collects and signs the data. No further
+          action is taken.
+        </notes>
+      </symbol>
+      <symbol id="TURN_ON">
+        <label>Signed Turn-On Snapshot</label>
+        <description>
+          Signed snapshot created during executing the turn-on sequence for an
+          external contactor
+        </description>
+        <notes>
+          Creating this snapshot executes the turn-on sequence for an external
+          contactor. Its data is taken with the contactor turned off.
+        </notes>
+      </symbol>
+      <symbol id="TURN_OFF">
+        <label>Signed Turn-Off Snapshot</label>
+        <description>
+          Signed snapshot created during the execution of the turn-off sequence
+          for an external contactor
+        </description>
+        <notes>
+          Creating this snapshot executes the turn-on sequence for an external
+          contactor. Its data is taken after turning the contactor off.
+        </notes>
+      </symbol>
+    </point>
+    <point id="Sta">
+      <label>Snapshot Status</label>
+      <description>Status of this snapshot instance</description>
+      <notes>
+        Write 'UPDATING' to this data point for triggering the creation of a
+        new  snapshot. Poll this data points afterwards until its value changes
+        to something different from 'UPDATING'.
+      </notes>
+      <symbol id="VALID">
+        <label>Snapshot Data Valid</label>
+        <description>The model instance contains valid signed data of a snapshot</description>
+      </symbol>
+      <symbol id="INVALID">
+        <label>Snapshot Data Invalid</label>
+        <description>
+          Snapshot data is invalid. This is the case after powering on the
+          meter.
+        </description>
+      </symbol>
+      <symbol id="UPDATING">
+        <label>Snapshot Data Gets Updated</label>
+        <description>
+          The snapshot gets currently updated. Snapshot data is invalid.
+        </description>
+        <notes>
+          Write this value to trigger the creation of a new snapshot.
+          Afterwards poll this data point until its value changes to a
+          different symbol indicating the outcome of the update process.
+        </notes>
+      </symbol>
+      <symbol id="FAILED_GENERAL">
+        <label>Snapshot Creation Failed For Unspecified Reason</label>
+        <description>
+          Creating the snapshot failed for an unspecified reason (for example
+          an internal error). Snapshot data is invalid.
+        </description>
+      </symbol>
+      <symbol id="FAILED_GENERAL">
+        <label>Snapshot Creation Failed For Unspecified Reason</label>
+        <description>
+          Creating the snapshot failed for an unspecified reason (for example
+          an internal error)
+        </description>
+      </symbol>
+      <symbol id="FAILED_NOT_ENABLED">
+        <label>Snapshot Creation Failed Due To Missing Enable Signal</label>
+        <description>
+          Creating the snapshot failed due to a missing enable signal (DOE)
+        </description>
+        <notes>
+          This could happen when attempting to create a turn-on snapshot.
+        </notes>
+      </symbol>
+      <symbol id="FAILED_FEEDBACK">
+        <label>Snapshot Creation Failed Due Missing/Wrong Contactor Feedback</label>
+        <description>
+          Creating the snapshot failed due to missing or wrong feedback from
+          the external contactor (through DI).
+        </description>
+      </symbol>
+    </point>
+    <point id="TotWhExp">
+      <label>Total Watt-hours Exported</label>
+      <description>Total Real Energy Exported</description>
+      <notes>This value is taken from AC meter model 203.</notes>
+    </point>
+    <point id="TotWh_SF">
+       <description>Real Energy scale factor</description>
+       <notes>This value is taken from AC meter model 203.</notes>
+    </point>
+    <point id="W">
+      <label>Watts</label>
+      <description>Total Real Power</description>
+      <notes>This value is taken from AC meter model 203.</notes>
+    </point>
+    <point id="W_SF">
+      <description>Real Power scale factor</description>
+      <notes>This value is taken from AC meter model 203.</notes>
+    </point>
+    <point id="MA2">
+      <label>Meter Address 2</label>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="RCnt">
+      <label>Response Counter</label>
+      <description>A counter incremented with each snapshot</description>
+      <notes>
+        This is a counter which gets incremented with each created snapshot and
+        used among all snapshot instances. You can find the last assigned value
+        in the BSM meter model 64900.
+      </notes>
+    </point>
+    <point id="OS">
+      <label>Operation-Seconds Counter</label>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="Epoch">
+      <label>Current Epoch Time</label>
+      <description>Current local time in seconds since 1970</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="TZO">
+      <label>Timezone Offset</label>
+      <description>Timezone offset of local epoch time time to UTC</description>
+      <notes>
+        Positive values refer to time zones east/ahead of UTC, negative values
+        to time zones west/behind of UTC. This value is taken from BSM meter
+        model 64900.
+      </notes>
+    </point>
+    <point id="EpochSetCnt">
+      <label>Time Set Counter</label>
+      <description>How many time epoch time and timezone offset have been set</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="EpochSetOS">
+      <label>Time Last Set At Operation-Seconds</label>
+      <description>Operation-seconds when the time has been set the last time</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DI">
+      <label>Digital Input State</label>
+      <description>Status of the digital inputs</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DO">
+      <label>Digital Output State</label>
+      <description>Status of the digital outputs</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DIChgOS">
+      <label>Digital Inputs Last Changed At Operation-Seconds</label>
+      <description>
+        The point in time (operation-seconds) when the digital inputs changed
+        last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DIChgEpoch">
+      <label>Digital Inputs Last Changed At Epoch Time</label>
+      <description>
+        The point in time (epoch time) when the digital inputs changed
+        last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DIChgTZO">
+      <label>Digital Inputs Last Changed Timezone Offset</label>
+      <description>
+        The timezone offset when digital input changed last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DOChgOS">
+      <label>Digital Outputs Last Changed At Operation-Seconds</label>
+      <description>
+        The point in time (operation-seconds) when the digital outputs changed
+        last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DOChgEpoch">
+      <label>Digital Outputs Last Changed At Epoch Time</label>
+      <description>
+        The point in time (epoch time) when the digital outputs changed
+        last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="DOChgTZO">
+      <label>Digital Outputs Last Changed Timezone Offset</label>
+      <description>
+        The timezone offset when digital outputs changed last
+      </description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="Meta1">
+      <label>Metadata 1</label>
+      <description>User metadata 1</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="Meta2">
+      <label>Metadata 2</label>
+      <description>User metadata 2</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="Meta3">
+      <label>Metadata 3</label>
+      <description>User metadata 3</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="Meta3">
+      <label>Metadata 3</label>
+      <description>User metadata 3</description>
+      <notes>This value is taken from BSM meter model 64900.</notes>
+    </point>
+    <point id="NSig">
+      <label>Number Of Signature Registers</label>
+      <description>The number of registers comprising the snapshot signature</description>
+    </point>
+    <point id="Pad">
+      <label>Pad</label>
+      <description>Pad register</description>
+    </point>
+    <point id="Sig">
+      <label>Digital Signature</label>
+      <description>The snapshot's ECDSA signature</description>
+      <notes>
+        The signature covers all registers from its block. The first NSig/2
+        registers contain r, the last NSig/2 registers contain s in big endian
+        order.
+      </notes>
+    </point>
+  </strings>
+</sunSpecModels>

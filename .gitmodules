@@ -1,0 +1,3 @@
+[submodule "extern/pysunspec"]
+	path = extern/pysunspec
+	url = ../sunspec-pysunspec

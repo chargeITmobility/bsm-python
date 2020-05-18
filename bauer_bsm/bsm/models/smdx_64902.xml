@@ -1,0 +1,46 @@
+<sunSpecModels v="1">
+  <!--
+    TODO: Generalize the model length. The length is currently set for a
+    SHA-256 hash.
+
+    TODO: How to properly define a model with a variable length of repeating
+    blocks? For example the secure meter read model (4) provides the signature
+    this way and the flow battery string model (807) provides more complex data
+    by reapeating blocks.
+
+    TODO: What about adding a string identifier?
+  -->
+  <model id="64902" len="18" name="bsm_blob">
+    <block len="2">
+      <point id="NB" offset="0" type="uint16" />
+      <point id="Pad" offset="1" type="pad" />
+    </block>
+    <block type="repeating" len="1">
+      <point id="B" offset="0" type="uint16" len="1" />
+    </block>
+  </model>
+  <strings id="64902" locale="en">
+    <model>
+      <label>BSM BLOB data</label>
+      <description>A model for exposing binary data (BLOB, binary large object)</description>
+      <notes>
+        This model is used for exposing BLOB (binary large objects) data
+        which could not be provided by repeating blocks of other models.
+      </notes>
+    </model>
+    <point id="NB">
+      <label>Number Of BLOB Registers</label>
+      <description>The number of registers comprising the BLOB data</description>
+    </point>
+    <point id="Pad">
+      <label>Pad</label>
+      <description>Pad register</description>
+    </point>
+    <point id="Sig">
+      <label>BLOB data</label>
+      <notes>
+        The BLOB data covers all registers from its block.
+      </notes>
+    </point>
+  </strings>
+</sunSpecModels>

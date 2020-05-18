@@ -1,0 +1,7 @@
+*.egg-info/
+*.swp
+.DS_Store
+__pycache__/
+bauer_bsm/version.py
+build/
+dist/
