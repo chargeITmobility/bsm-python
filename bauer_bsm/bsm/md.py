@@ -12,8 +12,35 @@ from ..sunspec.core import suns
 from struct import pack
 
 
-_MD_SIGNED_TYPES = [suns.SUNS_TYPE_INT16, suns.SUNS_TYPE_INT32]
-_MD_UNSIGNED_TYPES = [suns.SUNS_TYPE_ACC32, suns.SUNS_TYPE_ENUM16, suns.SUNS_TYPE_UINT16, suns.SUNS_TYPE_UINT32]
+_MD_SIGNED_TYPES = \
+    [
+        suns.SUNS_TYPE_INT16,
+        suns.SUNS_TYPE_INT32,
+    ]
+
+_MD_UNSIGNED_TYPES = \
+    [
+        suns.SUNS_TYPE_ACC32,
+        suns.SUNS_TYPE_BITFIELD16,
+        suns.SUNS_TYPE_BITFIELD32,
+        suns.SUNS_TYPE_ENUM16,
+        suns.SUNS_TYPE_ENUM32,
+        suns.SUNS_TYPE_UINT16,
+        suns.SUNS_TYPE_UINT32,
+    ]
+
+_MD_UNIMPL_VALUES = \
+    {
+        suns.SUNS_TYPE_ACC32:           suns.SUNS_UNIMPL_ACC32,
+        suns.SUNS_TYPE_BITFIELD16:      suns.SUNS_UNIMPL_BITFIELD16,
+        suns.SUNS_TYPE_BITFIELD32:      suns.SUNS_UNIMPL_BITFIELD32,
+        suns.SUNS_TYPE_ENUM16:          suns.SUNS_UNIMPL_ENUM16,
+        suns.SUNS_TYPE_ENUM32:          suns.SUNS_UNIMPL_ENUM32,
+        suns.SUNS_TYPE_INT16:           suns.SUNS_UNIMPL_INT16,
+        suns.SUNS_TYPE_UINT16:          suns.SUNS_UNIMPL_UINT16,
+        suns.SUNS_TYPE_UINT32:          suns.SUNS_UNIMPL_UINT32,
+        suns.SUNS_TYPE_STRING:          '',
+    }
 
 
 def md_for_snapshot_data(snapshot, trace=None):
@@ -40,6 +67,7 @@ def md_for_snapshot_data(snapshot, trace=None):
     update_md_from_point(md, snapshot.points['Meta1'], trace=trace)
     update_md_from_point(md, snapshot.points['Meta2'], trace=trace)
     update_md_from_point(md, snapshot.points['Meta3'], trace=trace)
+    update_md_from_point(md, snapshot.points['Evt'], trace=trace)
 
     return md.digest()
 
@@ -51,20 +79,14 @@ def md_value_and_scaler_for_point(point):
 
     # Fixup value an scaler for the 'not implemented' case which gets reported
     # as None by pySunSpec.
+
     if value == None:
-        if type_ == suns.SUNS_TYPE_ACC32:
-            value = suns.SUNS_UNIMPL_ACC32
-        elif type_ == suns.SUNS_TYPE_INT16:
-            value = suns.SUNS_UNIMPL_INT16
-        elif type_ == suns.SUNS_TYPE_UINT16:
-            value = suns.SUNS_UNIMPL_UINT16
-        elif type_ == suns.SUNS_TYPE_UINT32:
-            value = suns.SUNS_UNIMPL_UINT32
-        elif type_ == suns.SUNS_TYPE_STRING:
-            value = ''
-        else:
-            raise TypeError('Unsupported point type \'{}\'.'.format(type_))
-    if not scaler:
+        try:
+            value = _MD_UNIMPL_VALUES[type_]
+        except KeyError as cause:
+            raise TypeError('Unsupported point type \'{}\'.'.format(type_)) from cause
+
+    if scaler == None:
         scaler = 0
 
     return (value, scaler)

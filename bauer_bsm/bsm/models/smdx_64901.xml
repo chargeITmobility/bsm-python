@@ -1,6 +1,6 @@
 <sunSpecModels v="1">
-  <model id="64901" len="242" name="bsm_snapshot">
-    <block len="210">
+  <model id="64901" len="244" name="bsm_snapshot">
+    <block len="212">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CURRENT">0</symbol>
         <symbol id="TURN_ON">1</symbol>
@@ -36,8 +36,39 @@
       <point id="Meta1" offset="38" type="string" len="70" />
       <point id="Meta2" offset="108" type="string" len="50" />
       <point id="Meta3" offset="158" type="string" len="50" />
-      <point id="NSig" offset="208" type="uint16" />
-      <point id="Pad" offset="209" type="pad" />
+      <point id="Evt" offset="208" type="bitfield32">
+        <symbol id="M_EVENT_Power_Failure">2</symbol>
+        <symbol id="M_EVENT_Under_Voltage">3</symbol>
+        <symbol id="M_EVENT_Low_PF">4</symbol>
+        <symbol id="M_EVENT_Over_Current">5</symbol>
+        <symbol id="M_EVENT_Over_Voltage">6</symbol>
+        <symbol id="M_EVENT_Missing_Sensor">7</symbol>
+        <symbol id="M_EVENT_Reserved1">8</symbol>
+        <symbol id="M_EVENT_Reserved2">9</symbol>
+        <symbol id="M_EVENT_Reserved3">10</symbol>
+        <symbol id="M_EVENT_Reserved4">11</symbol>
+        <symbol id="M_EVENT_Reserved5">12</symbol>
+        <symbol id="M_EVENT_Reserved6">13</symbol>
+        <symbol id="M_EVENT_Reserved7">14</symbol>
+        <symbol id="M_EVENT_Reserved8">15</symbol>
+        <symbol id="M_EVENT_Meter_Fatal_Error">16</symbol>
+        <symbol id="M_EVENT_CM_Init_Failed">17</symbol>
+        <symbol id="M_EVENT_CM_Firmware_Hash_Mismatch">18</symbol>
+        <symbol id="M_EVENT_OEM04">19</symbol>
+        <symbol id="M_EVENT_OEM05">20</symbol>
+        <symbol id="M_EVENT_OEM06">21</symbol>
+        <symbol id="M_EVENT_OEM07">22</symbol>
+        <symbol id="M_EVENT_OEM08">23</symbol>
+        <symbol id="M_EVENT_OEM09">24</symbol>
+        <symbol id="M_EVENT_OEM10">25</symbol>
+        <symbol id="M_EVENT_OEM11">26</symbol>
+        <symbol id="M_EVENT_OEM12">27</symbol>
+        <symbol id="M_EVENT_OEM13">28</symbol>
+        <symbol id="M_EVENT_OEM14">29</symbol>
+        <symbol id="M_EVENT_OEM15">30</symbol>
+      </point>
+      <point id="NSig" offset="210" type="uint16" />
+      <point id="Pad" offset="211" type="pad" />
     </block>
     <block type="repeating" len="1">
       <point id="Sig" offset="0" type="uint16" len="1" />
@@ -285,6 +316,120 @@
     <point id="NSig">
       <label>Number Of Signature Registers</label>
       <description>The number of registers comprising the snapshot signature</description>
+    </point>
+    <point id="Evt">
+      <label>Events</label>
+      <description>Meter Event Flags</description>
+      <notes>This value is taken from AC meter model 203.</notes>
+      <symbol id="Power_Failure">
+        <label>Power Failure</label>
+        <description>Loss of power or phase</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="Under_Voltage">
+        <label>Under Voltage</label>
+        <description>Voltage below threshold (Phase Loss)</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="Low_PF">
+        <label>Low PF</label>
+        <description>Power Factor below threshold</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="Over_Current">
+        <label>Over Current</label>
+        <description>Current Input over threshold</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="Over_Voltage">
+        <label>Over Voltage</label>
+        <description>Voltage Input over threshold</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="Missing_Sensor">
+        <label>Missing Sensor</label>
+        <description>Sensor not connected</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="M_EVENT_Meter_Fatal_Error">
+        <label>Meter Fatal Error</label>
+        <description>The meter module reported a fatal error</description>
+        <notes>
+          This bit summarizes the meter module's error status 'Err' from BSM
+          model (64900). It gets set when this value differs from 0000000.
+        </notes>
+      </symbol>
+      <symbol id="M_EVENT_CM_Init_Failed">
+        <label>Communication Module Startup Initialization Failed</label>
+      </symbol>
+      <symbol id="M_EVENT_CM_Firmware_Hash_Mismatch">
+        <label>Communication Module Firmware Hash Mismatch</label>
+      </symbol>
+      <symbol id="OEM04">
+        <label>OEM04</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM05">
+        <label>OEM05</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM06">
+        <label>OEM06</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM07">
+        <label>OEM07</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM08">
+        <label>OEM08</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM09">
+        <label>OEM09</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM10">
+        <label>OEM10</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM11">
+        <label>OEM11</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM12">
+        <label>OEM12</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM13">
+        <label>OEM13</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM14">
+        <label>OEM14</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM15">
+        <label>OEM15</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
+      <symbol id="OEM16">
+        <label>OEM16</label>
+        <description>Reserved for OEM use</description>
+        <notes></notes>
+      </symbol>
     </point>
     <point id="Pad">
       <label>Pad</label>
