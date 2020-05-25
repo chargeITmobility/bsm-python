@@ -54,7 +54,7 @@
         <symbol id="M_EVENT_Meter_Fatal_Error">16</symbol>
         <symbol id="M_EVENT_CM_Init_Failed">17</symbol>
         <symbol id="M_EVENT_CM_Firmware_Hash_Mismatch">18</symbol>
-        <symbol id="M_EVENT_OEM04">19</symbol>
+        <symbol id="M_EVENT_CM_Development_Mode">19</symbol>
         <symbol id="M_EVENT_OEM05">20</symbol>
         <symbol id="M_EVENT_OEM06">21</symbol>
         <symbol id="M_EVENT_OEM07">22</symbol>
@@ -357,18 +357,31 @@
         <notes>
           This bit summarizes the meter module's error status 'Err' from BSM
           model (64900). It gets set when this value differs from 0000000.
+
+          This is a fatal error. Values returned by the device are no longer
+          guaranteed to be valid.
         </notes>
       </symbol>
       <symbol id="M_EVENT_CM_Init_Failed">
         <label>Communication Module Startup Initialization Failed</label>
+        <notes>
+          This is a fatal error. Values returned by the device are no longer
+          guaranteed to be valid. Do not consider signed data as authentic.
+        </notes>
       </symbol>
       <symbol id="M_EVENT_CM_Firmware_Hash_Mismatch">
         <label>Communication Module Firmware Hash Mismatch</label>
+        <notes>
+          This is a fatal error. Values returned by the device are no longer
+          guaranteed to be valid. Do not consider signed data as authentic.
+        </notes>
       </symbol>
-      <symbol id="OEM04">
-        <label>OEM04</label>
-        <description>Reserved for OEM use</description>
-        <notes></notes>
+      <symbol id="M_EVENT_CM_Development_Mode">
+        <label>Communication Module in Development Mode</label>
+        <notes>
+          This is a device in development mode. Do not consider signed data as
+          authentic.
+        </notes>
       </symbol>
       <symbol id="OEM05">
         <label>OEM05</label>
