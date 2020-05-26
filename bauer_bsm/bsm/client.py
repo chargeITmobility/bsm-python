@@ -16,7 +16,7 @@ from collections import namedtuple
 from enum import IntEnum
 
 
-_BsmModelInstanceInfo = namedtuple('_BsmModelInstanceInfo', 'id, is_snapshot, aliases')
+_BsmModelInstanceInfo = namedtuple('_BsmModelInstanceInfo', 'id, label, is_snapshot, aliases')
 
 
 BSM_DEFAULT_BAUDRATE = 19200
@@ -30,15 +30,15 @@ SUNSPEC_HEADER_REGS = 2
 
 _BSM_BASE_OFFSET = 40000
 _BSM_MODEL_INSTANCES = [
-        _BsmModelInstanceInfo(1,        False,  ['common', 'cb']),
-        _BsmModelInstanceInfo(10,       False,  ['serial_interface_header', 'sih']),
-        _BsmModelInstanceInfo(17,       False,  ['serial_interface', 'si']),
-        _BsmModelInstanceInfo(203,      False,  ['ac_meter', 'tpm']),
-        _BsmModelInstanceInfo(64900,    False,  ['bs_meter', 'bsm', 'sm']),
-        _BsmModelInstanceInfo(64902,    False,  ['cm_firmware_hash', 'cfwh']),
-        _BsmModelInstanceInfo(64901,    True,   ['signed_current_snapshot', 'scs']),
-        _BsmModelInstanceInfo(64901,    True,   ['signed_turn_on_snapshot', 'stons']),
-        _BsmModelInstanceInfo(64901,    True,   ['signed_turn_off_snapshot', 'stoffs']),
+        _BsmModelInstanceInfo(1,        'Common',                               False,  ['common', 'cb']),
+        _BsmModelInstanceInfo(10,       'Serial Interface Header',              False,  ['serial_interface_header', 'sih']),
+        _BsmModelInstanceInfo(17,       'Serial Interface',                     False,  ['serial_interface', 'si']),
+        _BsmModelInstanceInfo(203,      'AC Meter',                             False,  ['ac_meter', 'tpm']),
+        _BsmModelInstanceInfo(64900,    'Signing Meter',                        False,  ['bs_meter', 'bsm', 'sm']),
+        _BsmModelInstanceInfo(64902,    'Communication Module Firmware Hash',   False,  ['cm_firmware_hash', 'cfwh']),
+        _BsmModelInstanceInfo(64901,    'Signed Current Snapshot',              True,   ['signed_current_snapshot', 'scs']),
+        _BsmModelInstanceInfo(64901,    'Signed Turn-On Snapshot',              True,   ['signed_turn_on_snapshot', 'stons']),
+        _BsmModelInstanceInfo(64901,    'Signed Turn-Off Snapshot',             True,   ['signed_turn_off_snapshot', 'stoffs']),
     ]
 
 
@@ -201,6 +201,15 @@ class BsmClientDevice(sclient.ClientDevice):
                     and repeating_type.sf == None
 
         return result
+
+
+    def model_instance_label(self, model):
+        """
+        Returns a label for the given model instance.
+        """
+        for index, current_model in enumerate(self.models_list):
+            if model == current_model:
+                return _BSM_MODEL_INSTANCES[index].label
 
 
     # I did not find a mechanism for conveniently reading BLOB data from

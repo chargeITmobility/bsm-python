@@ -373,10 +373,10 @@ def write_symbol_rows(writer, point_type):
 #
 
 def list_model_instances_command(args):
-    line_format = '{:<8} {:<8} {:<8} {:<16} {}'
+    line_format = '{:<8} {:<8} {:<8} {:<40} {:<16} {}'
     client = create_client(args)
 
-    print(line_format.format('Offset', 'ID', 'Payload', 'Name', 'Aliases'))
+    print(line_format.format('Address', 'ID', 'Payload', 'Label', 'Name', 'Aliases'))
 
     for index, model in enumerate(client.models_list):
         name = model_name(model)
@@ -386,8 +386,8 @@ def list_model_instances_command(args):
         if aliases:
             rendered_aliases = ', '.join(aliases)
 
-        print(line_format.format(model.addr - 2, model.id, model.len, name,
-            rendered_aliases))
+        print(line_format.format(model.addr - 2, model.id, model.len,
+            client.model_instance_label(model), name, rendered_aliases))
 
     client.close()
 
@@ -420,6 +420,7 @@ def export_command(args):
         writer.writerow([])
         writer.writerow([])
 
+        writer.writerow(['Model Instance: {}'.format(client.model_instance_label(model))])
         writer.writerow(['Model: {}'.format(cleanup_model_string(model_type.label, none=''))])
         writer.writerow(['Description: {}'.format(cleanup_model_string(model_type.description, none=''))])
         writer.writerow(['Notes: {}'.format(cleanup_model_string(model_type.notes, none=''))])
