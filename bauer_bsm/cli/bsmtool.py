@@ -17,12 +17,22 @@ from ..sunspec.core import client as sclient
 from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
 from ..util import package_version
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType
 
+import csv
 import os
+import re
 import string
 import sys
 
+
+HEADER_BLOCK_TYPE = 'header'
+SYMBOL_POINT_TYPES = [
+        suns.SUNS_TYPE_BITFIELD16,
+        suns.SUNS_TYPE_BITFIELD32,
+        suns.SUNS_TYPE_ENUM16,
+        suns.SUNS_TYPE_ENUM32,
+    ]
 
 MODEL_DATA_INDENT = '    '
 
@@ -38,6 +48,16 @@ def auto_int(x):
         result = int(x, 0)
 
     return result
+
+
+def cleanup_model_string(string, none=None):
+    if string == None:
+        return none
+
+    string = re.sub(r'\s+', ' ', string)
+    string = string.strip()
+
+    return string
 
 
 def create_argument_parser():
@@ -67,6 +87,11 @@ def create_argument_parser():
     # List model instances.
     models_parser = subparsers.add_parser('models', help='list SunSpec model instances')
     models_parser.set_defaults(func=list_model_instances_command)
+
+    # Export register layout.
+    export_parser = subparsers.add_parser('export', help='export register layout')
+    export_parser.set_defaults(func=export_command)
+    export_parser.add_argument('file', metavar='FILE', type=FileType('w'), help='output file name')
 
     # Get model instance or single data point values.
     get_parser = subparsers.add_parser('get', help='get individual values')
@@ -100,7 +125,7 @@ def create_argument_parser():
     verify_signature_parser.add_argument('message_digest', metavar='MD', type=hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
     verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
 
-    # Hex-dump_command registers.
+    # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='dump registers')
     dump_parser.set_defaults(func=dump_command)
     dump_parser.add_argument('offset', metavar='OFFSET', type=auto_int, help='Modbus register offset (words, starting at 0)')
@@ -183,6 +208,14 @@ def md_trace_print(string):
         print(line)
 
 
+def model_name(model):
+    if model.model_type != None:
+        return model.model_type.name
+    else:
+        return 'unknown model {}'.format(model.id)
+
+
+
 def model_name_and_point_id_for_path(path):
     components = path.split('/')
 
@@ -259,6 +292,80 @@ def trace_modbus_rtu(string):
     print(string)
 
 
+def write_model_header_rows(writer, model_type, base_addr):
+    writer.writerow([
+            HEADER_BLOCK_TYPE,
+            None,
+            base_addr - 2,
+            0,
+            1,
+            'ID',
+            'Model ID',
+            model_type.id,
+            suns.SUNS_TYPE_UINT16,
+            None,
+            None,
+            None,
+            None,
+        ])
+    writer.writerow([
+            HEADER_BLOCK_TYPE,
+            None,
+            base_addr - 1,
+            1,
+            1,
+            'L',
+            'Model Payload Length',
+            model_type.len,
+            suns.SUNS_TYPE_UINT16,
+            None,
+            None,
+            None,
+            None,
+        ])
+
+
+def write_point_type_row(writer, block_type, point_type, base_addr, base_offset):
+    writer.writerow([
+            block_type.type,
+            None,
+            base_addr + point_type.offset,
+            base_offset + point_type.offset,
+            point_type.len,
+            point_type.id,
+            point_type.label,
+            point_type.value_default,
+            point_type.type,
+            point_type.units,
+            point_type.sf,
+            cleanup_model_string(point_type.description),
+            cleanup_model_string(point_type.notes),
+        ])
+
+
+def write_symbol_rows(writer, point_type):
+    # TODO: There are duplicate entries for certain symbols like they show up
+    # in the SunSpec model documentation. Does this originate from the symbol
+    # definition in the model and the separate strings? What about cleaning
+    # this up?
+    for symbol in point_type.symbols:
+        writer.writerow([
+                point_type.type,
+                point_type.id,
+                None,
+                None,
+                None,
+                symbol.id,
+                symbol.label,
+                symbol.value,
+                None,
+                None,
+                None,
+                cleanup_model_string(symbol.description),
+                cleanup_model_string(symbol.notes),
+            ])
+
+
 
 
 #
@@ -272,11 +379,8 @@ def list_model_instances_command(args):
     print(line_format.format('Offset', 'ID', 'Payload', 'Name', 'Aliases'))
 
     for index, model in enumerate(client.models_list):
-        name = ''
+        name = model_name(model)
         rendered_aliases = ''
-
-        if model.model_type != None:
-            name = model.model_type.name
 
         aliases = client.aliases_list[index]
         if aliases:
@@ -293,6 +397,72 @@ def dump_command(args):
 
     data = client.read(args.offset, args.length)
     print(register_hexdump_bytes(data, args.offset))
+
+    client.close()
+
+
+def export_command(args):
+    """
+    Exports the complete Modbus register layout from model data into CSV.
+    """
+    client = create_client(args)
+    writer = csv.writer(args.file)
+
+    writer.writerow(['Bauer BSM-36A-H12-1311-000S Modbus Register Overview'])
+
+    for model in client.models_list:
+        fixed_block = model.model_type.fixed_block
+        repeating_block = model.model_type.repeating_block
+        model_type = model.model_type
+        base_addr = model.addr
+        symbol_points = []
+
+        writer.writerow([])
+        writer.writerow([])
+
+        writer.writerow(['Model: {}'.format(cleanup_model_string(model_type.label, none=''))])
+        writer.writerow(['Description: {}'.format(cleanup_model_string(model_type.description, none=''))])
+        writer.writerow(['Notes: {}'.format(cleanup_model_string(model_type.notes, none=''))])
+
+        writer.writerow([])
+        writer.writerow([
+                'Field Type',
+                'Applicable Point',
+                'Address',
+                'Address Offset',
+                'Size',
+                'Name',
+                'Label',
+                'Value',
+                'Type',
+                'Units',
+                'Scale Factor',
+                'Description',
+                'Notes',
+            ])
+
+        write_model_header_rows(writer, model_type, base_addr)
+        writer.writerow([])
+
+        for point_type in fixed_block.points_list:
+            write_point_type_row(writer, fixed_block, point_type, base_addr, 2)
+            if point_type.type in SYMBOL_POINT_TYPES:
+                symbol_points.append(point_type)
+
+        if repeating_block != None:
+            fixed_block_length = int(fixed_block.len)
+            base_addr = base_addr + fixed_block_length
+
+            writer.writerow([])
+
+            for point_type in repeating_block.points_list:
+                write_point_type_row(writer, repeating_block, point_type, base_addr, 0)
+                if point_type.type in SYMBOL_POINT_TYPES:
+                    symbol_points.append(point_type)
+
+        for symbol_point in symbol_points:
+            writer.writerow([])
+            write_symbol_rows(writer, symbol_point)
 
     client.close()
 
