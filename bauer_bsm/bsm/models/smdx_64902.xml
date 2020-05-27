@@ -7,13 +7,13 @@
     blocks? For example the secure meter read model (4) provides the signature
     this way and the flow battery string model (807) provides more complex data
     by reapeating blocks.
-
-    TODO: What about adding a string identifier?
   -->
   <model id="64902" len="18" name="bsm_blob">
     <block len="2">
-      <point id="NB" offset="0" type="uint16" />
-      <point id="Pad" offset="1" type="pad" />
+      <point id="Typ" offset="0" type="enum16">
+        <symbol id="CM_FIRMWARE_HASH">0</symbol>
+      </point>
+      <point id="NB" offset="1" type="uint16" />
     </block>
     <block type="repeating" len="1">
       <point id="B" offset="0" type="uint16" len="1" />
@@ -28,15 +28,19 @@
         which could not be provided by repeating blocks of other models.
       </notes>
     </model>
+    <point id="Typ">
+      <label>BLOB Type</label>
+      <description>Which BLOB data gets provided by this model instance</description>
+      <symbol id="CM_FIRMWARE_HASH">
+        <label>Communication Module Firmware Hash</label>
+        <description>This model instance provides the communication module's firmware hash (SHA-256)</description>
+      </symbol>
+    </point>
     <point id="NB">
       <label>Number Of BLOB Registers</label>
       <description>The number of registers comprising the BLOB data</description>
     </point>
-    <point id="Pad">
-      <label>Pad</label>
-      <description>Pad register</description>
-    </point>
-    <point id="Sig">
+    <point id="B">
       <label>BLOB data</label>
       <notes>
         The BLOB data covers all registers from its block.
