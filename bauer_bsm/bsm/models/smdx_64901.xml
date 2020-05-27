@@ -6,7 +6,7 @@
         <symbol id="TURN_ON">1</symbol>
         <symbol id="TURN_OFF">2</symbol>
       </point>
-      <point id="Sta" offset="1" type="enum16" access="rw">
+      <point id="St" offset="1" type="enum16" access="rw">
         <symbol id="VALID">0</symbol>
         <symbol id="INVALID">1</symbol>
         <symbol id="UPDATING">2</symbol>
@@ -78,7 +78,7 @@
     <model>
       <label>BSM Signed Snapshot</label>
       <description>A signed snapshot of data from different model instances</description>
-      <notes>See notes on 'Sta' for snapshot creation.</notes>
+      <notes>See notes on 'St' for snapshot creation.</notes>
     </model>
     <point id="Typ">
       <label>Snapshot Type</label>
@@ -117,7 +117,7 @@
         </notes>
       </symbol>
     </point>
-    <point id="Sta">
+    <point id="St">
       <label>Snapshot Status</label>
       <description>Status of this snapshot instance</description>
       <notes>
