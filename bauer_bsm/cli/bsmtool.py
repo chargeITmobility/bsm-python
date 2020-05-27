@@ -305,6 +305,8 @@ def write_model_header_rows(writer, model_type, base_addr):
             suns.SUNS_TYPE_UINT16,
             None,
             None,
+            suns.SUNS_ACCESS_R,
+            suns.SUNS_MANDATORY_TRUE,
             None,
             None,
         ])
@@ -320,6 +322,8 @@ def write_model_header_rows(writer, model_type, base_addr):
             suns.SUNS_TYPE_UINT16,
             None,
             None,
+            suns.SUNS_ACCESS_R,
+            suns.SUNS_MANDATORY_TRUE,
             None,
             None,
         ])
@@ -338,6 +342,8 @@ def write_point_type_row(writer, block_type, point_type, base_addr, base_offset)
             point_type.type,
             point_type.units,
             point_type.sf,
+            point_type.access,
+            point_type.mandatory,
             cleanup_model_string(point_type.description),
             cleanup_model_string(point_type.notes),
         ])
@@ -358,6 +364,8 @@ def write_symbol_rows(writer, point_type):
                 symbol.id,
                 symbol.label,
                 symbol.value,
+                None,
+                None,
                 None,
                 None,
                 None,
@@ -438,6 +446,8 @@ def export_command(args):
                 'Type',
                 'Units',
                 'Scale Factor',
+                'Access',
+                'Mandatory',
                 'Description',
                 'Notes',
             ])
