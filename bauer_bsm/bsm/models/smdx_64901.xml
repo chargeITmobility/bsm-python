@@ -26,7 +26,7 @@
       <point id="EpochSetCnt" offset="22" type="uint32" />
       <point id="EpochSetOS" offset="24" type="uint32" units="s" />
       <point id="DI" offset="26" type="uint16" access="r" />
-      <point id="DO" offset="27" type="uint16" access="rw" />
+      <point id="DO" offset="27" type="uint16" />
       <point id="DIChgOS" offset="28" type="uint32" units="s" />
       <point id="DIChgEpoch" offset="30" type="uint32" units="s" />
       <point id="DIChgTZO" offset="32" type="int16" units="min" />
