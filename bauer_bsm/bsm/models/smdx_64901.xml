@@ -18,7 +18,7 @@
       <point id="TotWh_SF" offset="4" type="sunssf" />
       <point id="W" offset="5" type="int16" sf="W_SF" units="W" />
       <point id="W_SF" offset="6" type="sunssf"  />
-      <point id="MA2" offset="7" type="string" len="8" />
+      <point id="MA1" offset="7" type="string" len="8" />
       <point id="RCnt" offset="15" type="uint32" />
       <point id="OS" offset="17" type="uint32" units ="s" />
       <point id="Epoch" offset="19" type="uint32" units="s" />
@@ -196,8 +196,8 @@
       <description>Real Power scale factor</description>
       <notes>This value is taken from AC meter model 203.</notes>
     </point>
-    <point id="MA2">
-      <label>Meter Address 2</label>
+    <point id="MA1">
+      <label>Meter Address 1</label>
       <notes>This value is taken from BSM meter model 64900.</notes>
     </point>
     <point id="RCnt">
