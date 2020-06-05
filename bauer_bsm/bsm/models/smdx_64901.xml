@@ -14,7 +14,7 @@
         <symbol id="FAILED_NOT_ENABLED">4</symbol>
         <symbol id="FAILED_FEEDBACK">5</symbol>
       </point>
-      <point id="TotWhExp" offset="2" type="acc32" sf="TotWh_SF" units="Wh" />
+      <point id="TotWhImp" offset="2" type="acc32" sf="TotWh_SF" units="Wh" />
       <point id="TotWh_SF" offset="4" type="sunssf" />
       <point id="W" offset="5" type="int16" sf="W_SF" units="W" />
       <point id="W_SF" offset="6" type="sunssf"  />
@@ -178,9 +178,9 @@
         </description>
       </symbol>
     </point>
-    <point id="TotWhExp">
-      <label>Total Watt-hours Exported</label>
-      <description>Total Real Energy Exported</description>
+    <point id="TotWhImp">
+      <label>Total Watt-hours Imported</label>
+      <description>Total Real Energy Imported</description>
       <notes>This value is taken from AC meter model 203.</notes>
     </point>
     <point id="TotWh_SF">

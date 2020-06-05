@@ -47,7 +47,7 @@ def md_for_snapshot_data(snapshot, trace=None):
     md = config.BSM_MESSAGE_DIGEST()
 
     update_md_from_point(md, snapshot.points['Typ'], trace=trace)
-    update_md_from_point(md, snapshot.points['TotWhExp'], trace=trace)
+    update_md_from_point(md, snapshot.points['TotWhImp'], trace=trace)
     update_md_from_point(md, snapshot.points['W'], trace=trace)
     update_md_from_point(md, snapshot.points['MA1'], trace=trace)
     update_md_from_point(md, snapshot.points['RCnt'], trace=trace)
