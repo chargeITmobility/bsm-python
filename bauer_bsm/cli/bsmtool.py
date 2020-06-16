@@ -34,6 +34,7 @@ SYMBOL_POINT_TYPES = [
         suns.SUNS_TYPE_ENUM32,
     ]
 
+BSM_MODEL_ID = 64900
 MODEL_DATA_INDENT = '    '
 
 
@@ -81,6 +82,7 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
+    parser.add_argument('--sec1-compressed', action='store_true', help='display public key data in compressed point form (SEC1, section 2.3.3)')
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -230,16 +232,38 @@ def model_name_and_point_id_for_path(path):
     return (model_name, point_id)
 
 
+def print_blob_data(model, indent=MODEL_DATA_INDENT, prefix='', sec1_compressed=False):
+    device = model.device
+    data = device.repeating_blocks_blob(model)
+    blob_id = device.repeating_blocks_blob_id(model)
+
+    if model.model_type.id == BSM_MODEL_ID and sec1_compressed:
+        public_key = cutil.public_key_from_blob(config.BSM_CURVE,
+            config.BSM_MESSAGE_DIGEST, data)
+        compressed = cutil.compressed_public_key(public_key)
+        print('{}{}{} (compressed point): {}'.format(indent, prefix, blob_id,
+            compressed.hex()))
+    else:
+        print('{}{}{}: {}'.format(indent, prefix, blob_id, data.hex()))
+
+
 def print_block_data(block, indent=MODEL_DATA_INDENT):
     for point in block.points_list:
         print_point_data(point, prefix=indent)
 
 
-def print_model_data(model, indent=MODEL_DATA_INDENT):
+def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, sec1_compressed=False):
     first = model.blocks[0]
     repeating = model.blocks[1:]
 
     print('{}:'.format(model.model_type.name))
+
+    # Print model header upon request.
+    if verbose:
+        print('{}ID: {}'.format(indent, model.model_type.id))
+        print('{}L: {}'.format(indent, model.model_type.len))
+
+    # Print simplified representation for models just containg a fixed block.
     if len(model.blocks) == 1:
         print_block_data(first, indent)
     else:
@@ -249,10 +273,8 @@ def print_model_data(model, indent=MODEL_DATA_INDENT):
         print_block_data(first, 2 * indent)
 
         if device.has_repeating_blocks_blob_layout(model):
-            data = device.repeating_blocks_blob(model)
-            blob_id = device.repeating_blocks_blob_id(model)
             print('{}repeating blocks blob:'.format(indent))
-            print('{}{}: {}'.format(2 * indent, blob_id, data.hex()))
+            print_blob_data(model, 2 * indent, sec1_compressed=sec1_compressed)
         else:
             print('{}repeating:'.format(indent))
             for index, block in enumerate(repeating):
@@ -493,16 +515,26 @@ def get_command(args):
         model.read_points()
 
         if point_id:
+            device = model.device
+            prefix = '{}/'.format(model.model_type.name)
+
+            # Attempt to interpret point_id as either a regular data point ID
+            # or the ID of a BLOB.
+            #
+            # TODO: Add support for printing non-BLOB data from repeating
+            # blocks if required.
             point = lookup_point_in_model(model, point_id)
-            if not point:
+            if point:
+                print_point_data(point, prefix=prefix)
+            elif device.has_repeating_blocks_blob_layout(model) and device.repeating_blocks_blob_id(model).lower() == point_id.lower():
+                print_blob_data(model, prefix=prefix, sec1_compressed=args.sec1_compressed)
+            else:
                 print('Unknown data point \'{}\' in model \'{}\'.'.format(point_id, model_name),
                     file=sys.stderr)
                 sys.exit(1)
-
-            prefix = '{}/'.format(model.model_type.name)
-            print_point_data(point, prefix=prefix)
         else:
-            print_model_data(model)
+            print_model_data(model, verbose=args.verbose,
+                sec1_compressed=args.sec1_compressed)
 
     client.close()
 
@@ -570,7 +602,7 @@ def get_snapshot_command(args):
         if snapshot != None:
             print('Updating \'{}\' succeeded'.format(args.name))
             print('Snapshot data:')
-            print_model_data(model)
+            print_model_data(model, verbose=args.verbose)
             result = True
         else:
             # Snapshot model has been updated by get_snapshot.

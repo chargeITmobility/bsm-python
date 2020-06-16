@@ -11,10 +11,27 @@ from ecdsa import ellipticcurve
 from ecdsa import util
 
 
+def compressed_public_key(public_key):
+    """
+    Generates the compressed point representation (SEC1, section 2.3.3) for the
+    given public key.
+    """
+    return public_key.to_string('compressed')
+
+
+def public_key_from_blob(curve, md, blob):
+    """
+    Generates a verification key from the tiven curve, message digst and binary
+    point representation (X || Y).
+    """
+    (x, y) = util.sigdecode_string(blob, curve.order)
+    return public_key_from_coordinates(curve, md, x ,y)
+
+
 def public_key_from_coordinates(curve, md, x, y):
     """
-    Generates an verification key from the given curve, message digest and
-    point coordinates.
+    Generates a verification key from the given curve, message digest and point
+    coordinates.
     """
     point = ellipticcurve.Point(curve.curve, x, y)
     return VerifyingKey.from_public_point(point, curve=curve, hashfunc=md)
