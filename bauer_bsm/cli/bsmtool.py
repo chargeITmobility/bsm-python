@@ -38,6 +38,15 @@ BSM_MODEL_ID = 64900
 MODEL_DATA_INDENT = '    '
 
 
+PUBLIC_KEY_DEFAULT_FORMAT = 'raw'
+PUBLIC_KEY_RENDERER = {
+        'der': cutil.der_public_key,
+        'raw': cutil.raw_public_key,
+        'sec1-compressed': cutil.sec1_compressed_public_key,
+        'sec1-uncompressed': cutil.sec1_uncompressed_public_key,
+    }
+
+
 def auto_int(x):
     result = None
 
@@ -82,7 +91,7 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
-    parser.add_argument('--sec1-compressed', action='store_true', help='display public key data in compressed point form (SEC1, section 2.3.3)')
+    parser.add_argument('--public-key-format', choices=PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (r || s)', default=PUBLIC_KEY_DEFAULT_FORMAT)
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -232,17 +241,18 @@ def model_name_and_point_id_for_path(path):
     return (model_name, point_id)
 
 
-def print_blob_data(model, indent=MODEL_DATA_INDENT, prefix='', sec1_compressed=False):
+def print_blob_data(model, indent=MODEL_DATA_INDENT, prefix='', pk_format='sec1-uncompressed'):
     device = model.device
     data = device.repeating_blocks_blob(model)
     blob_id = device.repeating_blocks_blob_id(model)
 
-    if model.model_type.id == BSM_MODEL_ID and sec1_compressed:
+    if model.model_type.id == BSM_MODEL_ID:
+        renderer = PUBLIC_KEY_RENDERER[pk_format]
         public_key = cutil.public_key_from_blob(config.BSM_CURVE,
             config.BSM_MESSAGE_DIGEST, data)
-        compressed = cutil.compressed_public_key(public_key)
-        print('{}{}{} (compressed point): {}'.format(indent, prefix, blob_id,
-            compressed.hex()))
+        rendered = renderer(public_key)
+        print('{}{}{} ({}): {}'.format(indent, prefix, blob_id,
+            pk_format.lower(), rendered.hex()))
     else:
         print('{}{}{}: {}'.format(indent, prefix, blob_id, data.hex()))
 
@@ -252,7 +262,7 @@ def print_block_data(block, indent=MODEL_DATA_INDENT):
         print_point_data(point, prefix=indent)
 
 
-def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, sec1_compressed=False):
+def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, pk_format=PUBLIC_KEY_DEFAULT_FORMAT):
     first = model.blocks[0]
     repeating = model.blocks[1:]
 
@@ -274,7 +284,7 @@ def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, sec1_compre
 
         if device.has_repeating_blocks_blob_layout(model):
             print('{}repeating blocks blob:'.format(indent))
-            print_blob_data(model, 2 * indent, sec1_compressed=sec1_compressed)
+            print_blob_data(model, 2 * indent, pk_format=pk_format)
         else:
             print('{}repeating:'.format(indent))
             for index, block in enumerate(repeating):
@@ -527,14 +537,14 @@ def get_command(args):
             if point:
                 print_point_data(point, prefix=prefix)
             elif device.has_repeating_blocks_blob_layout(model) and device.repeating_blocks_blob_id(model).lower() == point_id.lower():
-                print_blob_data(model, prefix=prefix, sec1_compressed=args.sec1_compressed)
+                print_blob_data(model, prefix=prefix, pk_format=args.public_key_format)
             else:
                 print('Unknown data point \'{}\' in model \'{}\'.'.format(point_id, model_name),
                     file=sys.stderr)
                 sys.exit(1)
         else:
             print_model_data(model, verbose=args.verbose,
-                sec1_compressed=args.sec1_compressed)
+                pk_format=args.public_key_format)
 
     client.close()
 

@@ -11,12 +11,11 @@ from ecdsa import ellipticcurve
 from ecdsa import util
 
 
-def compressed_public_key(public_key):
+def der_public_key(public_key):
     """
-    Generates the compressed point representation (SEC1, section 2.3.3) for the
-    given public key.
+    Generates a DER represetnation of the given public key.
     """
-    return public_key.to_string('compressed')
+    return public_key.to_der();
 
 
 def public_key_from_blob(curve, md, blob):
@@ -35,6 +34,29 @@ def public_key_from_coordinates(curve, md, x, y):
     """
     point = ellipticcurve.Point(curve.curve, x, y)
     return VerifyingKey.from_public_point(point, curve=curve, hashfunc=md)
+
+
+def raw_public_key(public_key):
+    """
+    Generates a raw pepresentation of the public key (r || s).
+    """
+    return public_key.to_string('raw')
+
+
+def sec1_compressed_public_key(public_key):
+    """
+    Generates the compressed point representation (SEC1, section 2.3.3) for the
+    given public key.
+    """
+    return public_key.to_string('compressed')
+
+
+def sec1_uncompressed_public_key(public_key):
+    """
+    Generates the copressed point representation (SEC1, section 2.3.3) for the
+    given public key.
+    """
+    return public_key.to_string('uncompressed')
 
 
 def verify_signed_digest(curve, md, pubkey_data, signature_data, digest,
