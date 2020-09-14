@@ -10,7 +10,7 @@
 
 from ..bsm import config
 from ..bsm import format as fmt
-from ..bsm.client import BsmClientDevice
+from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..bsm.md import md_for_snapshot_data
 from ..crypto import util as cutil
 from ..sunspec.core import client as sclient
@@ -46,6 +46,8 @@ PUBLIC_KEY_RENDERER = {
         'sec1-uncompressed': cutil.sec1_uncompressed_public_key,
     }
 
+PYSUNSPEC_STRING_ENCODING = 'latin-1'
+
 
 def auto_int(x):
     result = None
@@ -68,6 +70,13 @@ def cleanup_model_string(string, none=None):
     string = string.strip()
 
     return string
+
+
+def convert_public_key(raw, output_format):
+    converter = PUBLIC_KEY_RENDERER[output_format]
+    public_key = cutil.public_key_from_blob(config.BSM_CURVE,
+        config.BSM_MESSAGE_DIGEST, raw)
+    return converter(public_key)
 
 
 def create_argument_parser():
@@ -136,6 +145,10 @@ def create_argument_parser():
     verify_signature_parser.add_argument('message_digest', metavar='MD', type=hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
     verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
 
+    # Generate OCMF XML from already existings snapshots.
+    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)')
+    ocmf_xml_parser.set_defaults(func=ocmf_xml_command)
+
     # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='dump registers')
     dump_parser.set_defaults(func=dump_command)
@@ -149,15 +162,24 @@ def create_argument_parser():
     return parser
 
 
-def create_client(args):
-    trace=None
+def create_client_backend(clazz, args):
+    trace = None
     if args.trace:
         trace=trace_modbus_rtu
 
-    client = BsmClientDevice(slave_id=args.unit, name=args.device,
+    client = clazz(slave_id=args.unit, name=args.device,
         baudrate=args.baud, timeout=args.timeout, max_count=args.chunk_size,
         trace=trace)
     return client
+
+
+
+def create_client(args):
+    return create_client_backend(BsmClientDevice, args)
+
+
+def create_sunspec_client(args):
+    return create_client_backend(SunSpecBsmClientDevice, args)
 
 
 def dict_get_case_insensitive(d, search_key):
@@ -243,18 +265,14 @@ def model_name_and_point_id_for_path(path):
 
 def print_blob_data(model, indent=MODEL_DATA_INDENT, prefix='', pk_format='sec1-uncompressed'):
     device = model.device
-    data = device.repeating_blocks_blob(model)
+    rendered = render_blob_data(model, pk_format=pk_format)
     blob_id = device.repeating_blocks_blob_id(model)
 
     if model.model_type.id == BSM_MODEL_ID:
-        renderer = PUBLIC_KEY_RENDERER[pk_format]
-        public_key = cutil.public_key_from_blob(config.BSM_CURVE,
-            config.BSM_MESSAGE_DIGEST, data)
-        rendered = renderer(public_key)
         print('{}{}{} ({}): {}'.format(indent, prefix, blob_id,
-            pk_format.lower(), rendered.hex()))
+            pk_format.lower(), rendered))
     else:
-        print('{}{}{}: {}'.format(indent, prefix, blob_id, data.hex()))
+        print('{}{}{}: {}'.format(indent, prefix, blob_id, rendered))
 
 
 def print_block_data(block, indent=MODEL_DATA_INDENT):
@@ -313,6 +331,16 @@ def register_hexdump_bytes(data, offset=0):
         start += chunk_regs
 
     return '\n'.join(lines)
+
+
+def render_blob_data(model, pk_format='sec1-uncompressed'):
+    device = model.device
+    data = device.repeating_blocks_blob(model)
+
+    if model.model_type.id == BSM_MODEL_ID:
+        return convert_public_key(data, output_format=pk_format).hex()
+    else:
+        return data.hex()
 
 
 def trace_modbus_rtu(string):
@@ -624,6 +652,43 @@ def get_snapshot_command(args):
     client.close()
     if not result:
         sys.exit(1)
+
+
+def ocmf_xml_command(args):
+    client = create_sunspec_client(args)
+
+    client.bsm.read()
+    client.ostons.read()
+    client.ostoffs.read()
+
+    # We just proclaim UTF-8 encoding here, have only ASCII characters in the
+    # template and assume the OCMF data from the device to be UTF-8-encoded.
+    template = \
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' \
+        '<values>\n' \
+        '  <value transactionId="1" context="Transaction.Begin">\n' \
+        '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
+        '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+        '  </value>\n' \
+        '  <value transactionId="1" context="Transaction.End">\n' \
+        '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
+        '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+        '  </value>\n' \
+        '</values>\n'
+
+    values = {
+            'pk': convert_public_key(client.blobs.bsm, 'der').hex(),
+            'ostons': client.ostons.O,
+            'ostoffs': client.ostoffs.O,
+        }
+
+    # pySunSpec write out the same encoding as pySunSpec uses for decoding
+    # SunSpec strings. So we hopefully end up with the same bytes as read from
+    # the device.
+    sys.stdout.buffer.write(template.format(**values).encode(PYSUNSPEC_STRING_ENCODING))
+
+    client.close()
+
 
 
 def verify_signature_command(args):
