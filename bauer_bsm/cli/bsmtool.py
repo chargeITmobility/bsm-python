@@ -10,7 +10,7 @@
 
 from ..bsm import config
 from ..bsm import format as fmt
-from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
+from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice, SnapshotStatus
 from ..bsm.md import md_for_snapshot_data
 from ..crypto import util as cutil
 from ..sunspec.core import client as sclient
@@ -46,7 +46,8 @@ PUBLIC_KEY_RENDERER = {
         'sec1-uncompressed': cutil.sec1_uncompressed_public_key,
     }
 
-PYSUNSPEC_STRING_ENCODING = 'latin-1'
+# ISO 8559-1 aka Latin-1 is hard-coded in the pySunSpec sources.
+PYSUNSPEC_STRING_ENCODING = 'iso-8859-1'
 
 
 def auto_int(x):
@@ -656,39 +657,45 @@ def get_snapshot_command(args):
 
 def ocmf_xml_command(args):
     client = create_sunspec_client(args)
+    result = False
 
     client.bsm.read()
     client.ostons.read()
     client.ostoffs.read()
 
-    # We just proclaim UTF-8 encoding here, have only ASCII characters in the
-    # template and assume the OCMF data from the device to be UTF-8-encoded.
-    template = \
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' \
-        '<values>\n' \
-        '  <value transactionId="1" context="Transaction.Begin">\n' \
-        '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
-        '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-        '  </value>\n' \
-        '  <value transactionId="1" context="Transaction.End">\n' \
-        '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
-        '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-        '  </value>\n' \
-        '</values>\n'
+    if client.ostons.St == SnapshotStatus.VALID and client.ostoffs.St == SnapshotStatus.VALID:
+        template = \
+            '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
+            '<values>\n' \
+            '  <value transactionId="1" context="Transaction.Begin">\n' \
+            '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
+            '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+            '  </value>\n' \
+            '  <value transactionId="1" context="Transaction.End">\n' \
+            '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
+            '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+            '  </value>\n' \
+            '</values>\n'
 
-    values = {
-            'pk': convert_public_key(client.blobs.bsm, 'der').hex(),
-            'ostons': client.ostons.O,
-            'ostoffs': client.ostoffs.O,
-        }
+        values = {
+                # XML seems to define encoding names to be upper-case.
+                'encoding': PYSUNSPEC_STRING_ENCODING.upper(),
+                'pk': convert_public_key(client.blobs.bsm, 'der').hex(),
+                'ostons': client.ostons.O,
+                'ostoffs': client.ostoffs.O,
+            }
 
-    # pySunSpec write out the same encoding as pySunSpec uses for decoding
-    # SunSpec strings. So we hopefully end up with the same bytes as read from
-    # the device.
-    sys.stdout.buffer.write(template.format(**values).encode(PYSUNSPEC_STRING_ENCODING))
+        # Write out in the same encoding as pySunSpec's fixed one as string
+        # data got set and signed in this one.
+        sys.stdout.buffer.write(template.format(**values).encode(PYSUNSPEC_STRING_ENCODING))
+        result = True
+    else:
+        print('Genrating OCMF XML failed due to invalid snapshot(s).',
+            file=sys.stderr);
 
     client.close()
-
+    if not result:
+        sys.exit(1)
 
 
 def verify_signature_command(args):
