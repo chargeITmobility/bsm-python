@@ -168,6 +168,65 @@ class BsmClientDevice(sclient.ClientDevice):
         status.write()
 
 
+    def generate_ocmf_xml(self, read_data=True):
+        """
+        Generates an OCMF XML document from signed turn-on and turn-off
+        snapshots.
+
+        The XML document gets returned as byte data for declaring and using
+        identical encoding. In case that one of the snapshots is not valid,
+        None will be returned.
+        """
+        bsm = self.model_aliases['bs_meter']
+        ostons = self.snapshot_aliases['ocmf_signed_turn_on_snapshot']
+        ostoffs = self.snapshot_aliases['ocmf_signed_turn_off_snapshot']
+        result = None
+
+        if read_data:
+            bsm.read_points()
+            ostons.read_points()
+            ostoffs.read_points()
+
+        ostons_status = ostons.points[config.OCMF_STATUS_DATA_POINT_ID].value
+        ostons_data = ostons.points[config.OCMF_DATA_DATA_POINT_ID].value
+        ostoffs_status = ostoffs.points[config.OCMF_STATUS_DATA_POINT_ID].value
+        ostoffs_data = ostoffs.points[config.OCMF_DATA_DATA_POINT_ID].value
+
+        if ostons_status == SnapshotStatus.VALID \
+            and ostoffs_status == SnapshotStatus.VALID \
+            and self.has_repeating_blocks_blob_layout(bsm):
+
+            public_key = self.repeating_blocks_blob(bsm)
+            der = cutil.public_key_data_from_blob(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, public_key, 'der').hex()
+
+            template = \
+                '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
+                '<values>\n' \
+                '  <value transactionId="1" context="Transaction.Begin">\n' \
+                '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
+                '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+                '  </value>\n' \
+                '  <value transactionId="1" context="Transaction.End">\n' \
+                '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
+                '    <publicKey encoding="plain">{pk}</publicKey>\n' \
+                '  </value>\n' \
+                '</values>\n'
+
+            values = {
+                    # XML seems to define encoding names to be upper-case.
+                    'encoding': config.PYSUNSPEC_STRING_ENCODING.upper(),
+                    'pk': der,
+                    'ostons': ostons_data,
+                    'ostoffs': ostoffs_data,
+                }
+
+            # Generate data in the same encoding as pySunSpec's fixed one as
+            # string data got set and signed in this one.
+            result = template.format(**values).encode(config.PYSUNSPEC_STRING_ENCODING)
+
+        return result
+
+
     def get_snapshot(self, alias):
         snapshot = self.snapshot_aliases[alias]
         status = snapshot.points[config.SNAPSHOT_STATUS_DATA_POINT_ID]
@@ -390,6 +449,10 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
     def create_snapshot(self, snapshot):
         alias = self._snapshot_alias(snapshot)
         self.device.create_snapshot(alias)
+
+
+    def generate_ocmf_xml(self, read_data=True):
+        return self.device.generate_ocmf_xml(read_data=read_data)
 
 
     def get_snapshot(self, snapshot):

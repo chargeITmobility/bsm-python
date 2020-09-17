@@ -11,11 +11,23 @@ from ecdsa import ellipticcurve
 from ecdsa import util
 
 
+
+
 def der_public_key(public_key):
     """
     Generates a DER represetnation of the given public key.
     """
     return public_key.to_der();
+
+
+def public_key_data_from_blob(curve, md, blob, output_format):
+    """
+    Generates a binary representation of the given public key according to the
+    specified format.
+    """
+    renderer = PUBLIC_KEY_RENDERER[output_format]
+    public_key = public_key_from_blob(curve, md, blob)
+    return renderer(public_key)
 
 
 def public_key_from_blob(curve, md, blob):
@@ -78,3 +90,14 @@ def verify_signed_digest(curve, md, pubkey_data, signature_data, digest,
         result = False
 
     return result
+
+
+
+
+PUBLIC_KEY_DEFAULT_FORMAT = 'raw'
+PUBLIC_KEY_RENDERER = {
+        'der': der_public_key,
+        'raw': raw_public_key,
+        'sec1-compressed': sec1_compressed_public_key,
+        'sec1-uncompressed': sec1_uncompressed_public_key,
+    }

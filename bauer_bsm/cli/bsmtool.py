@@ -38,18 +38,6 @@ BSM_MODEL_ID = 64900
 MODEL_DATA_INDENT = '    '
 
 
-PUBLIC_KEY_DEFAULT_FORMAT = 'raw'
-PUBLIC_KEY_RENDERER = {
-        'der': cutil.der_public_key,
-        'raw': cutil.raw_public_key,
-        'sec1-compressed': cutil.sec1_compressed_public_key,
-        'sec1-uncompressed': cutil.sec1_uncompressed_public_key,
-    }
-
-# ISO 8559-1 aka Latin-1 is hard-coded in the pySunSpec sources.
-PYSUNSPEC_STRING_ENCODING = 'iso-8859-1'
-
-
 def auto_int(x):
     result = None
 
@@ -73,13 +61,6 @@ def cleanup_model_string(string, none=None):
     return string
 
 
-def convert_public_key(raw, output_format):
-    converter = PUBLIC_KEY_RENDERER[output_format]
-    public_key = cutil.public_key_from_blob(config.BSM_CURVE,
-        config.BSM_MESSAGE_DIGEST, raw)
-    return converter(public_key)
-
-
 def create_argument_parser():
     snapshot_alias_help = 'snapshot model instance alias (see output of \'models\')'
 
@@ -101,7 +82,7 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
-    parser.add_argument('--public-key-format', choices=PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (r || s)', default=PUBLIC_KEY_DEFAULT_FORMAT)
+    parser.add_argument('--public-key-format', choices=cutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (r || s)', default=cutil.PUBLIC_KEY_DEFAULT_FORMAT)
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -281,7 +262,7 @@ def print_block_data(block, indent=MODEL_DATA_INDENT):
         print_point_data(point, prefix=indent)
 
 
-def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, pk_format=PUBLIC_KEY_DEFAULT_FORMAT):
+def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, pk_format=cutil.PUBLIC_KEY_DEFAULT_FORMAT):
     first = model.blocks[0]
     repeating = model.blocks[1:]
 
@@ -339,7 +320,8 @@ def render_blob_data(model, pk_format='sec1-uncompressed'):
     data = device.repeating_blocks_blob(model)
 
     if model.model_type.id == BSM_MODEL_ID:
-        return convert_public_key(data, output_format=pk_format).hex()
+        return cutil.public_key_data_from_blob(config.BSM_CURVE,
+            config.BSM_MESSAGE_DIGEST, data, output_format=pk_format).hex()
     else:
         return data.hex()
 
@@ -659,35 +641,10 @@ def ocmf_xml_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    client.bsm.read()
-    client.ostons.read()
-    client.ostoffs.read()
+    xml = client.generate_ocmf_xml()
 
-    if client.ostons.St == SnapshotStatus.VALID and client.ostoffs.St == SnapshotStatus.VALID:
-        template = \
-            '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
-            '<values>\n' \
-            '  <value transactionId="1" context="Transaction.Begin">\n' \
-            '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
-            '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-            '  </value>\n' \
-            '  <value transactionId="1" context="Transaction.End">\n' \
-            '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
-            '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-            '  </value>\n' \
-            '</values>\n'
-
-        values = {
-                # XML seems to define encoding names to be upper-case.
-                'encoding': PYSUNSPEC_STRING_ENCODING.upper(),
-                'pk': convert_public_key(client.blobs.bsm, 'der').hex(),
-                'ostons': client.ostons.O,
-                'ostoffs': client.ostoffs.O,
-            }
-
-        # Write out in the same encoding as pySunSpec's fixed one as string
-        # data got set and signed in this one.
-        sys.stdout.buffer.write(template.format(**values).encode(PYSUNSPEC_STRING_ENCODING))
+    if xml != None:
+        sys.stdout.buffer.write(xml)
         result = True
     else:
         print('Genrating OCMF XML failed due to invalid snapshot(s).',
