@@ -39,9 +39,9 @@ _BSM_MODEL_INSTANCES = [
         _BsmModelInstanceInfo(64901,    'Signed Current Snapshot',              True,   ['signed_current_snapshot', 'scs']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-On Snapshot',              True,   ['signed_turn_on_snapshot', 'stons']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-Off Snapshot',             True,   ['signed_turn_off_snapshot', 'stoffs']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Current Snapshot',         True,   ['ocmf_signed_current_snapshot', 'oscs']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-On Snapshot',         True,   ['ocmf_signed_turn_on_snapshot', 'ostons']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-Off Snapshot',        True,   ['ocmf_signed_turn_off_snapshot', 'ostoffs']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Current Snapshot',         False,   ['ocmf_signed_current_snapshot', 'oscs']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-On Snapshot',         False,   ['ocmf_signed_turn_on_snapshot', 'ostons']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-Off Snapshot',        False,   ['ocmf_signed_turn_off_snapshot', 'ostoffs']),
     ]
 
 
@@ -178,8 +178,8 @@ class BsmClientDevice(sclient.ClientDevice):
         None will be returned.
         """
         bsm = self.model_aliases['bs_meter']
-        ostons = self.snapshot_aliases['ocmf_signed_turn_on_snapshot']
-        ostoffs = self.snapshot_aliases['ocmf_signed_turn_off_snapshot']
+        ostons = self.model_aliases['ocmf_signed_turn_on_snapshot']
+        ostoffs = self.model_aliases['ocmf_signed_turn_off_snapshot']
         result = None
 
         if read_data:
