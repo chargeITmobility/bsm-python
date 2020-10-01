@@ -50,7 +50,7 @@ def public_key_from_coordinates(curve, md, x, y):
 
 def raw_public_key(public_key):
     """
-    Generates a raw pepresentation of the public key (r || s).
+    Generates a raw pepresentation of the public key (x || y).
     """
     return public_key.to_string('raw')
 
