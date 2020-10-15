@@ -7,6 +7,7 @@
 
 from . import config
 from . import md
+from . import util as butil
 from ..crypto import util as cutil
 from ..sunspec.core import client as sclient
 from ..sunspec.core import device as sdevice
@@ -263,6 +264,50 @@ class BsmClientDevice(sclient.ClientDevice):
                     and repeating_type.sf == None
 
         return result
+
+
+    def lookup_model(self, name):
+        """
+        Case-insensitively looks up a model by the given name or alias.
+        """
+        model = next(filter(lambda x: x.model_type.name.lower() == name.lower(),
+            self.models_list), None)
+
+        if not model:
+            model = butil.dict_get_case_insensitive(self.model_aliases, name)
+
+        return model
+
+
+    def lookup_model_and_point(self, model_name, point_id):
+        """
+        Case-insensitively looks up a data point along with its model by the
+        given point name and model name or alias.
+        """
+        model = self.lookup_model(model_name)
+        point = None
+
+        if model:
+            point = self.lookup_point_in_model(model, point_id)
+
+        return (model, point)
+
+
+    def lookup_point_in_model(self, model, point_id):
+        """
+        Case-insensitively looks up a data point by its name in the given
+        model.
+        """
+        return next(filter(lambda x: x.point_type.id.lower() == point_id.lower(),
+            model.points_list), None)
+
+
+    def lookup_snapshot(self, name):
+        """
+        Case-insensitively looks up a snapshot model by the given name or
+        alias.
+        """
+        return dict_get_case_insensitive(self.snapshot_aliases, name)
 
 
     def model_instance_label(self, model):

@@ -8,11 +8,11 @@
 #!/usr/bin/env python3
 
 
+from . import util as cliutil
 from ..bsm import config
-from ..bsm import format as fmt
 from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice, SnapshotStatus
 from ..bsm.md import md_for_snapshot_data
-from ..crypto import util as cutil
+from ..crypto import util as cryptoutil
 from ..sunspec.core import client as sclient
 from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
@@ -22,7 +22,6 @@ from argparse import ArgumentParser, FileType
 import csv
 import os
 import re
-import string
 import sys
 
 
@@ -33,22 +32,6 @@ SYMBOL_POINT_TYPES = [
         suns.SUNS_TYPE_ENUM16,
         suns.SUNS_TYPE_ENUM32,
     ]
-
-BSM_MODEL_ID = 64900
-MODEL_DATA_INDENT = '    '
-
-
-def auto_int(x):
-    result = None
-
-    if isinstance(x, int):
-        # Pass-through integer values.
-        result = x
-    elif x != None:
-        # Parse everything else but 'None' with auto base detection.
-        result = int(x, 0)
-
-    return result
 
 
 def cleanup_model_string(string, none=None):
@@ -67,10 +50,10 @@ def create_argument_parser():
     # Attempt to retrieve communication paramter defaults from environment
     # variables. This will allow short command lines for repeated invocations.
     device = os.getenv('BSMTOOL_DEVICE')
-    baud = auto_int(os.getenv('BSMTOOL_BAUD', 19200))
-    unit = auto_int(os.getenv('BSMTOOL_UNIT', 42))
-    timeout = auto_int(os.getenv('BSMTOOL_TIMEOUT', 10))
-    chunk = auto_int(os.getenv('BSMTOOL_CHUNK', 125))
+    baud = cliutil.auto_int(os.getenv('BSMTOOL_BAUD', 19200))
+    unit = cliutil.auto_int(os.getenv('BSMTOOL_UNIT', 42))
+    timeout = cliutil.auto_int(os.getenv('BSMTOOL_TIMEOUT', 10))
+    chunk = cliutil.auto_int(os.getenv('BSMTOOL_CHUNK', 125))
 
     parser = ArgumentParser(description='BSM Modbus Tool',
         epilog='You may specify communication parameters also by environment variables. Use BSMTOOL_DEVICE, BSMTOOL_BAUD, BSMTOOL_UNIT, BSMTOOL_TIMEOUT, and BSMTOOL_CHUNK.')
@@ -82,7 +65,7 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
-    parser.add_argument('--public-key-format', choices=cutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (x || y)', default=cutil.PUBLIC_KEY_DEFAULT_FORMAT)
+    parser.add_argument('--public-key-format', choices=cryptoutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (x || y)', default=cryptoutil.PUBLIC_KEY_DEFAULT_FORMAT)
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -123,9 +106,9 @@ def create_argument_parser():
     # Verify a signature for given message digest and public key.
     verify_signature_parser = subparsers.add_parser('verify-signature', help='verify arbitrary signature for a given public key and digest')
     verify_signature_parser.set_defaults(func=verify_signature_command)
-    verify_signature_parser.add_argument('public_key', metavar='PUBLIC_KEY', type=hex_data_or_file, help='public key as hex data or a file name to read binary data from. The data is expected to be catenated x and y coordinates x || y.')
-    verify_signature_parser.add_argument('message_digest', metavar='MD', type=hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
-    verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
+    verify_signature_parser.add_argument('public_key', metavar='PUBLIC_KEY', type=cliutil.hex_data_or_file, help='public key as hex data or a file name to read binary data from. The data is expected to be catenated x and y coordinates x || y.')
+    verify_signature_parser.add_argument('message_digest', metavar='MD', type=cliutil.hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
+    verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=cliutil.hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
 
     # Generate OCMF XML from already existings snapshots.
     ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)')
@@ -134,8 +117,8 @@ def create_argument_parser():
     # Hex-dump registers.
     dump_parser = subparsers.add_parser('dump', help='dump registers')
     dump_parser.set_defaults(func=dump_command)
-    dump_parser.add_argument('offset', metavar='OFFSET', type=auto_int, help='Modbus register offset (words, starting at 0)')
-    dump_parser.add_argument('length', metavar='LENGTH', type=auto_int, help='block length (words)')
+    dump_parser.add_argument('offset', metavar='OFFSET', type=cliutil.auto_int, help='Modbus register offset (words, starting at 0)')
+    dump_parser.add_argument('length', metavar='LENGTH', type=cliutil.auto_int, help='block length (words)')
 
     # Print version information.
     version_parser = subparsers.add_parser('version', help='print version')
@@ -164,136 +147,14 @@ def create_sunspec_client(args):
     return create_client_backend(SunSpecBsmClientDevice, args)
 
 
-def dict_get_case_insensitive(d, search_key):
-    matches = [k for k in d.keys() if k.lower() == search_key.lower()]
-    matches_len = len(matches)
-
-    if matches_len == 0:
-        return d.get(search_key)
-    elif matches_len == 1:
-        return d.get(matches[0])
-    else:
-        raise ValueError('Ambigous key \'{}\'.'.format(search_key))
-
-
-def hex_data_or_file(arg):
-    hex_digits = set(string.hexdigits)
-    if all(c in hex_digits for c in arg):
-        return bytes.fromhex(arg)
-    else:
-        return open(arg, 'rb').read()
-
-
 def into_chunks(array, length):
     for i in range(0, len(array), length):
         yield array[i:i + length]
 
 
-def lookup_model(client, name):
-    model = next(filter(lambda x: x.model_type.name.lower() == name.lower(),
-        client.models_list), None)
-
-    if not model:
-        model = dict_get_case_insensitive(client.model_aliases, name)
-
-    return model
-
-
-def lookup_model_and_point(client, model_name, point_id):
-    model = lookup_model(client, model_name)
-    point = None
-
-    if model:
-        point = lookup_point_in_model(model, point_id)
-
-    return (model, point)
-
-
-def lookup_point_in_model(model, point_id):
-    return next(filter(lambda x: x.point_type.id.lower() == point_id.lower(),
-        model.points_list), None)
-
-
-def lookup_snapshot(client, name):
-    return dict_get_case_insensitive(client.snapshot_aliases, name)
-
-
 def md_trace_print(string):
     for line in string.splitlines():
         print(line)
-
-
-def model_name(model):
-    if model.model_type != None:
-        return model.model_type.name
-    else:
-        return 'unknown model {}'.format(model.id)
-
-
-
-def model_name_and_point_id_for_path(path):
-    components = path.split('/')
-
-    if len(components) < 1 or len(components) > 2:
-        raise ValueError('Unsupported path \'{}\'.')
-
-    model_name = components[0]
-    point_id = None
-    if len(components) == 2:
-        point_id = components[1]
-
-    return (model_name, point_id)
-
-
-def print_blob_data(model, indent=MODEL_DATA_INDENT, prefix='', pk_format='sec1-uncompressed'):
-    device = model.device
-    rendered = render_blob_data(model, pk_format=pk_format)
-    blob_id = device.repeating_blocks_blob_id(model)
-
-    if model.model_type.id == BSM_MODEL_ID:
-        print('{}{}{} ({}): {}'.format(indent, prefix, blob_id,
-            pk_format.lower(), rendered))
-    else:
-        print('{}{}{}: {}'.format(indent, prefix, blob_id, rendered))
-
-
-def print_block_data(block, indent=MODEL_DATA_INDENT):
-    for point in block.points_list:
-        print_point_data(point, prefix=indent)
-
-
-def print_model_data(model, indent=MODEL_DATA_INDENT, verbose=False, pk_format=cutil.PUBLIC_KEY_DEFAULT_FORMAT):
-    first = model.blocks[0]
-    repeating = model.blocks[1:]
-
-    print('{}:'.format(model.model_type.name))
-
-    # Print model header upon request.
-    if verbose:
-        print('{}ID: {}'.format(indent, model.model_type.id))
-        print('{}L: {}'.format(indent, model.model_type.len))
-
-    # Print simplified representation for models just containg a fixed block.
-    if len(model.blocks) == 1:
-        print_block_data(first, indent)
-    else:
-        device = model.device
-
-        print('{}fixed:'.format(indent))
-        print_block_data(first, 2 * indent)
-
-        if device.has_repeating_blocks_blob_layout(model):
-            print('{}repeating blocks blob:'.format(indent))
-            print_blob_data(model, 2 * indent, pk_format=pk_format)
-        else:
-            print('{}repeating:'.format(indent))
-            for index, block in enumerate(repeating):
-                print('{}{}:'.format(2 * indent, index))
-                print_block_data(block, 3 * indent)
-
-
-def print_point_data(point, prefix=''):
-    print('{}{}'.format(prefix, fmt.format_point(point)))
 
 
 def register_hexdump_bytes(data, offset=0):
@@ -313,17 +174,6 @@ def register_hexdump_bytes(data, offset=0):
         start += chunk_regs
 
     return '\n'.join(lines)
-
-
-def render_blob_data(model, pk_format='sec1-uncompressed'):
-    device = model.device
-    data = device.repeating_blocks_blob(model)
-
-    if model.model_type.id == BSM_MODEL_ID:
-        return cutil.public_key_data_from_blob(config.BSM_CURVE,
-            config.BSM_MESSAGE_DIGEST, data, output_format=pk_format).hex()
-    else:
-        return data.hex()
 
 
 def trace_modbus_rtu(string):
@@ -430,7 +280,7 @@ def list_model_instances_command(args):
     print(line_format.format('Address', 'ID', 'Payload', 'Label', 'Name', 'Aliases'))
 
     for index, model in enumerate(client.models_list):
-        name = model_name(model)
+        name = cliutil.model_name(model)
         rendered_aliases = ''
 
         aliases = client.aliases_list[index]
@@ -525,10 +375,10 @@ def get_command(args):
     client = create_client(args)
 
     for path in args.paths:
-        (model_name, point_id) = model_name_and_point_id_for_path(path)
+        (model_name, point_id) = cliutil.model_name_and_point_id_for_path(path)
 
         # TODO: Reuse models already read for this command.
-        model = lookup_model(client, model_name)
+        model = client.lookup_model(model_name)
         if not model:
             print('Unknown model \'{}\'.'.format(model_name), file=sys.stderr)
             sys.exit(1)
@@ -544,17 +394,17 @@ def get_command(args):
             #
             # TODO: Add support for printing non-BLOB data from repeating
             # blocks if required.
-            point = lookup_point_in_model(model, point_id)
+            point = client.lookup_point_in_model(model, point_id)
             if point:
-                print_point_data(point, prefix=prefix)
+                cliutil.print_point_data(point, prefix=prefix)
             elif device.has_repeating_blocks_blob_layout(model) and device.repeating_blocks_blob_id(model).lower() == point_id.lower():
-                print_blob_data(model, prefix=prefix, pk_format=args.public_key_format)
+                cliutil.print_blob_data(model, prefix=prefix, pk_format=args.public_key_format)
             else:
                 print('Unknown data point \'{}\' in model \'{}\'.'.format(point_id, model_name),
                     file=sys.stderr)
                 sys.exit(1)
         else:
-            print_model_data(model, verbose=args.verbose,
+            cliutil.print_model_data(model, verbose=args.verbose,
                 pk_format=args.public_key_format)
 
     client.close()
@@ -567,8 +417,8 @@ def set_command(args):
 
     for path_value in args.path_value_pairs:
         (path, value) = tuple(path_value.split('=', 1))
-        (model_name, point_id) = model_name_and_point_id_for_path(path)
-        (model, point) = lookup_model_and_point(client, model_name, point_id)
+        (model_name, point_id) = cliutil.model_name_and_point_id_for_path(path)
+        (model, point) = client.lookup_model_and_point(model_name, point_id)
 
         if not model or not point:
             print('Unknown data point \'{}\''.format(path), file=sys.stderr)
@@ -623,7 +473,7 @@ def get_snapshot_command(args):
         if snapshot != None:
             print('Updating \'{}\' succeeded'.format(args.name))
             print('Snapshot data:')
-            print_model_data(model, verbose=args.verbose)
+            cliutil.print_model_data(model, verbose=args.verbose)
             result = True
         else:
             # Snapshot model has been updated by get_snapshot.
@@ -663,7 +513,7 @@ def verify_signature_command(args):
     #     message digest: 6bdab37edc9f9b29c125056eed1d7506b5f346743306eac2e3ae6789adda746d
     #
 
-    if cutil.verify_signed_digest(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, args.public_key, args.signature, args.message_digest):
+    if cryptoutil.verify_signed_digest(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, args.public_key, args.signature, args.message_digest):
         if args.verbose:
             print('Success.')
     else:
