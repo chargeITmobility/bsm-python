@@ -1,6 +1,6 @@
 <sunSpecModels v="1">
-  <model id="64900" len="292" name="bsm">
-    <block len="260">
+  <model id="64900" len="300" name="bsm">
+    <block len="252">
       <point id="ErrM" offset="0" type="string" len="4" />
       <point id="SNM" offset="4" type="string" len="8" />
       <point id="SNC" offset="12" type="string" len="8" />
@@ -28,9 +28,8 @@
       <point id="Meta1" offset="80" type="string" len="70" access="rw" />
       <point id="Meta2" offset="150" type="string" len="50" access="rw" />
       <point id="Meta3" offset="200" type="string" len="50" access="rw" />
-      <point id="Curve" offset="250" type="string" len="8" />
-      <point id="NPK" offset="258" type="uint16" />
-      <point id="Pad" offset="259" type="pad" />
+      <point id="NPK" offset="250" type="uint16" />
+      <point id="BPK" offset="251" type="uint16" />
     </block>
     <block len="1" type="repeating">
       <point id="PK" offset="0" type="uint16" len="1" />
@@ -200,24 +199,25 @@
         snapshots.
       </notes>
     </point>
-    <point id="Curve">
-      <label>Signing Curve Name</label>
-      <description>The elliptic curve used for signing data</description>
-    </point>
     <point id="NPK">
       <label>Number Of Public-Key Registers</label>
-      <description>The number of registers comprising the public key data</description>
+      <description>The number of registers of the public key BLOB area</description>
+      <notes>
+        This is the space reserved in PK. The public key datas actual length in
+        bytes is given by BPK.
+      </notes>
     </point>
-    <point id="Pad">
-      <label>Pad</label>
-      <description>Pad register</description>
+    <point id="BPK">
+      <label>Number Of Public-Key Bytes</label>
+      <description>The length of the public key BLOB provided by PK in bytes</description>
     </point>
     <point id="PK">
       <label>Public Key</label>
       <description>The meter's public key used for signing</description>
       <notes>
-        The public key covers all registers from its block. The first NPK/2
-        registers contain x, the last NPK/2 registers contain y in big endian.
+        The public key takes up the first BPK bytes from this block,
+        interpreting the individual registers as big endian. The public key is
+        encoded as DER according to RFC 5480.
       </notes>
     </point>
   </strings>

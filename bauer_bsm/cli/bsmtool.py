@@ -65,7 +65,7 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
-    parser.add_argument('--public-key-format', choices=cryptoutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see SEC1 section 2.3.3 for details about SEC1 formats), signatures are always output raw (x || y)', default=cryptoutil.PUBLIC_KEY_DEFAULT_FORMAT)
+    parser.add_argument('--public-key-format', choices=cryptoutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see RFC 5480 for DER and SEC1 section 2.3.3 for details about formats)', default=cryptoutil.PUBLIC_KEY_DEFAULT_FORMAT)
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
 
@@ -408,7 +408,6 @@ def get_command(args):
                 pk_format=args.public_key_format)
 
     client.close()
-
 
 
 def set_command(args):

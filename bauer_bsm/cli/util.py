@@ -109,12 +109,12 @@ def print_point_data(point, prefix=''):
     print('{}{}'.format(prefix, fmt.format_point(point)))
 
 
-def render_blob_data(model, pk_format='sec1-uncompressed'):
+def render_blob_data(model, pk_format='der'):
     device = model.device
     data = device.repeating_blocks_blob(model)
 
     if model.model_type.id == BSM_MODEL_ID:
-        return cryptoutil.public_key_data_from_blob(config.BSM_CURVE,
-            config.BSM_MESSAGE_DIGEST, data, output_format=pk_format).hex()
+        return cryptoutil.public_key_data_from_blob(data,
+            config.BSM_MESSAGE_DIGEST, output_format=pk_format).hex()
     else:
         return data.hex()

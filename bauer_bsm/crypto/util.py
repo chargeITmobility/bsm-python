@@ -20,23 +20,21 @@ def der_public_key(public_key):
     return public_key.to_der();
 
 
-def public_key_data_from_blob(curve, md, blob, output_format):
+def public_key_data_from_blob(blob, md, output_format):
     """
     Generates a binary representation of the given public key according to the
     specified format.
     """
     renderer = PUBLIC_KEY_RENDERER[output_format]
-    public_key = public_key_from_blob(curve, md, blob)
+    public_key = public_key_from_blob(blob, md)
     return renderer(public_key)
 
 
-def public_key_from_blob(curve, md, blob):
+def public_key_from_blob(blob, md):
     """
-    Generates a verification key from the tiven curve, message digst and binary
-    point representation (X || Y).
+    Generates a verification key from the default DER/RFC 5480 format.
     """
-    (x, y) = util.sigdecode_string(blob, curve.order)
-    return public_key_from_coordinates(curve, md, x ,y)
+    return VerifyingKey.from_der(blob, hashfunc=md)
 
 
 def public_key_from_coordinates(curve, md, x, y):
@@ -71,7 +69,7 @@ def sec1_uncompressed_public_key(public_key):
     return public_key.to_string('uncompressed')
 
 
-def verify_signed_digest(curve, md, pubkey_data, signature_data, digest,
+def verify_signed_digest(pubkey_data, md, signature_data, digest,
         keydecode=util.sigdecode_string, sigdecode=util.sigdecode_string):
     """
     Verifies the signature for the given message digest and public key.
@@ -82,8 +80,7 @@ def verify_signed_digest(curve, md, pubkey_data, signature_data, digest,
     """
     result = False
 
-    (x, y) = keydecode(pubkey_data, curve.order)
-    pubkey = public_key_from_coordinates(curve, md, x, y)
+    pubkey = public_key_from_blob(pubkey_data, md)
     try:
         result = pubkey.verify_digest(signature_data, digest, sigdecode=sigdecode)
     except BadSignatureError:
@@ -94,7 +91,7 @@ def verify_signed_digest(curve, md, pubkey_data, signature_data, digest,
 
 
 
-PUBLIC_KEY_DEFAULT_FORMAT = 'raw'
+PUBLIC_KEY_DEFAULT_FORMAT = 'der'
 PUBLIC_KEY_RENDERER = {
         'der': der_public_key,
         'raw': raw_public_key,

@@ -132,6 +132,17 @@ class BsmClientDevice(sclient.ClientDevice):
         self._init_bsm_models()
 
 
+    def _fixup_curve_name(self, name):
+        """
+        Returns our canonical curve name in case of an alias. Let's don't
+        bother users with this variety.
+        """
+        if name in config.BSM_CURVE_ALIASES:
+            name = config.BSM_CURVE_NAME
+
+        return name
+
+
     def _init_bsm_models(self):
         """
         Initializes BSM models for the known layout for this device. This saves
@@ -198,7 +209,7 @@ class BsmClientDevice(sclient.ClientDevice):
             and self.has_repeating_blocks_blob_layout(bsm):
 
             public_key = self.repeating_blocks_blob(bsm)
-            der = cutil.public_key_data_from_blob(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, public_key, 'der').hex()
+            der = cutil.public_key_data_from_blob(public_key, config.BSM_MESSAGE_DIGEST, 'der').hex()
 
             template = \
                 '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
@@ -345,6 +356,34 @@ class BsmClientDevice(sclient.ClientDevice):
             data = map(_blob_point_value, points)
             result = b''.join(data)
 
+        # Trim blob data if an explicit length is given by the model.
+        blob_bytes = self.repeating_blocks_blob_explicit_length_bytes(model)
+        if blob_bytes != None:
+            result = result[:blob_bytes]
+
+        return result
+
+
+    def repeating_blocks_blob_explicit_length_bytes(self, model):
+        """
+        Returns the explicit BLOB data length (in bytes) if a model has an
+        appropriate data point. This needs to be an uint16 data point named
+        'Bx' when the repeating block data point is named 'x'.
+        """
+        result = None
+
+        blob_id = self.repeating_blocks_blob_id(model)
+        bytes_id = 'B' + blob_id
+        bytes_point = model.blocks[0].points.get(bytes_id, None)
+
+        if bytes_point:
+            bytes_type = bytes_point.point_type
+
+            if bytes_point and bytes_type.type == suns.SUNS_TYPE_UINT16 \
+                and bytes_type.units == None \
+                and bytes_type.sf == None:
+                result = bytes_point.value
+
         return result
 
 
@@ -380,10 +419,11 @@ class BsmClientDevice(sclient.ClientDevice):
             bsm.read_points()
             snapshot.read_points()
 
-        curve_name = bsm.points[config.BSM_CURVE_NAME_DATA_POINT_ID].value
-        public_key_length = bsm.points[config.BSM_PUBLIC_KEY_LENGTH_DATA_POINT_ID].value
-        assert len(bsm.blocks) == public_key_length + 1
-        public_key = bsm.device.repeating_blocks_blob(bsm)
+        public_key_regs = bsm.points[config.BSM_PUBLIC_KEY_REGS_DATA_POINT_ID].value
+        assert len(bsm.blocks) == public_key_regs + 1
+        public_key_data = bsm.device.repeating_blocks_blob(bsm)
+        public_key = cutil.public_key_from_blob(public_key_data, config.BSM_MESSAGE_DIGEST)
+        curve_name = self._fixup_curve_name(public_key.curve.name)
         signature_length = snapshot.points[config.SNAPSHOT_SIGNATURE_LENGTH_DATA_POINT_ID].value
         assert len(snapshot.blocks) == signature_length + 1
         signature = snapshot.device.repeating_blocks_blob(snapshot)
@@ -391,10 +431,10 @@ class BsmClientDevice(sclient.ClientDevice):
         if trace:
             trace('Verifying {} ...'.format(snapshot.model_type.id))
             trace('Curve: {}'.format(curve_name))
-            trace('Public key: {}'.format(public_key.hex()))
+            trace('Public key: {}'.format(public_key_data.hex()))
             trace('Signature: {}'.format(signature.hex()))
 
-        if len(public_key) == 0:
+        if len(public_key_data) == 0:
             if trace:
                 trace('Failed. Device has no public key.')
             result = False
@@ -411,7 +451,7 @@ class BsmClientDevice(sclient.ClientDevice):
             if trace:
                 trace('Snapshot data SHA-256 digest: {}'.format(digest.hex()))
 
-            if cutil.verify_signed_digest(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, public_key, signature, digest):
+            if cutil.verify_signed_digest(public_key_data, config.BSM_MESSAGE_DIGEST, signature, digest):
                 if trace:
                     trace('Success.')
                 result = True
