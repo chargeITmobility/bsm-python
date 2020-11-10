@@ -8,12 +8,14 @@
     this way and the flow battery string model (807) provides more complex data
     by reapeating blocks.
   -->
-  <model id="64902" len="18" name="bsm_blob">
-    <block len="2">
+  <model id="64902" len="20" name="bsm_blob">
+    <block len="4">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CM_FIRMWARE_HASH">0</symbol>
       </point>
       <point id="NB" offset="1" type="uint16" />
+      <point id="BB" offset="2" type="uint16" />
+      <point id="Pad" offset="3" type="pad" />
     </block>
     <block type="repeating" len="1">
       <point id="B" offset="0" type="uint16" len="1" />
@@ -38,6 +40,14 @@
     </point>
     <point id="NB">
       <label>Number Of BLOB Registers</label>
+      <description>The number of registers of the BLOB data area</description>
+      <notes>
+        This is the space actually reserved in B. The BLOB data's actual length
+        is given in bytes by BB.
+      </notes>
+    </point>
+    <point id="BB">
+      <label>Number Of BLOB Bytes</label>
       <description>The number of registers comprising the BLOB data</description>
     </point>
     <point id="B">
