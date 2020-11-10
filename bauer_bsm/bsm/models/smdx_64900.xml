@@ -203,8 +203,8 @@
       <label>Number Of Public-Key Registers</label>
       <description>The number of registers of the public key BLOB area</description>
       <notes>
-        This is the space reserved in PK. The public key datas actual length in
-        bytes is given by BPK.
+        This is the space reserved in PK. The public key data's actual length
+        in bytes is given by BPK.
       </notes>
     </point>
     <point id="BPK">

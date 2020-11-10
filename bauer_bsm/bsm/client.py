@@ -424,8 +424,8 @@ class BsmClientDevice(sclient.ClientDevice):
         public_key_data = bsm.device.repeating_blocks_blob(bsm)
         public_key = cutil.public_key_from_blob(public_key_data, config.BSM_MESSAGE_DIGEST)
         curve_name = self._fixup_curve_name(public_key.curve.name)
-        signature_length = snapshot.points[config.SNAPSHOT_SIGNATURE_LENGTH_DATA_POINT_ID].value
-        assert len(snapshot.blocks) == signature_length + 1
+        signature_regs = snapshot.points[config.SNAPSHOT_SIGNATURE_REGS_DATA_POINT_ID].value
+        assert len(snapshot.blocks) == signature_regs + 1
         signature = snapshot.device.repeating_blocks_blob(snapshot)
 
         if trace:

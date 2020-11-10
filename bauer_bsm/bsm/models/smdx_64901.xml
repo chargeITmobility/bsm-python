@@ -1,5 +1,5 @@
 <sunSpecModels v="1">
-  <model id="64901" len="244" name="bsm_snapshot">
+  <model id="64901" len="260" name="bsm_snapshot">
     <block len="212">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CURRENT">0</symbol>
@@ -68,7 +68,7 @@
         <symbol id="M_EVENT_OEM15">30</symbol>
       </point>
       <point id="NSig" offset="210" type="uint16" />
-      <point id="Pad" offset="211" type="pad" />
+      <point id="BSig" offset="211" type="uint16" />
     </block>
     <block type="repeating" len="1">
       <point id="Sig" offset="0" type="uint16" len="1" />
@@ -313,10 +313,6 @@
       <description>User metadata 3</description>
       <notes>This value is taken from BSM meter model 64900.</notes>
     </point>
-    <point id="NSig">
-      <label>Number Of Signature Registers</label>
-      <description>The number of registers comprising the snapshot signature</description>
-    </point>
     <point id="Evt">
       <label>Events</label>
       <description>Meter Event Flags</description>
@@ -444,9 +440,17 @@
         <notes></notes>
       </symbol>
     </point>
-    <point id="Pad">
-      <label>Pad</label>
-      <description>Pad register</description>
+    <point id="NSig">
+      <label>Number Of Signature Registers</label>
+      <description>The number of registers of the signature BLOB area</description>
+      <notes>
+        This is the space acutally reserved in Sig. The signature data's actual
+        length is given in bytes by BSig.
+      </notes>
+    </point>
+    <point id="BSig">
+      <label>Number Of Signature Bytes</label>
+      <description>Number of bytes actually representing signature data in Sig.</description>
     </point>
     <point id="Sig">
       <label>Digital Signature</label>

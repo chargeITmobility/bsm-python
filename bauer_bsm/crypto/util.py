@@ -69,8 +69,7 @@ def sec1_uncompressed_public_key(public_key):
     return public_key.to_string('uncompressed')
 
 
-def verify_signed_digest(pubkey_data, md, signature_data, digest,
-        keydecode=util.sigdecode_string, sigdecode=util.sigdecode_string):
+def verify_signed_digest(pubkey_data, md, signature_data, digest, sigdecode=util.sigdecode_der):
     """
     Verifies the signature for the given message digest and public key.
 
