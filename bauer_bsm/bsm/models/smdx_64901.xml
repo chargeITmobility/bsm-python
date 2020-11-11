@@ -456,9 +456,9 @@
       <label>Digital Signature</label>
       <description>The snapshot's ECDSA signature</description>
       <notes>
-        The signature covers all registers from its block. The first NSig/2
-        registers contain r, the last NSig/2 registers contain s in big endian
-        order.
+        The signature takes up the first BSig bytes from this block,
+        interpreting the individual registers as big endian. It is encoded as
+        DER according to RFC 4492.
       </notes>
     </point>
   </strings>

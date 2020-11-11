@@ -48,12 +48,13 @@
     </point>
     <point id="BB">
       <label>Number Of BLOB Bytes</label>
-      <description>The number of registers comprising the BLOB data</description>
+      <description>The number of bytes actually representing BLOB data in B</description>
     </point>
     <point id="B">
       <label>BLOB data</label>
       <notes>
-        The BLOB data covers all registers from its block.
+        The BLOB takes up the first BB bytes from this block, interpreting the
+        individual registers as big endian.
       </notes>
     </point>
   </strings>
