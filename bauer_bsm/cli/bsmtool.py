@@ -507,12 +507,12 @@ def ocmf_xml_command(args):
 def verify_signature_command(args):
     # The following example will be verified successfully:
     #
-    #     public key:     6858b701931d153524d03b28f8b2758d33dd6f76282184ad825e31283e076e1f8c1747f16f9df5b5123594fe867b282a2fb5ab704d5230445cc820e3880b4db7
-    #     signature:      5d3c7fbdc68c0484475b15051f51192230f37c3590de7060f31f7c07137089fa35fae5dd765f558680762acc65e35e71e5862370ad1da8cbe87a8e22cb6418eb
-    #     message digest: 6bdab37edc9f9b29c125056eed1d7506b5f346743306eac2e3ae6789adda746d
+    #     public key:     3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254
+    #     message digest: cab351d004e66292963ca855717cc7ba55cc84b11a655d0d1db4c705d05796e7
+    #     signature:      30450220633af3e89b89747ed105f7b7df02b814ad289dc8d20aed6815c184e4344a0109022100d1e0019af352cadc5aef90687903c54c0e41074a3ede65d8798769ab44959329
     #
 
-    if cryptoutil.verify_signed_digest(config.BSM_CURVE, config.BSM_MESSAGE_DIGEST, args.public_key, args.signature, args.message_digest):
+    if cryptoutil.verify_signed_digest(args.public_key, config.BSM_MESSAGE_DIGEST, args.signature, args.message_digest):
         if args.verbose:
             print('Success.')
     else:
