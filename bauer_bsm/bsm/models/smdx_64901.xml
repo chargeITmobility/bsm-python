@@ -1,6 +1,6 @@
 <sunSpecModels v="1">
-  <model id="64901" len="260" name="bsm_snapshot">
-    <block len="212">
+  <model id="64901" len="250" name="bsm_snapshot">
+    <block len="202">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CURRENT">0</symbol>
         <symbol id="TURN_ON">1</symbol>
@@ -27,16 +27,10 @@
       <point id="EpochSetOS" offset="24" type="uint32" units="s" />
       <point id="DI" offset="26" type="uint16" access="r" />
       <point id="DO" offset="27" type="uint16" />
-      <point id="DIChgOS" offset="28" type="uint32" units="s" />
-      <point id="DIChgEpoch" offset="30" type="uint32" units="s" />
-      <point id="DIChgTZO" offset="32" type="int16" units="min" />
-      <point id="DOChgOS" offset="33" type="uint32" units="s" />
-      <point id="DOChgEpoch" offset="35" type="uint32" units="s" />
-      <point id="DOChgTZO" offset="37" type="int16" units="min" />
-      <point id="Meta1" offset="38" type="string" len="70" />
-      <point id="Meta2" offset="108" type="string" len="50" />
-      <point id="Meta3" offset="158" type="string" len="50" />
-      <point id="Evt" offset="208" type="bitfield32">
+      <point id="Meta1" offset="28" type="string" len="70" />
+      <point id="Meta2" offset="98" type="string" len="50" />
+      <point id="Meta3" offset="148" type="string" len="50" />
+      <point id="Evt" offset="198" type="bitfield32">
         <symbol id="M_EVENT_Power_Failure">2</symbol>
         <symbol id="M_EVENT_Under_Voltage">3</symbol>
         <symbol id="M_EVENT_Low_PF">4</symbol>
@@ -67,8 +61,8 @@
         <symbol id="M_EVENT_OEM14">29</symbol>
         <symbol id="M_EVENT_OEM15">30</symbol>
       </point>
-      <point id="NSig" offset="210" type="uint16" />
-      <point id="BSig" offset="211" type="uint16" />
+      <point id="NSig" offset="200" type="uint16" />
+      <point id="BSig" offset="201" type="uint16" />
     </block>
     <block type="repeating" len="1">
       <point id="Sig" offset="0" type="uint16" len="1" />
@@ -245,52 +239,6 @@
     <point id="DO">
       <label>Digital Output State</label>
       <description>Status of the digital outputs</description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DIChgOS">
-      <label>Digital Inputs Last Changed At Operation-Seconds</label>
-      <description>
-        The point in time (operation-seconds) when the digital inputs changed
-        last
-      </description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DIChgEpoch">
-      <label>Digital Inputs Last Changed At Epoch Time</label>
-      <description>
-        The point in time (epoch time) when the digital inputs changed
-        last
-      </description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DIChgTZO">
-      <label>Digital Inputs Last Changed Timezone Offset</label>
-      <description>
-        The timezone offset when digital input changed last
-      </description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DOChgOS">
-      <label>Digital Outputs Last Changed At Operation-Seconds</label>
-      <description>
-        The point in time (operation-seconds) when the digital outputs changed
-        last
-      </description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DOChgEpoch">
-      <label>Digital Outputs Last Changed At Epoch Time</label>
-      <description>
-        The point in time (epoch time) when the digital outputs changed
-        last
-      </description>
-      <notes>This value is taken from BSM meter model 64900.</notes>
-    </point>
-    <point id="DOChgTZO">
-      <label>Digital Outputs Last Changed Timezone Offset</label>
-      <description>
-        The timezone offset when digital outputs changed last
-      </description>
       <notes>This value is taken from BSM meter model 64900.</notes>
     </point>
     <point id="Meta1">
