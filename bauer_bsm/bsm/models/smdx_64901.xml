@@ -1,6 +1,6 @@
 <sunSpecModels v="1">
-  <model id="64901" len="250" name="bsm_snapshot">
-    <block len="202">
+  <model id="64901" len="252" name="bsm_snapshot">
+    <block len="204">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CURRENT">0</symbol>
         <symbol id="TURN_ON">1</symbol>
@@ -14,23 +14,24 @@
         <symbol id="FAILED_NOT_ENABLED">4</symbol>
         <symbol id="FAILED_FEEDBACK">5</symbol>
       </point>
-      <point id="TotWhImp" offset="2" type="acc32" sf="TotWh_SF" units="Wh" />
-      <point id="TotWh_SF" offset="4" type="sunssf" />
-      <point id="W" offset="5" type="int16" sf="W_SF" units="W" />
-      <point id="W_SF" offset="6" type="sunssf"  />
-      <point id="MA1" offset="7" type="string" len="8" />
-      <point id="RCnt" offset="15" type="uint32" />
-      <point id="OS" offset="17" type="uint32" units ="s" />
-      <point id="Epoch" offset="19" type="uint32" units="s" />
-      <point id="TZO" offset="21" type="int16" units="min" />
-      <point id="EpochSetCnt" offset="22" type="uint32" />
-      <point id="EpochSetOS" offset="24" type="uint32" units="s" />
-      <point id="DI" offset="26" type="uint16" access="r" />
-      <point id="DO" offset="27" type="uint16" />
-      <point id="Meta1" offset="28" type="string" len="70" />
-      <point id="Meta2" offset="98" type="string" len="50" />
-      <point id="Meta3" offset="148" type="string" len="50" />
-      <point id="Evt" offset="198" type="bitfield32">
+      <point id="RCR" offset="2" type="acc32" sf="Wh_SF" units="Wh" />
+      <point id="TotWhImp" offset="4" type="acc32" sf="Wh_SF" units="Wh" />
+      <point id="Wh_SF" offset="6" type="sunssf" />
+      <point id="W" offset="7" type="int16" sf="W_SF" units="W" />
+      <point id="W_SF" offset="8" type="sunssf"  />
+      <point id="MA1" offset="9" type="string" len="8" />
+      <point id="RCnt" offset="17" type="uint32" />
+      <point id="OS" offset="19" type="uint32" units ="s" />
+      <point id="Epoch" offset="21" type="uint32" units="s" />
+      <point id="TZO" offset="23" type="int16" units="min" />
+      <point id="EpochSetCnt" offset="24" type="uint32" />
+      <point id="EpochSetOS" offset="26" type="uint32" units="s" />
+      <point id="DI" offset="28" type="uint16" access="r" />
+      <point id="DO" offset="29" type="uint16" />
+      <point id="Meta1" offset="30" type="string" len="70" />
+      <point id="Meta2" offset="100" type="string" len="50" />
+      <point id="Meta3" offset="150" type="string" len="50" />
+      <point id="Evt" offset="200" type="bitfield32">
         <symbol id="M_EVENT_Power_Failure">2</symbol>
         <symbol id="M_EVENT_Under_Voltage">3</symbol>
         <symbol id="M_EVENT_Low_PF">4</symbol>
@@ -61,8 +62,8 @@
         <symbol id="M_EVENT_OEM14">29</symbol>
         <symbol id="M_EVENT_OEM15">30</symbol>
       </point>
-      <point id="NSig" offset="200" type="uint16" />
-      <point id="BSig" offset="201" type="uint16" />
+      <point id="NSig" offset="202" type="uint16" />
+      <point id="BSig" offset="203" type="uint16" />
     </block>
     <block type="repeating" len="1">
       <point id="Sig" offset="0" type="uint16" len="1" />
