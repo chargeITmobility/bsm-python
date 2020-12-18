@@ -44,7 +44,7 @@
     <point id="ErrM">
       <label>Error Code Meter</label>
       <description>Meter module error code</description>
-      <!-- TODO: Provide more details. -->
+      <notes>This error code gets summarized in 'Evt' from the AC meter model 203.</notes>
     </point>
     <point id="SNM">
       <label>Serial Number Meter</label>
@@ -58,12 +58,18 @@
     <point id="VrM">
       <label>Software Version Meter</label>
       <description>Meter firmware version and checksum</description>
-      <notes>This version informatin is also provided as 'Vr' in common model (1).</notes>
+      <notes>
+        This version information includes a firmware checksum and is also
+        provided as 'Vr' in common model (1).
+      </notes>
     </point>
     <point id="VrC">
       <label>Software Version Communication Module</label>
       <description>Communication module firmware version</description>
-      <notes>This version informatin is also provided as 'Vr' in common model (1).</notes>
+      <notes>
+        The firmware hash is provided separately via the 'Communication Module
+        Firmware Hash' instance of the 'BLOB' model (64902).
+      </notes>
     </point>
     <point id="MA1">
       <label>Meter Address 1</label>
@@ -76,15 +82,15 @@
       <!-- TODO: Provide more details. -->
     </point>
     <point id="RCR">
-      <label>Real Energy Exported Since Last Turn-On Sequence</label>
-      <description>Real energy exported since the last execution of the turn-on sequence</description>
+      <label>Real Energy Imported Since Last Turn-On Sequence</label>
+      <description>Real energy imported since the last execution of the turn-on sequence</description>
       <notes>
         This data point value gets reset to zero during the turn-on
         sequence.
       </notes>
     </point>
     <point id="RCR_SF">
-      <label>Real Energy Exported Since Last Turn-On Sequence Scale Factor</label>
+      <label>Real Energy Imported Since Last Turn-On Sequence Scale Factor</label>
     </point>
     <point id="PDCnt">
       <label>Power Down Counter</label>

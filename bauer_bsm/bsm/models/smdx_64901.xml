@@ -173,14 +173,21 @@
         </description>
       </symbol>
     </point>
+    <point id="RCR">
+      <label>Real Energy Imported Since Last Turn-On Sequence</label>
+      <description>Real energy imported since the last execution of the turn-on sequence</description>
+      <notes>
+        This value ist taken from BSM model 64900. It will be zero in snapshots
+        for the turn-on sequence.
+      </notes>
+    </point>
     <point id="TotWhImp">
       <label>Total Watt-hours Imported</label>
       <description>Total Real Energy Imported</description>
       <notes>This value is taken from AC meter model 203.</notes>
     </point>
-    <point id="TotWh_SF">
-       <description>Real Energy scale factor</description>
-       <notes>This value is taken from AC meter model 203.</notes>
+    <point id="Wh_SF">
+       <description>Real energy scale factor</description>
     </point>
     <point id="W">
       <label>Watts</label>
