@@ -309,7 +309,7 @@ def export_command(args):
     client = create_client(args)
     writer = csv.writer(args.file)
 
-    writer.writerow(['Bauer BSM-WS36A-H12-1311-0000 Modbus Register Overview'])
+    writer.writerow(['Bauer BSM-WS36A-H01-1311-0000 Modbus Register Overview'])
 
     for model in client.models_list:
         fixed_block = model.model_type.fixed_block

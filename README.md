@@ -1,9 +1,9 @@
-# Bauer BSM-WS36A-H12-1311-0000 Python Interface and Modbus Tool
+# Bauer BSM-WS36A-H01-1311-0000 Python Interface and Modbus Tool
 
 ## Overview
 
 This package contains a Python 3 library and a command line tool for
-interacting with a BSM-WS36A-H12-1311-0000. Both allow you to explore the
+interacting with a BSM-WS36A-H01-1311-0000. Both allow you to explore the
 communication and common tasks like:
 
 * Reading data from registers
