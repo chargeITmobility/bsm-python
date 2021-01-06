@@ -9,7 +9,7 @@ SCHEMA=$ROOT_DIR/bauer_bsm/sunspec/models/smdx/smdx.xsd
 function validate {
     # The name attribute is used throughout the SunSpec models but not declared
     # in the schema. Ignore this issue.
-    xmllint --noout --schema $SCHEMA $MODELS_DIR/smdx_*.xml 2>&1 | grep -v "Schemas validity error : Element 'model', attribute 'name': The attribute 'name' is not allowed." | grep -v "\.xml fails to validate$"
+    xmllint --noout --schema $SCHEMA $MODELS_DIR/smdx_*.xml 2>&1 | grep -v " validates$" | grep -v "Schemas validity error : Element 'model', attribute 'name': The attribute 'name' is not allowed." | grep -v "\.xml fails to validate$"
 }
 
 
