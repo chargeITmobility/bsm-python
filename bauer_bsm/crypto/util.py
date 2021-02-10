@@ -74,8 +74,8 @@ def verify_signed_digest(pubkey_data, md, signature_data, digest, sigdecode=util
     Verifies the signature for the given message digest and public key.
 
     You may explicitly specify a decoder for public key and signature data. By
-    default a decoder for catenated binary strings
-    (ecdsa.util.sigdecode_string) is used.
+    default a decoder for catenated binary strings (ecdsa.util.sigdecode_der)
+    is used.
     """
     result = False
 
