@@ -45,6 +45,16 @@ def cleanup_model_string(string, none=None):
 
 
 def create_argument_parser():
+    # TODO: How to get the main binary name? '%(prog)s' returns the subcommand
+    # name for subcommands.
+    path_epilog = '''
+        A path may be just a model instance alias as shown by \'bsmtool
+        models\' or an istance alias and a data point name separated by /.
+        Casing is ignored. The following paths all refer to the data point
+        \'Md\' (model name) from the common model instance: \'common/Md\',
+        \'common/md\', \'cb/md\'. The whole common model instance could be
+        read with the path \'common\' or \'cb\'.
+        '''
     snapshot_alias_help = 'snapshot model instance alias (see output of \'models\')'
 
     # Attempt to retrieve communication paramter defaults from environment
@@ -82,11 +92,13 @@ def create_argument_parser():
     get_parser = subparsers.add_parser('get', help='get individual values')
     get_parser.set_defaults(func=get_command)
     get_parser.add_argument('paths', metavar='PATH', nargs='+', help='get data from models or data points for the given path(s).')
+    get_parser.epilog = path_epilog
 
     # Set data point values.
     set_parser = subparsers.add_parser('set', help='set values')
     set_parser.set_defaults(func=set_command)
     set_parser.add_argument('path_value_pairs', metavar='PATH_VALUE', nargs='+', help='set data point values for the given path and value pairs (in the form PATH=VALUE).')
+    set_parser.epilog = path_epilog
 
     # Request generating a snapshot (for a given snapshot name).
     create_snapshot_parser = subparsers.add_parser('create-snapshot', help='create snapshot but don\'t fetch data')
