@@ -1,7 +1,7 @@
 # Signed Snapshots
 
-The BSM-WS36A allows taking taking snapshots of a predefined set of data
-points.  Successfully created snapshots will be ECDSA signed with the device's
+The BSM-WS36A allows taking snapshots of a predefined set of data points.
+Successfully created snapshots will be ECDSA signed with the device's
 individual key so the data can later be verified with the device's public key.
 
 Snapshots are represented by instances of the model
@@ -528,7 +528,7 @@ Numerical values are represented by
   Enumerated values for physical units_ and
   [`bauer_bsm/bsm/dlms.py`](../../bauer_bsm/bsm/dlms.py) in this repository)
 
-giving `vvvvvvvvssuu` where each letter represents a hexadecimal digit of the
+giving `vvvvvvvv ss uu` where each letter represents a hexadecimal digit of the
 respective element. For example, 36.6 kWh will be represented as follows:
 
 - In its base unit Wh: 36.6 kWh = 36600 Wh = 0x8ef8 Wh
@@ -557,7 +557,7 @@ For example the string `ABC` will be represented as `00000003 414243`. See
 BSM Tools `verify-snapshot` command verifies the signature of the specified
 snapshot.  additionally provides `verify-signature` for indepently verifying
 the signature for a given hash and public key. The latter is implemented at
-[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L507) and both of
+[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L519) and both of
 them are backed by [`verify_signed_digest`](../../bauer_bsm/crypto/util.py#L72).
 
 Verifying the signature for the snapshot data hash shown in in [Verifying a

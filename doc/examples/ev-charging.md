@@ -411,7 +411,7 @@ Let's have a quick look at its key data points:
     - The total energy consumption is given by _XV_
     - The OCMF data does not contain the active power
 - Time and counters
-    - The response counter _PG_ (prefixed with _T_) gives the value 2,064 and
+    - The response counter _PG_ (prefixed with _T_) gives the value 2,065 and
       is the successor of the start response counter
     - Epoch time information is given in ISO 8601 format
 - The identification data _ID_ taken from _Meta1_ has the same value as in the

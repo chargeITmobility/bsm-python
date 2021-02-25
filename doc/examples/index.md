@@ -19,8 +19,8 @@ the [BSM Tool](bsmtool.md).
 
 ## Examples
 
-The examples assume that you have configured the RVS-485 device for
-communicating with the BSM-WS36A via the [environment
+The examples assume that you have configured the RS-485 (nowadays officially
+named EIA-485) device for communicating with the BSM-WS36A via the [environment
 variable](bsmtool.md#environment-variables) `BSMTOOL_DEVICE`.  If not otherwise
 stated, [default communication
 parameters](modbus-interface.md#default-communication-parameters) are used,
