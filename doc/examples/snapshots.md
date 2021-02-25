@@ -230,13 +230,13 @@ $ bsmtool dump 40521 254
 A snapshot records three data points related to power and energy:
 
 - The reference cumulative register
-  [_RCR_](bauer_bsm/bsm/models/smdx_64901.xml#L176) which counts the energy
+  [_RCR_](bauer_bsm/bsm/models/smdx_64901.xml#L169) which counts the energy
   consumption since it got reset during the creation of the last _Signed
   Turn-On Snapshot_
-- [_TotWhImp_](bauer_bsm/bsm/models/smdx_64901.xml#L184) counting the overall
+- [_TotWhImp_](bauer_bsm/bsm/models/smdx_64901.xml#L177) counting the overall
   energy consumption measured by the BSM-WS36A
 - And the actual real power consumption
-  [_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L192)
+  [_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185)
 
 Please note that both counters maintain hidden internal digits to track the
 energy consumption below the least significant digit presented in display and
@@ -313,11 +313,11 @@ The last data points of
 [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml) are the signature
 [BLOB](modbus-interface.md#binary-data) represented by:
 
-- [_NSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L39) the number of Modbus
+- [_NSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L392) the number of Modbus
   registers forming the signature data area
-- [_BSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L407) the number of bytes
+- [_BSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L400) the number of bytes
   actually used by the signature
-- [_Sig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L411) the actual signature
+- [_Sig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L404) the actual signature
   data
 
 Snapshots are signed using ECDSA and the signature is encoded as

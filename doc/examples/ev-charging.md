@@ -152,18 +152,18 @@ Let's have a quick look at its key data points:
       its status [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115)
 - Power and energy
     - The reference cumulative register
-      [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L176) which will show
+      [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L169) which will show
       the energy consumption at the end has been reset to zero
-    - [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L184) gives the
+    - [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L177) gives the
       total energy consumption tracked by this meter and could be used for
       computing the energy consumption of the actual charging process as the
       delta between start and end
     - It was taken with no active power
-      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L192) = 0 Wh) as it
+      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185) = 0 Wh) as it
       should be the case with the contactor turned off
 - Time and counters
     - Let's remember the response counter
-      [_RCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L205) 2,064 for later
+      [_RCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L198) 2,064 for later
     - It has valid time information in _Epoch_ and _TZO_
 - Metadata points _Meta1_ and _Meta2_ contain the previously set metadata
 

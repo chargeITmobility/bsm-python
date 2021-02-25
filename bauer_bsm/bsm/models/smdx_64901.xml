@@ -149,13 +149,6 @@
           an internal error). Snapshot data is invalid.
         </description>
       </symbol>
-      <symbol id="FAILED_GENERAL">
-        <label>Snapshot Creation Failed For Unspecified Reason</label>
-        <description>
-          Creating the snapshot failed for an unspecified reason (for example
-          an internal error)
-        </description>
-      </symbol>
       <symbol id="FAILED_NOT_ENABLED">
         <label>Snapshot Creation Failed Due To Missing Enable Signal</label>
         <description>
