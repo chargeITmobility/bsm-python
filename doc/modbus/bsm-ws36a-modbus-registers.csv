@@ -1,0 +1,636 @@
+Bauer BSM-WS36A-H12-1311-0000 Modbus Register Overview
+
+
+Model Instance: Common
+Model: Common
+Description: All SunSpec compliant devices must include this as the first model
+Notes: 
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40002,0,1,ID,Model ID,1,uint16,,,r,true,,
+header,,40003,1,1,L,Model Payload Length,66,uint16,,,r,true,,
+
+fixed,,40004,2,16,Mn,Manufacturer,,string,,,r,true,Well known value registered with SunSpec for compliance,
+fixed,,40020,18,16,Md,Model,,string,,,r,true,Manufacturer specific value (32 chars),
+fixed,,40036,34,8,Opt,Options,,string,,,r,false,Manufacturer specific value (16 chars),
+fixed,,40044,42,8,Vr,Version,,string,,,r,false,Manufacturer specific value (16 chars),
+fixed,,40052,50,16,SN,Serial Number,,string,,,r,true,Manufacturer specific value (32 chars),
+fixed,,40068,66,1,DA,Device Address,0,uint16,,,rw,false,Modbus device address,
+fixed,,40069,67,1,Pad,,0,pad,,,r,false,Force even alignment,
+
+
+Model Instance: Serial Interface Header
+Model: Communication Interface Header
+Description: To be included first for a complete interface description
+Notes: 
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40070,0,1,ID,Model ID,10,uint16,,,r,true,,
+header,,40071,1,1,L,Model Payload Length,4,uint16,,,r,true,,
+
+fixed,,40072,2,1,St,Interface Status,0,enum16,,,r,true,Overall interface status,
+fixed,,40073,3,1,Ctl,Interface Control,0,uint16,,,rw,false,Overall interface control (TBD),
+fixed,,40074,4,1,Typ,Physical Access Type,0,enum16,,,r,false,Enumerated value. Type of physical media,
+fixed,,40075,5,1,Pad,,0,pad,,,r,false,,
+
+enum16,St,,,,DOWN,down,0,,,,,,Interface is down,
+enum16,St,,,,UP,up,1,,,,,,Interface is up,
+enum16,St,,,,FAULT,fault,2,,,,,,Interface is in a fault state,
+
+enum16,Typ,,,,UNKNOWN,unknown,0,,,,,,Unkown media,
+enum16,Typ,,,,INTERNAL,internal,1,,,,,,Internal e.g. embbedded switch,
+enum16,Typ,,,,TWISTED_PAIR,twisted pair,2,,,,,,Twisted Pair,
+enum16,Typ,,,,FIBER,fiber,3,,,,,,Fiber,
+enum16,Typ,,,,WIRELESS,,4,,,,,,,
+enum16,Typ,,,,,wifi,,,,,,,WIFI,
+
+
+Model Instance: Serial Interface
+Model: Serial Interface
+Description: Include this model for serial interface configuration support
+Notes: 
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40076,0,1,ID,Model ID,17,uint16,,,r,true,,
+header,,40077,1,1,L,Model Payload Length,12,uint16,,,r,true,,
+
+fixed,,40078,2,4,Nam,Name,,string,,,rw,false,Interface name (8 chars),
+fixed,,40082,6,2,Rte,Rate,0,uint32,bps,,rw,true,Interface baud rate in bits per second,
+fixed,,40084,8,1,Bits,Bits,0,uint16,,,rw,true,Number of data bits per character,
+fixed,,40085,9,1,Pty,Parity,0,enum16,,,rw,true,Bitmask value. Parity setting,
+fixed,,40086,10,1,Dup,Duplex,0,enum16,,,rw,false,Enumerated value. Duplex mode,
+fixed,,40087,11,1,Flw,Flow Control,0,enum16,,,rw,false,Flow Control Method,
+fixed,,40088,12,1,Typ,Interface Type,0,enum16,,,r,false,Enumerated value. Interface type,
+fixed,,40089,13,1,Pcol,Protocol,0,enum16,,,r,false,Enumerated value. Serial protocol selection,
+
+enum16,Pty,,,,NONE,none,0,,,,,,No Parity,
+enum16,Pty,,,,ODD,odd,1,,,,,,Odd Parity,
+enum16,Pty,,,,EVEN,even,2,,,,,,Even Parity,
+
+enum16,Dup,,,,FULL,full,0,,,,,,Full Duplex,
+enum16,Dup,,,,HALF,half,1,,,,,,Half Duplex,
+
+enum16,Flw,,,,NONE,none,0,,,,,,No flow control,
+enum16,Flw,,,,HW,hardware,1,,,,,,Hardware flow control,
+enum16,Flw,,,,XONXOFF,software,2,,,,,,Soft (XON/XOFF) flow control,
+
+enum16,Typ,,,,UNKNOWN,unknown,0,,,,,,Unknown interface type,
+enum16,Typ,,,,RS232,RS232,1,,,,,,RS232 interface type,
+enum16,Typ,,,,RS485,RS485,2,,,,,,RS485 interface type,
+
+enum16,Pcol,,,,UNKNOWN,unknown,0,,,,,,Unknown protocol,
+enum16,Pcol,,,,MODBUS,Modbus,1,,,,,,Modbus protocol,
+enum16,Pcol,,,,VENDOR,vendor specific,2,,,,,,,
+
+
+Model Instance: AC Meter
+Model: wye-connect three phase (abcn) meter
+Description: 
+Notes: 
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40090,0,1,ID,Model ID,203,uint16,,,r,true,,
+header,,40091,1,1,L,Model Payload Length,105,uint16,,,r,true,,
+
+fixed,,40092,2,1,A,Amps,0,int16,A,A_SF,r,true,Total AC Current,
+fixed,,40093,3,1,AphA,Amps PhaseA,0,int16,A,A_SF,r,true,Phase A Current,
+fixed,,40094,4,1,AphB,Amps PhaseB,0,int16,A,A_SF,r,true,Phase B Current,
+fixed,,40095,5,1,AphC,Amps PhaseC,0,int16,A,A_SF,r,true,Phase C Current,
+fixed,,40096,6,1,A_SF,,0,sunssf,,,r,true,Current scale factor,
+fixed,,40097,7,1,PhV,Voltage LN,0,int16,V,V_SF,r,true,Line to Neutral AC Voltage (average of active phases),
+fixed,,40098,8,1,PhVphA,Phase Voltage AN,0,int16,V,V_SF,r,true,Phase Voltage AN,
+fixed,,40099,9,1,PhVphB,Phase Voltage BN,0,int16,V,V_SF,r,true,Phase Voltage BN,
+fixed,,40100,10,1,PhVphC,Phase Voltage CN,0,int16,V,V_SF,r,true,Phase Voltage CN,
+fixed,,40101,11,1,PPV,Voltage LL,0,int16,V,V_SF,r,true,Line to Line AC Voltage (average of active phases),
+fixed,,40102,12,1,PhVphAB,,0,int16,V,V_SF,r,true,,
+fixed,,40103,13,1,PhVphBC,,0,int16,V,V_SF,r,true,,
+fixed,,40104,14,1,PhVphCA,,0,int16,V,V_SF,r,true,,
+fixed,,40105,15,1,V_SF,,0,sunssf,,,r,true,Voltage scale factor,
+fixed,,40106,16,1,Hz,Hz,0,int16,Hz,Hz_SF,r,true,Frequency,
+fixed,,40107,17,1,Hz_SF,,0,sunssf,,,r,false,Frequency scale factor,
+fixed,,40108,18,1,W,Watts,0,int16,W,W_SF,r,true,Total Real Power,
+fixed,,40109,19,1,WphA,Watts phase A,0,int16,W,W_SF,r,false,,
+fixed,,40110,20,1,WphB,Watts phase B,0,int16,W,W_SF,r,false,,
+fixed,,40111,21,1,WphC,Watts phase C,0,int16,W,W_SF,r,false,,
+fixed,,40112,22,1,W_SF,,0,sunssf,,,r,true,Real Power scale factor,
+fixed,,40113,23,1,VA,VA,0,int16,VA,VA_SF,r,false,AC Apparent Power,
+fixed,,40114,24,1,VAphA,VA phase A,0,int16,VA,VA_SF,r,false,,
+fixed,,40115,25,1,VAphB,VA phase B,0,int16,VA,VA_SF,r,false,,
+fixed,,40116,26,1,VAphC,VA phase C,0,int16,VA,VA_SF,r,false,,
+fixed,,40117,27,1,VA_SF,,0,sunssf,,,r,false,Apparent Power scale factor,
+fixed,,40118,28,1,VAR,VAR,0,int16,var,VAR_SF,r,false,Reactive Power,
+fixed,,40119,29,1,VARphA,VAR phase A,0,int16,var,VAR_SF,r,false,,
+fixed,,40120,30,1,VARphB,VAR phase B,0,int16,var,VAR_SF,r,false,,
+fixed,,40121,31,1,VARphC,VAR phase C,0,int16,var,VAR_SF,r,false,,
+fixed,,40122,32,1,VAR_SF,,0,sunssf,,,r,false,Reactive Power scale factor,
+fixed,,40123,33,1,PF,PF,0,int16,Pct,PF_SF,r,false,Power Factor,
+fixed,,40124,34,1,PFphA,PF phase A,0,int16,Pct,PF_SF,r,false,,
+fixed,,40125,35,1,PFphB,PF phase B,0,int16,Pct,PF_SF,r,false,,
+fixed,,40126,36,1,PFphC,PF phase C,0,int16,Pct,PF_SF,r,false,,
+fixed,,40127,37,1,PF_SF,,0,sunssf,,,r,false,Power Factor scale factor,
+fixed,,40128,38,2,TotWhExp,Total Watt-hours Exported,0,acc32,Wh,TotWh_SF,r,true,Total Real Energy Exported,
+fixed,,40130,40,2,TotWhExpPhA,Total Watt-hours Exported phase A,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40132,42,2,TotWhExpPhB,Total Watt-hours Exported phase B,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40134,44,2,TotWhExpPhC,Total Watt-hours Exported phase C,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40136,46,2,TotWhImp,Total Watt-hours Imported,0,acc32,Wh,TotWh_SF,r,true,Total Real Energy Imported,
+fixed,,40138,48,2,TotWhImpPhA,Total Watt-hours Imported phase A,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40140,50,2,TotWhImpPhB,Total Watt-hours Imported phase B,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40142,52,2,TotWhImpPhC,Total Watt-hours Imported phase C,0,acc32,Wh,TotWh_SF,r,false,,
+fixed,,40144,54,1,TotWh_SF,,0,sunssf,,,r,true,Real Energy scale factor,
+fixed,,40145,55,2,TotVAhExp,Total VA-hours Exported,0,acc32,VAh,TotVAh_SF,r,false,Total Apparent Energy Exported,
+fixed,,40147,57,2,TotVAhExpPhA,Total VA-hours Exported phase A,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40149,59,2,TotVAhExpPhB,Total VA-hours Exported phase B,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40151,61,2,TotVAhExpPhC,Total VA-hours Exported phase C,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40153,63,2,TotVAhImp,Total VA-hours Imported,0,acc32,VAh,TotVAh_SF,r,false,Total Apparent Energy Imported,
+fixed,,40155,65,2,TotVAhImpPhA,Total VA-hours Imported phase A,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40157,67,2,TotVAhImpPhB,Total VA-hours Imported phase B,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40159,69,2,TotVAhImpPhC,Total VA-hours Imported phase C,0,acc32,VAh,TotVAh_SF,r,false,,
+fixed,,40161,71,1,TotVAh_SF,,0,sunssf,,,r,false,Apparent Energy scale factor,
+fixed,,40162,72,2,TotVArhImpQ1,Total VAR-hours Imported Q1,0,acc32,varh,TotVArh_SF,r,false,Total Reactive Energy Imported Quadrant 1,
+fixed,,40164,74,2,TotVArhImpQ1PhA,Total VAr-hours Imported Q1 phase A,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40166,76,2,TotVArhImpQ1PhB,Total VAr-hours Imported Q1 phase B,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40168,78,2,TotVArhImpQ1PhC,Total VAr-hourse Imported Q1 phase C,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40170,80,2,TotVArhImpQ2,Total VAr-hours Imported Q2,0,acc32,varh,TotVArh_SF,r,false,Total Reactive Power Imported Quadrant 2,
+fixed,,40172,82,2,TotVArhImpQ2PhA,Total VAr-hours Imported Q2 phase A,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40174,84,2,TotVArhImpQ2PhB,Total VAr-hours Imported Q2 phase B,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40176,86,2,TotVArhImpQ2PhC,Total VAr-hours Imported Q2 phase C,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40178,88,2,TotVArhExpQ3,Total VAr-hours Exported Q3,0,acc32,varh,TotVArh_SF,r,false,Total Reactive Power Exported Quadrant 3,
+fixed,,40180,90,2,TotVArhExpQ3PhA,Total VAr-hours Exported Q3 phase A,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40182,92,2,TotVArhExpQ3PhB,Total VAr-hours Exported Q3 phase B,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40184,94,2,TotVArhExpQ3PhC,Total VAr-hours Exported Q3 phase C,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40186,96,2,TotVArhExpQ4,Total VAr-hours Exported Q4,0,acc32,varh,TotVArh_SF,r,false,Total Reactive Power Exported Quadrant 4,
+fixed,,40188,98,2,TotVArhExpQ4PhA,Total VAr-hours Exported Q4 Imported phase A,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40190,100,2,TotVArhExpQ4PhB,,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40192,102,2,TotVArhExpQ4PhC,Total VAr-hours Exported Q4 Imported phase C,0,acc32,varh,TotVArh_SF,r,false,,
+fixed,,40194,104,1,TotVArh_SF,,0,sunssf,,,r,false,Reactive Energy scale factor,
+fixed,,40195,105,2,Evt,Events,0,bitfield32,,,r,true,Meter Event Flags,
+
+bitfield32,Evt,,,,M_EVENT_Power_Failure,,2,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Under_Voltage,,3,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Low_PF,,4,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Current,,5,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Voltage,,6,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Missing_Sensor,,7,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved1,,8,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved2,,9,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved3,,10,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved4,,11,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved5,,12,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved6,,13,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved7,,14,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved8,,15,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM01,,16,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM02,,17,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM03,,18,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM04,,19,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM05,,20,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM06,,21,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM07,,22,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM08,,23,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM09,,24,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM10,,25,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM11,,26,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM12,,27,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM13,,28,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM14,,29,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM15,,30,,,,,,,
+bitfield32,Evt,,,,,Power Failure,,,,,,,Loss of power or phase,
+bitfield32,Evt,,,,,Under Voltage,,,,,,,Voltage below threshold (Phase Loss),
+bitfield32,Evt,,,,,Low PF,,,,,,,Power Factor below threshold,
+bitfield32,Evt,,,,,Over Current,,,,,,,Current Input over threshold,
+bitfield32,Evt,,,,,Over Voltage,,,,,,,Voltage Input over threshold,
+bitfield32,Evt,,,,,Missing Sensor,,,,,,,Sensor not connected,
+bitfield32,Evt,,,,,OEM01,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM02,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM01,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM04,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM05,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM06,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM07,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM08,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM09,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM10,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM11,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM12,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM13,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM14,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM15,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM16,,,,,,,Reserved for OEM use,
+
+
+Model Instance: Signing Meter
+Model: BSM Meter
+Description: Meter data which goes beyond the scope of an AC meter.
+Notes: 
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40197,0,1,ID,Model ID,64900,uint16,,,r,true,,
+header,,40198,1,1,L,Model Payload Length,300,uint16,,,r,true,,
+
+fixed,,40199,2,4,ErrM,Error Code Meter,,string,,,r,false,Meter module error code,This error code gets summarized in 'Evt' from the AC meter model 203.
+fixed,,40203,6,8,SNM,Serial Number Meter,,string,,,r,false,Serial number meter module,This serial number is also provided as 'SN' in common model (1).
+fixed,,40211,14,8,SNC,Serial Number Communication Module,,string,,,r,false,Serial number of the meter's communication module,
+fixed,,40219,22,8,VrM,Software Version Meter,,string,,,r,false,Meter firmware version and checksum,This version information includes a firmware checksum and is also provided as 'Vr' in common model (1).
+fixed,,40227,30,8,VrC,Software Version Communication Module,,string,,,r,false,Communication module firmware version,The firmware hash is provided separately via the 'Communication Module Firmware Hash' instance of the 'BLOB' model (64902).
+fixed,,40235,38,8,MA1,Meter Address 1,,string,,,r,false,Meter address 1,
+fixed,,40243,46,8,MA2,Meter Address 2,,string,,,r,false,Meter address 2,
+fixed,,40251,54,2,RCR,Real Energy Imported Since Last Turn-On Sequence,0,uint32,Wh,RCR_SF,r,false,Real energy imported since the last execution of the turn-on sequence,This data point value gets reset to zero during the turn-on sequence.
+fixed,,40253,56,1,RCR_SF,Real Energy Imported Since Last Turn-On Sequence Scale Factor,0,sunssf,,,r,false,,
+fixed,,40254,57,2,PDCnt,Power Down Counter,0,uint32,,,r,false,,
+fixed,,40256,59,2,RCnt,Response Counter,0,uint32,,,r,false,A counter incremented with each snapshot,This is a counter which gets incremented with and included in each created snapshot. It is used among all snapshot instances.
+fixed,,40258,61,2,OS,Operation-Seconds Counter,0,uint32,s,,r,false,,
+fixed,,40260,63,2,Epoch,Current Epoch Time,0,uint32,s,,rw,false,Current local time in seconds since 1970,"Set both, 'Epoch' and 'TZO' in a single write operation for initially setting the time (if the time is invalid, for example after a power-up)."
+fixed,,40262,65,1,TZO,Timezone Offset,0,int16,min,,rw,false,Timezone offset of local epoch time time to UTC,"Positive values refer to time zones east/ahead of UTC, negative values to time zones west/behind of UTC. Set both, 'Epoch' and 'TZO' in a single write operation for initially setting the time (if the time is invalid, for example after a power-up)."
+fixed,,40263,66,2,EpochSetCnt,Time Set Counter,0,uint32,,,r,false,How many time epoch time and timezone offset have been set,
+fixed,,40265,68,2,EpochSetOS,Time Last Set At Operation-Seconds,0,uint32,s,,r,false,Operation-seconds when the time has been set the last time,
+fixed,,40267,70,1,DI,Digital Input State,0,uint16,,,r,false,Status of the digital inputs,
+fixed,,40268,71,1,DO,Digital Output State,0,uint16,,,rw,false,Status of the digital outputs,
+fixed,,40269,72,2,DIChgOS,Digital Inputs Last Changed At Operation-Seconds,0,uint32,s,,r,false,The point in time (operation-seconds) when the digital inputs changed last,
+fixed,,40271,74,2,DIChgEpoch,Digital Inputs Last Changed At Epoch Time,0,uint32,s,,r,false,The point in time (epoch time) when the digital inputs changed last,
+fixed,,40273,76,1,DIChgTZO,Digital Inputs Last Changed Timezone Offset,0,int16,min,,r,false,The timezone offset when digital input changed last,
+fixed,,40274,77,2,DOChgOS,Digital Outputs Last Changed At Operation-Seconds,0,uint32,s,,r,false,The point in time (operation-seconds) when the digital outputs changed last,
+fixed,,40276,79,2,DOChgEpoch,Digital Outputs Last Changed At Epoch Time,0,uint32,s,,r,false,The point in time (epoch time) when the digital outputs changed last,
+fixed,,40278,81,1,DOChgTZO,Digital Outputs Last Changed Timezone Offset,0,int16,min,,r,false,The timezone offset when digital outputs changed last,
+fixed,,40279,82,70,Meta1,Metadata 1,,string,,,rw,false,User metadata 1,Use this data point for including custom data into signed snapshots.
+fixed,,40349,152,50,Meta2,Metadata 2,,string,,,rw,false,User metadata 2,Use this data point for including custom data into signed snapshots.
+fixed,,40399,202,50,Meta3,Metadata 3,,string,,,rw,false,User metadata 3,Use this data point for including custom data into signed snapshots.
+fixed,,40449,252,1,NPK,Number Of Public-Key Registers,0,uint16,,,r,false,The number of registers of the public key BLOB area,This is the space reserved in PK. The public key data's actual length in bytes is given by BPK.
+fixed,,40450,253,1,BPK,Number Of Public-Key Bytes,0,uint16,,,r,false,The length of the public key BLOB provided by PK in bytes,
+
+repeating,,40451,0,1,PK,Public Key,0,uint16,,,r,false,The meter's public key used for signing,"The public key takes up the first BPK bytes from this block, interpreting the individual registers as big endian. The public key is encoded as DER according to RFC 5480."
+
+
+Model Instance: Communication Module Firmware Hash
+Model: BSM BLOB data
+"Description: A model for exposing binary data (BLOB, binary large object)"
+Notes: This model is used for exposing BLOB (binary large objects) data which could not be provided by repeating blocks of other models.
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40499,0,1,ID,Model ID,64902,uint16,,,r,true,,
+header,,40500,1,1,L,Model Payload Length,20,uint16,,,r,true,,
+
+fixed,,40501,2,1,Typ,BLOB Type,0,enum16,,,r,false,Which BLOB data gets provided by this model instance,
+fixed,,40502,3,1,NB,Number Of BLOB Registers,0,uint16,,,r,false,The number of registers of the BLOB data area,This is the space actually reserved in B. The BLOB data's actual length is given in bytes by BB.
+fixed,,40503,4,1,BB,Number Of BLOB Bytes,0,uint16,,,r,false,The number of bytes actually representing BLOB data in B,
+fixed,,40504,5,1,Pad,,0,pad,,,r,false,,
+
+repeating,,40505,0,1,B,BLOB data,0,uint16,,,r,false,,"The BLOB takes up the first BB bytes from this block, interpreting the individual registers as big endian."
+
+enum16,Typ,,,,CM_FIRMWARE_HASH,Communication Module Firmware Hash,0,,,,,,This model instance provides the communication module's firmware hash (SHA-256),
+
+
+Model Instance: Signed Current Snapshot
+Model: BSM Signed Snapshot
+Description: A signed snapshot of data from different model instances
+Notes: See notes on 'St' for snapshot creation.
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40521,0,1,ID,Model ID,64901,uint16,,,r,true,,
+header,,40522,1,1,L,Model Payload Length,252,uint16,,,r,true,,
+
+fixed,,40523,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,40524,3,1,St,Snapshot Status,0,enum16,,,rw,false,Status of this snapshot instance,Write 'UPDATING' to this data point for triggering the creation of a new snapshot. Poll this data points afterwards until its value changes to something different from 'UPDATING'.
+fixed,,40525,4,2,RCR,Real Energy Imported Since Last Turn-On Sequence,0,acc32,Wh,Wh_SF,r,false,Real energy imported since the last execution of the turn-on sequence,This value ist taken from BSM model 64900. It will be zero in snapshots for the turn-on sequence.
+fixed,,40527,6,2,TotWhImp,Total Watt-hours Imported,0,acc32,Wh,Wh_SF,r,false,Total Real Energy Imported,This value is taken from AC meter model 203.
+fixed,,40529,8,1,Wh_SF,,0,sunssf,,,r,false,Real energy scale factor,
+fixed,,40530,9,1,W,Watts,0,int16,W,W_SF,r,false,Total Real Power,This value is taken from AC meter model 203.
+fixed,,40531,10,1,W_SF,,0,sunssf,,,r,false,Real Power scale factor,This value is taken from AC meter model 203.
+fixed,,40532,11,8,MA1,Meter Address 1,,string,,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,40540,19,2,RCnt,Response Counter,0,uint32,,,r,false,A counter incremented with each snapshot,This is a counter which gets incremented with each created snapshot and used among all snapshot instances. You can find the last assigned value in the BSM meter model 64900.
+fixed,,40542,21,2,OS,Operation-Seconds Counter,0,uint32,s,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,40544,23,2,Epoch,Current Epoch Time,0,uint32,s,,r,false,Current local time in seconds since 1970,This value is taken from BSM meter model 64900.
+fixed,,40546,25,1,TZO,Timezone Offset,0,int16,min,,r,false,Timezone offset of local epoch time time to UTC,"Positive values refer to time zones east/ahead of UTC, negative values to time zones west/behind of UTC. This value is taken from BSM meter model 64900."
+fixed,,40547,26,2,EpochSetCnt,Time Set Counter,0,uint32,,,r,false,How many time epoch time and timezone offset have been set,This value is taken from BSM meter model 64900.
+fixed,,40549,28,2,EpochSetOS,Time Last Set At Operation-Seconds,0,uint32,s,,r,false,Operation-seconds when the time has been set the last time,This value is taken from BSM meter model 64900.
+fixed,,40551,30,1,DI,Digital Input State,0,uint16,,,r,false,Status of the digital inputs,This value is taken from BSM meter model 64900.
+fixed,,40552,31,1,DO,Digital Output State,0,uint16,,,r,false,Status of the digital outputs,This value is taken from BSM meter model 64900.
+fixed,,40553,32,70,Meta1,Metadata 1,,string,,,r,false,User metadata 1,This value is taken from BSM meter model 64900.
+fixed,,40623,102,50,Meta2,Metadata 2,,string,,,r,false,User metadata 2,This value is taken from BSM meter model 64900.
+fixed,,40673,152,50,Meta3,Metadata 3,,string,,,r,false,User metadata 3,This value is taken from BSM meter model 64900.
+fixed,,40723,202,2,Evt,Events,0,bitfield32,,,r,false,Meter Event Flags,This value is taken from AC meter model 203.
+fixed,,40725,204,1,NSig,Number Of Signature Registers,0,uint16,,,r,false,The number of registers of the signature BLOB area,This is the space acutally reserved in Sig. The signature data's actual length is given in bytes by BSig.
+fixed,,40726,205,1,BSig,Number Of Signature Bytes,0,uint16,,,r,false,Number of bytes actually representing signature data in Sig.,
+
+repeating,,40727,0,1,Sig,Digital Signature,0,uint16,,,r,false,The snapshot's ECDSA signature,"The signature takes up the first BSig bytes from this block, interpreting the individual registers as big endian. It is encoded as DER according to RFC 4492."
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,
+
+bitfield32,Evt,,,,M_EVENT_Power_Failure,,2,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Under_Voltage,,3,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Low_PF,,4,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Current,,5,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Voltage,,6,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Missing_Sensor,,7,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved1,,8,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved2,,9,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved3,,10,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved4,,11,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved5,,12,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved6,,13,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved7,,14,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved8,,15,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Meter_Fatal_Error,Meter Fatal Error,16,,,,,,The meter module reported a fatal error,This bit summarizes the meter module's error status 'Err' from BSM model (64900). It gets set when this value differs from 0000000. This is a fatal error. Values returned by the device are no longer guaranteed to be valid.
+bitfield32,Evt,,,,M_EVENT_CM_Init_Failed,Communication Module Startup Initialization Failed,17,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Firmware_Hash_Mismatch,Communication Module Firmware Hash Mismatch,18,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Development_Mode,Communication Module in Development Mode,19,,,,,,,This is a device in development mode. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_OEM05,,20,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM06,,21,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM07,,22,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM08,,23,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM09,,24,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM10,,25,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM11,,26,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM12,,27,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM13,,28,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM14,,29,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM15,,30,,,,,,,
+bitfield32,Evt,,,,,Power Failure,,,,,,,Loss of power or phase,
+bitfield32,Evt,,,,,Under Voltage,,,,,,,Voltage below threshold (Phase Loss),
+bitfield32,Evt,,,,,Low PF,,,,,,,Power Factor below threshold,
+bitfield32,Evt,,,,,Over Current,,,,,,,Current Input over threshold,
+bitfield32,Evt,,,,,Over Voltage,,,,,,,Voltage Input over threshold,
+bitfield32,Evt,,,,,Missing Sensor,,,,,,,Sensor not connected,
+bitfield32,Evt,,,,,OEM05,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM06,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM07,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM08,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM09,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM10,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM11,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM12,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM13,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM14,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM15,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM16,,,,,,,Reserved for OEM use,
+
+
+Model Instance: Signed Turn-On Snapshot
+Model: BSM Signed Snapshot
+Description: A signed snapshot of data from different model instances
+Notes: See notes on 'St' for snapshot creation.
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,40775,0,1,ID,Model ID,64901,uint16,,,r,true,,
+header,,40776,1,1,L,Model Payload Length,252,uint16,,,r,true,,
+
+fixed,,40777,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,40778,3,1,St,Snapshot Status,0,enum16,,,rw,false,Status of this snapshot instance,Write 'UPDATING' to this data point for triggering the creation of a new snapshot. Poll this data points afterwards until its value changes to something different from 'UPDATING'.
+fixed,,40779,4,2,RCR,Real Energy Imported Since Last Turn-On Sequence,0,acc32,Wh,Wh_SF,r,false,Real energy imported since the last execution of the turn-on sequence,This value ist taken from BSM model 64900. It will be zero in snapshots for the turn-on sequence.
+fixed,,40781,6,2,TotWhImp,Total Watt-hours Imported,0,acc32,Wh,Wh_SF,r,false,Total Real Energy Imported,This value is taken from AC meter model 203.
+fixed,,40783,8,1,Wh_SF,,0,sunssf,,,r,false,Real energy scale factor,
+fixed,,40784,9,1,W,Watts,0,int16,W,W_SF,r,false,Total Real Power,This value is taken from AC meter model 203.
+fixed,,40785,10,1,W_SF,,0,sunssf,,,r,false,Real Power scale factor,This value is taken from AC meter model 203.
+fixed,,40786,11,8,MA1,Meter Address 1,,string,,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,40794,19,2,RCnt,Response Counter,0,uint32,,,r,false,A counter incremented with each snapshot,This is a counter which gets incremented with each created snapshot and used among all snapshot instances. You can find the last assigned value in the BSM meter model 64900.
+fixed,,40796,21,2,OS,Operation-Seconds Counter,0,uint32,s,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,40798,23,2,Epoch,Current Epoch Time,0,uint32,s,,r,false,Current local time in seconds since 1970,This value is taken from BSM meter model 64900.
+fixed,,40800,25,1,TZO,Timezone Offset,0,int16,min,,r,false,Timezone offset of local epoch time time to UTC,"Positive values refer to time zones east/ahead of UTC, negative values to time zones west/behind of UTC. This value is taken from BSM meter model 64900."
+fixed,,40801,26,2,EpochSetCnt,Time Set Counter,0,uint32,,,r,false,How many time epoch time and timezone offset have been set,This value is taken from BSM meter model 64900.
+fixed,,40803,28,2,EpochSetOS,Time Last Set At Operation-Seconds,0,uint32,s,,r,false,Operation-seconds when the time has been set the last time,This value is taken from BSM meter model 64900.
+fixed,,40805,30,1,DI,Digital Input State,0,uint16,,,r,false,Status of the digital inputs,This value is taken from BSM meter model 64900.
+fixed,,40806,31,1,DO,Digital Output State,0,uint16,,,r,false,Status of the digital outputs,This value is taken from BSM meter model 64900.
+fixed,,40807,32,70,Meta1,Metadata 1,,string,,,r,false,User metadata 1,This value is taken from BSM meter model 64900.
+fixed,,40877,102,50,Meta2,Metadata 2,,string,,,r,false,User metadata 2,This value is taken from BSM meter model 64900.
+fixed,,40927,152,50,Meta3,Metadata 3,,string,,,r,false,User metadata 3,This value is taken from BSM meter model 64900.
+fixed,,40977,202,2,Evt,Events,0,bitfield32,,,r,false,Meter Event Flags,This value is taken from AC meter model 203.
+fixed,,40979,204,1,NSig,Number Of Signature Registers,0,uint16,,,r,false,The number of registers of the signature BLOB area,This is the space acutally reserved in Sig. The signature data's actual length is given in bytes by BSig.
+fixed,,40980,205,1,BSig,Number Of Signature Bytes,0,uint16,,,r,false,Number of bytes actually representing signature data in Sig.,
+
+repeating,,40981,0,1,Sig,Digital Signature,0,uint16,,,r,false,The snapshot's ECDSA signature,"The signature takes up the first BSig bytes from this block, interpreting the individual registers as big endian. It is encoded as DER according to RFC 4492."
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,
+
+bitfield32,Evt,,,,M_EVENT_Power_Failure,,2,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Under_Voltage,,3,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Low_PF,,4,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Current,,5,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Voltage,,6,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Missing_Sensor,,7,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved1,,8,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved2,,9,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved3,,10,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved4,,11,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved5,,12,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved6,,13,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved7,,14,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved8,,15,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Meter_Fatal_Error,Meter Fatal Error,16,,,,,,The meter module reported a fatal error,This bit summarizes the meter module's error status 'Err' from BSM model (64900). It gets set when this value differs from 0000000. This is a fatal error. Values returned by the device are no longer guaranteed to be valid.
+bitfield32,Evt,,,,M_EVENT_CM_Init_Failed,Communication Module Startup Initialization Failed,17,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Firmware_Hash_Mismatch,Communication Module Firmware Hash Mismatch,18,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Development_Mode,Communication Module in Development Mode,19,,,,,,,This is a device in development mode. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_OEM05,,20,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM06,,21,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM07,,22,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM08,,23,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM09,,24,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM10,,25,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM11,,26,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM12,,27,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM13,,28,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM14,,29,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM15,,30,,,,,,,
+bitfield32,Evt,,,,,Power Failure,,,,,,,Loss of power or phase,
+bitfield32,Evt,,,,,Under Voltage,,,,,,,Voltage below threshold (Phase Loss),
+bitfield32,Evt,,,,,Low PF,,,,,,,Power Factor below threshold,
+bitfield32,Evt,,,,,Over Current,,,,,,,Current Input over threshold,
+bitfield32,Evt,,,,,Over Voltage,,,,,,,Voltage Input over threshold,
+bitfield32,Evt,,,,,Missing Sensor,,,,,,,Sensor not connected,
+bitfield32,Evt,,,,,OEM05,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM06,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM07,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM08,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM09,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM10,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM11,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM12,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM13,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM14,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM15,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM16,,,,,,,Reserved for OEM use,
+
+
+Model Instance: Signed Turn-Off Snapshot
+Model: BSM Signed Snapshot
+Description: A signed snapshot of data from different model instances
+Notes: See notes on 'St' for snapshot creation.
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,41029,0,1,ID,Model ID,64901,uint16,,,r,true,,
+header,,41030,1,1,L,Model Payload Length,252,uint16,,,r,true,,
+
+fixed,,41031,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,41032,3,1,St,Snapshot Status,0,enum16,,,rw,false,Status of this snapshot instance,Write 'UPDATING' to this data point for triggering the creation of a new snapshot. Poll this data points afterwards until its value changes to something different from 'UPDATING'.
+fixed,,41033,4,2,RCR,Real Energy Imported Since Last Turn-On Sequence,0,acc32,Wh,Wh_SF,r,false,Real energy imported since the last execution of the turn-on sequence,This value ist taken from BSM model 64900. It will be zero in snapshots for the turn-on sequence.
+fixed,,41035,6,2,TotWhImp,Total Watt-hours Imported,0,acc32,Wh,Wh_SF,r,false,Total Real Energy Imported,This value is taken from AC meter model 203.
+fixed,,41037,8,1,Wh_SF,,0,sunssf,,,r,false,Real energy scale factor,
+fixed,,41038,9,1,W,Watts,0,int16,W,W_SF,r,false,Total Real Power,This value is taken from AC meter model 203.
+fixed,,41039,10,1,W_SF,,0,sunssf,,,r,false,Real Power scale factor,This value is taken from AC meter model 203.
+fixed,,41040,11,8,MA1,Meter Address 1,,string,,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,41048,19,2,RCnt,Response Counter,0,uint32,,,r,false,A counter incremented with each snapshot,This is a counter which gets incremented with each created snapshot and used among all snapshot instances. You can find the last assigned value in the BSM meter model 64900.
+fixed,,41050,21,2,OS,Operation-Seconds Counter,0,uint32,s,,r,false,,This value is taken from BSM meter model 64900.
+fixed,,41052,23,2,Epoch,Current Epoch Time,0,uint32,s,,r,false,Current local time in seconds since 1970,This value is taken from BSM meter model 64900.
+fixed,,41054,25,1,TZO,Timezone Offset,0,int16,min,,r,false,Timezone offset of local epoch time time to UTC,"Positive values refer to time zones east/ahead of UTC, negative values to time zones west/behind of UTC. This value is taken from BSM meter model 64900."
+fixed,,41055,26,2,EpochSetCnt,Time Set Counter,0,uint32,,,r,false,How many time epoch time and timezone offset have been set,This value is taken from BSM meter model 64900.
+fixed,,41057,28,2,EpochSetOS,Time Last Set At Operation-Seconds,0,uint32,s,,r,false,Operation-seconds when the time has been set the last time,This value is taken from BSM meter model 64900.
+fixed,,41059,30,1,DI,Digital Input State,0,uint16,,,r,false,Status of the digital inputs,This value is taken from BSM meter model 64900.
+fixed,,41060,31,1,DO,Digital Output State,0,uint16,,,r,false,Status of the digital outputs,This value is taken from BSM meter model 64900.
+fixed,,41061,32,70,Meta1,Metadata 1,,string,,,r,false,User metadata 1,This value is taken from BSM meter model 64900.
+fixed,,41131,102,50,Meta2,Metadata 2,,string,,,r,false,User metadata 2,This value is taken from BSM meter model 64900.
+fixed,,41181,152,50,Meta3,Metadata 3,,string,,,r,false,User metadata 3,This value is taken from BSM meter model 64900.
+fixed,,41231,202,2,Evt,Events,0,bitfield32,,,r,false,Meter Event Flags,This value is taken from AC meter model 203.
+fixed,,41233,204,1,NSig,Number Of Signature Registers,0,uint16,,,r,false,The number of registers of the signature BLOB area,This is the space acutally reserved in Sig. The signature data's actual length is given in bytes by BSig.
+fixed,,41234,205,1,BSig,Number Of Signature Bytes,0,uint16,,,r,false,Number of bytes actually representing signature data in Sig.,
+
+repeating,,41235,0,1,Sig,Digital Signature,0,uint16,,,r,false,The snapshot's ECDSA signature,"The signature takes up the first BSig bytes from this block, interpreting the individual registers as big endian. It is encoded as DER according to RFC 4492."
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,
+
+bitfield32,Evt,,,,M_EVENT_Power_Failure,,2,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Under_Voltage,,3,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Low_PF,,4,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Current,,5,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Over_Voltage,,6,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Missing_Sensor,,7,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved1,,8,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved2,,9,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved3,,10,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved4,,11,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved5,,12,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved6,,13,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved7,,14,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Reserved8,,15,,,,,,,
+bitfield32,Evt,,,,M_EVENT_Meter_Fatal_Error,Meter Fatal Error,16,,,,,,The meter module reported a fatal error,This bit summarizes the meter module's error status 'Err' from BSM model (64900). It gets set when this value differs from 0000000. This is a fatal error. Values returned by the device are no longer guaranteed to be valid.
+bitfield32,Evt,,,,M_EVENT_CM_Init_Failed,Communication Module Startup Initialization Failed,17,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Firmware_Hash_Mismatch,Communication Module Firmware Hash Mismatch,18,,,,,,,This is a fatal error. Values returned by the device are no longer guaranteed to be valid. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_CM_Development_Mode,Communication Module in Development Mode,19,,,,,,,This is a device in development mode. Do not consider signed data as authentic.
+bitfield32,Evt,,,,M_EVENT_OEM05,,20,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM06,,21,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM07,,22,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM08,,23,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM09,,24,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM10,,25,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM11,,26,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM12,,27,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM13,,28,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM14,,29,,,,,,,
+bitfield32,Evt,,,,M_EVENT_OEM15,,30,,,,,,,
+bitfield32,Evt,,,,,Power Failure,,,,,,,Loss of power or phase,
+bitfield32,Evt,,,,,Under Voltage,,,,,,,Voltage below threshold (Phase Loss),
+bitfield32,Evt,,,,,Low PF,,,,,,,Power Factor below threshold,
+bitfield32,Evt,,,,,Over Current,,,,,,,Current Input over threshold,
+bitfield32,Evt,,,,,Over Voltage,,,,,,,Voltage Input over threshold,
+bitfield32,Evt,,,,,Missing Sensor,,,,,,,Sensor not connected,
+bitfield32,Evt,,,,,OEM05,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM06,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM07,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM08,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM09,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM10,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM11,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM12,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM13,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM14,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM15,,,,,,,Reserved for OEM use,
+bitfield32,Evt,,,,,OEM16,,,,,,,Reserved for OEM use,
+
+
+Model Instance: OCMF Signed Current Snapshot
+Model: BSM Signed OCMF Data
+"Description: An OCMF representation of a BSM Signed Snapshot (model ID 64901). Signed snapshots and their OCMF representations are matched by the 'Typ' data point. The OCMF representation contains selected data from the underlying snapshot. For example, 'Meta1' is taken as identity information and the other metadata data points are omitted."
+"Notes: Use the underlying snapshot's 'St' data point for creating snapshot data. Once the snapshot is valid, you could read its OCMF representation from here."
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,41283,0,1,ID,Model ID,64903,uint16,,,r,true,,
+header,,41284,1,1,L,Model Payload Length,372,uint16,,,r,true,,
+
+fixed,,41285,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,41286,3,1,St,Snapshot Status,0,enum16,,,r,false,Status of this snapshot instance,Write to the underlying snapshot's data point 'St' to trigger an update. 'St' is read-only here.
+fixed,,41287,4,370,O,OCMF,,string,,,r,false,OCMF representation of the snapshot indicated by 'Typ',See https://github.com/SAFE-eV/OCMF-Open-Charge-Metering-Format/blob/e1c25620533400405340cfddc0dc71574939f1c5/OCMF-de.md for more information about OCMF.
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to the underlying snapshot's data point 'St' to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,
+
+
+Model Instance: OCMF Signed Turn-On Snapshot
+Model: BSM Signed OCMF Data
+"Description: An OCMF representation of a BSM Signed Snapshot (model ID 64901). Signed snapshots and their OCMF representations are matched by the 'Typ' data point. The OCMF representation contains selected data from the underlying snapshot. For example, 'Meta1' is taken as identity information and the other metadata data points are omitted."
+"Notes: Use the underlying snapshot's 'St' data point for creating snapshot data. Once the snapshot is valid, you could read its OCMF representation from here."
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,41657,0,1,ID,Model ID,64903,uint16,,,r,true,,
+header,,41658,1,1,L,Model Payload Length,372,uint16,,,r,true,,
+
+fixed,,41659,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,41660,3,1,St,Snapshot Status,0,enum16,,,r,false,Status of this snapshot instance,Write to the underlying snapshot's data point 'St' to trigger an update. 'St' is read-only here.
+fixed,,41661,4,370,O,OCMF,,string,,,r,false,OCMF representation of the snapshot indicated by 'Typ',See https://github.com/SAFE-eV/OCMF-Open-Charge-Metering-Format/blob/e1c25620533400405340cfddc0dc71574939f1c5/OCMF-de.md for more information about OCMF.
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to the underlying snapshot's data point 'St' to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,
+
+
+Model Instance: OCMF Signed Turn-Off Snapshot
+Model: BSM Signed OCMF Data
+"Description: An OCMF representation of a BSM Signed Snapshot (model ID 64901). Signed snapshots and their OCMF representations are matched by the 'Typ' data point. The OCMF representation contains selected data from the underlying snapshot. For example, 'Meta1' is taken as identity information and the other metadata data points are omitted."
+"Notes: Use the underlying snapshot's 'St' data point for creating snapshot data. Once the snapshot is valid, you could read its OCMF representation from here."
+
+Field Type,Applicable Point,Address,Address Offset,Size,Name,Label,Value,Type,Units,Scale Factor,Access,Mandatory,Description,Notes
+header,,42031,0,1,ID,Model ID,64903,uint16,,,r,true,,
+header,,42032,1,1,L,Model Payload Length,372,uint16,,,r,true,,
+
+fixed,,42033,2,1,Typ,Snapshot Type,0,enum16,,,r,false,Which snapshot type is represented by this model instance,
+fixed,,42034,3,1,St,Snapshot Status,0,enum16,,,r,false,Status of this snapshot instance,Write to the underlying snapshot's data point 'St' to trigger an update. 'St' is read-only here.
+fixed,,42035,4,370,O,OCMF,,string,,,r,false,OCMF representation of the snapshot indicated by 'Typ',See https://github.com/SAFE-eV/OCMF-Open-Charge-Metering-Format/blob/e1c25620533400405340cfddc0dc71574939f1c5/OCMF-de.md for more information about OCMF.
+
+enum16,Typ,,,,CURRENT,Signed Current Snapshot,0,,,,,,Signed snapshot of the current meter data at the time of its creation,Creating this snapshot just collects and signs the data. No further action is taken.
+enum16,Typ,,,,TURN_ON,Signed Turn-On Snapshot,1,,,,,,Signed snapshot created during executing the turn-on sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken with the contactor turned off.
+enum16,Typ,,,,TURN_OFF,Signed Turn-Off Snapshot,2,,,,,,Signed snapshot created during the execution of the turn-off sequence for an external contactor,Creating this snapshot executes the turn-on sequence for an external contactor. Its data is taken after turning the contactor off.
+
+enum16,St,,,,VALID,Snapshot Data Valid,0,,,,,,The model instance contains valid signed data of a snapshot,
+enum16,St,,,,INVALID,Snapshot Data Invalid,1,,,,,,Snapshot data is invalid. This is the case after powering on the meter.,
+enum16,St,,,,UPDATING,Snapshot Data Gets Updated,2,,,,,,The snapshot gets currently updated. Snapshot data is invalid.,Write this value to the underlying snapshot's data point 'St' to trigger the creation of a new snapshot. Afterwards poll this data point until its value changes to a different symbol indicating the outcome of the update process.
+enum16,St,,,,FAILED_GENERAL,Snapshot Creation Failed For Unspecified Reason,3,,,,,,Creating the snapshot failed for an unspecified reason (for example an internal error),
+enum16,St,,,,FAILED_NOT_ENABLED,Snapshot Creation Failed Due To Missing Enable Signal,4,,,,,,Creating the snapshot failed due to a missing enable signal (DOE),This could happen when attempting to create a turn-on snapshot.
+enum16,St,,,,FAILED_FEEDBACK,Snapshot Creation Failed Due Missing/Wrong Contactor Feedback,5,,,,,,Creating the snapshot failed due to missing or wrong feedback from the external contactor (through DI).,

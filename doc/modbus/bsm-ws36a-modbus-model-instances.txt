@@ -1,0 +1,13 @@
+Address  ID       Payload  Label                                    Name             Aliases
+40002    1        66       Common                                   common           common, cb
+40070    10       4        Serial Interface Header                  model_10         serial_interface_header, sih
+40076    17       12       Serial Interface                         model_17         serial_interface, si
+40090    203      105      AC Meter                                 ac_meter         ac_meter, tpm
+40197    64900    300      Signing Meter                            bsm              bs_meter, bsm, sm
+40499    64902    20       Communication Module Firmware Hash       bsm_blob         cm_firmware_hash, cfwh
+40521    64901    252      Signed Current Snapshot                  bsm_snapshot     signed_current_snapshot, scs
+40775    64901    252      Signed Turn-On Snapshot                  bsm_snapshot     signed_turn_on_snapshot, stons
+41029    64901    252      Signed Turn-Off Snapshot                 bsm_snapshot     signed_turn_off_snapshot, stoffs
+41283    64903    372      OCMF Signed Current Snapshot             bsm_ocmf         ocmf_signed_current_snapshot, oscs
+41657    64903    372      OCMF Signed Turn-On Snapshot             bsm_ocmf         ocmf_signed_turn_on_snapshot, ostons
+42031    64903    372      OCMF Signed Turn-Off Snapshot            bsm_ocmf         ocmf_signed_turn_off_snapshot, ostoffs
