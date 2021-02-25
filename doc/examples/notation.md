@@ -17,6 +17,10 @@ $ bsmtool version
 means enter `bsmtool version` at your shell prompt and the expected output will
 be `0.10.0` here.
 
+There are a few advanced examples command line invocations using [command
+pipeline](https://en.wikipedia.org/wiki/Pipeline_(Unix)) (`|`). They work on
+typical shells on Linux and macOS but your results on Windows may vary.
+
 
 ## Modbus
 
