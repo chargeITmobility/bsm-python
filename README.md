@@ -20,8 +20,8 @@ The command line tool gets installed as `bsmtool`.
 ## Prerequisites
 
 * Python 3
-    * We have tested it with 3.7 and 3.8
-    * We recommend version 3.8
+    * We have tested it with 3.7 and 3.9
+    * See [Prerequisites](doc/examples/prerequisites.md#python-3) for details
 
 * [pySunSpec](https://github.com/sunspec/pysunspec/)
     * As there is currently no package available at pypi.org, we integrated it
@@ -30,16 +30,15 @@ The command line tool gets installed as `bsmtool`.
 
 ## Installation
 
-* We are working on releasing an official package on pypi.org
-* Until then
-    * You can install it from GitHub
-      ```
-      $ pip3 install git+https://github.com/chargeITmobility/bsm-python
-      ```
-    * Or for hands on work from a clone of the repository above
-      ```
-      bsm-python$ pip3 install --user --editable .
-      ```
+* You can install the latest release from GitHub:
+  ```
+  $ pip3 install https://github.com/chargeITmobility/bsm-python/releases/download/release-0.10.0/bauer_bsm-0.10.0-py3-none-any.whl
+  ```
+
+* For hands-on work of the code, clone this repository and perform a editable installation as follows:
+  ```
+  $ pip3 install --user --editable .
+  ```
 
 
 ## Getting help
@@ -53,3 +52,9 @@ For example for help on creating and fetching snapshots use:
 ```
 $ bsmtool get-snapshot --help
 ```
+
+
+## Examples
+
+This repository contains a comprehensive set of examples on using the BSM-WS36A
+and the BSM Tool in [`doc/examples`](doc/examples/index.md).
