@@ -337,9 +337,9 @@ $ echo 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86
 
 ## Public Key
 
-Similar to a snapshot signature, the [_Signing Meter_ model
-instance](../../bauer_bsm/bsm/models/smdx_64900.xml#L31) provides the public
-key [BLOB](modbus-interface.md#binary-data) through the data points
+Similar to a snapshot signature, the [_Signing
+Meter_](../../bauer_bsm/bsm/models/smdx_64900.xml) model instance provides the
+public key [BLOB](modbus-interface.md#binary-data) through the data points
 [_NPK_](../../bauer_bsm/bsm/models/smdx_64900.xml#L208),
 [_BPK_](../../bauer_bsm/bsm/models/smdx_64900.xml#L216), and
 [_PK_](../../bauer_bsm/bsm/models/smdx_64900.xml#L220).
@@ -497,7 +497,7 @@ Success.
 ```
 
 This is done in code by BSM Tool's
-[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L523) which uses
+[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L535) which uses
 [`verify_snapshot`](../../bauer_bsm/bsm/client.py#L406) from the BSM Python
 support. The following sections cover some aspects of this procedure more in
 detail.

@@ -328,16 +328,16 @@ the _Signed Turn-On Snapshot_ taken at the start of charging:
       its status [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115)
 - Power and energy
     - The reference cumulative register
-      [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L176) started at zero
+      [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L169) started at zero
       and now shows the energy delivered during this charging process: 150 Wh
     - The total energy delivered,
-      [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L184), increased
+      [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L177), increased
       from 14,430 Wh to 14,590 Wh which gives a consumption of 160 Wh. This is
       one least significant digit more than the reading from _RCR_ due to their
       [internal state](snapshots.md#energy-and-power) for continuously tracking
       energy consumption.
     - Again, there is no active power
-      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L192) = 0 Wh) since
+      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185) = 0 Wh) since
       power delivery got cut before recording the snapshot data
 - Metadata is still the same as in _Signed Turn-On Snapshot_
 

@@ -16,8 +16,9 @@ information:
 - _TZO_ the current time zone offset to
   [UTC](https://en.wikipedia.org/wiki/Coordinated_Universal_Time) in minutes
 
-Both data points are located in the single [instance](modbus-interface.md) of
-the [_BSM_ model](../../bauer_bsm/bsm/models/smdx_64900.xml):
+Both data points are located in the single
+[instance](modbus-interface.md#model-instances) of the [_BSM_
+model](../../bauer_bsm/bsm/models/smdx_64900.xml):
 
 | Model                                            | Data Point | Type   | Unit | Start Address |
 | ------------------------------------------------ | ---------- | ------ | ---- | ------------: |
