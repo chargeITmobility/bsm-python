@@ -9,6 +9,9 @@ BSM-WS36A) and the tools provided by its Python support.
 certain hard- and software setup presented in the
 [prerequisites](prerequisites.md).
 
+> **Note:** This is a pre-release and some things might change for the final
+> product.
+
 
 ## Modbus Interface
 
