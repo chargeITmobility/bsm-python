@@ -29,10 +29,30 @@ thus not requiring to explicitly specify them when invoking the BSM Tool.
 Let's dive into the actual examples:
 
 - [Changing Communication Parameters](communication-parameters.md)
+    - [Changing the Device Address](communication-parameters.md#changing-the-device-address)
+    - [Changing the Baud Rate](communication-parameters.md#changing-the-baud-rate)
+    - [Changing Device Address and Baud Rate at the Same Time](communication-parameters.md#changing-device-address-and-baud-rate-at-the-same-time)
 - [Setting and Updating Time](time.md)
+    - [Daylight Saving Time](time.md#daylight-saving-time)
+    - [Terminology](time.md#terminology)
+    - [Initially Setting Time](time.md#initially-setting-time)
+    - [Updating Time](time.md#updating-time)
+    - [Starting to Observe Daylight Saving Time](time.md#starting-to-observe-daylight-saving-time)
 - [Signed Snapshots](snapshots.md)
+    - [Snapshot Creation](snapshots.md#snapshot-creation)
+    - [Snapshot Data](snapshots.md#snapshot-data)
+    - [Public Key](snapshots.md#public-key)
+    - [Snapshot Verification](snapshots.md#snapshot-verification)
 - [Open Charge Metering Format (OCMF)](ocmf.md)
+    - [Snapshots and Their Associated OCMF Representation](ocmf.md#snapshots-and-their-associated-ocmf-representation)
+    - [Getting the OCMF Representation](ocmf.md#getting-the-ocmf-representation)
+    - [Snapshot Data in OCMF](ocmf.md#snapshot-data-in-ocmf)
+    - [Example](ocmf.md#example)
+    - [Comparing Snapshot and OCMF Payload](ocmf.md#comparing-snapshot-and-ocmf-payload)
+    - [OCMF XML](ocmf.md#ocmf-xml)
 - [Electric Vehicle Charging](ev-charging.md)
+    - [Typical Setup](ev-charging.md#typical-setup)
+    - [Charging Scenario](ev-charging.md#charging-scenario)
 
 
 ## Use the Source, Luke
