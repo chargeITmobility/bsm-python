@@ -63,7 +63,7 @@ $ bsmtool set bsm/epoch=1609491600 bsm/tzo=60
 ### Setting Identification Data
 
 The BSM-WS36A provides three string [metadata points](snapshots.md#metadata)
-_Meta1_, _Meta2_, and _Meta3_ which get recorded and signed when crating a
+_Meta1_, _Meta2_ and _Meta3_ which get recorded and signed when creating a
 snapshot.
 
 These three data points could be used according to the application's needs when
@@ -71,7 +71,7 @@ generating billing data from the regular snapshots. When using the meter's OCMF
 representation, only _Meta1_ will be included as customer identification data
 _ID_.
 
-This example sets and uses the follwing demo data
+This example sets and uses the following demo data
 
 - Customer identification data _chargeIT up 12*4, id: 12345678abcdef_ set as _Meta1_
 - Some more demo data _demo data 2_ set as _Meta2_
@@ -266,7 +266,7 @@ Snapshot_'s payload looks like:
 }
 ```
 
-Let's have a quick lock at its key data points too:
+Let's have a quick look at its key data points too:
 
 - Type and status
     - Its type is indicated by the transaction _TX_ = _B_ (for beginning)
