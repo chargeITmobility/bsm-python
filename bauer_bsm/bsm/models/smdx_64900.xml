@@ -8,7 +8,7 @@
       <point id="VrC" offset="28" type="string" len="8" />
       <point id="MA1" offset="36" type="string" len="8" />
       <point id="MA2" offset="44" type="string" len="8" />
-      <point id="RCR" offset="52" type="uint32" sf="RCR_SF" units="Wh" />
+      <point id="RCR" offset="52" type="acc32" sf="RCR_SF" units="Wh" />
       <point id="RCR_SF" offset="54" type="sunssf" />
       <point id="PDCnt" offset="55" type="uint32" />
       <point id="RCnt" offset="57" type="uint32" />
