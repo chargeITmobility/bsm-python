@@ -54,7 +54,7 @@ $ bsmtool get-snapshot --help
 ```
 
 This repository contains a comprehensive set of examples on using the BSM-WS36A
-and the BSM Tool in [`doc/examples`](doc/examples/index.md).
+and the BSM Tool in [`doc/examples`](doc/examples/README.md).
 
 The directory [`doc/modbus`](doc/modbus) contains a Modbus model instance and
 register overview.
