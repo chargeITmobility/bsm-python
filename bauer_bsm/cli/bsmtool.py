@@ -122,8 +122,12 @@ def create_argument_parser():
     verify_signature_parser.add_argument('message_digest', metavar='MD', type=cliutil.hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
     verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=cliutil.hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
 
+    # Generate data for Chargy from already existing snapshots.
+    chargy_parser = subparsers.add_parser('chargy', help='generate billing data sample for Chargy from already existing snapshots (stons and stoffs)')
+    chargy_parser.set_defaults(func=chargy_command)
+
     # Generate OCMF XML from already existings snapshots.
-    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)')
+    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML billing data sample from already existing snapshots (stons and stoffs)')
     ocmf_xml_parser.set_defaults(func=ocmf_xml_command)
 
     # Hex-dump registers.
@@ -492,6 +496,24 @@ def get_snapshot_command(args):
             print('Updating \'{}\' failed: {}'.format(args.name, status.value),
                 file=sys.stderr)
             result = False
+
+    client.close()
+    if not result:
+        sys.exit(1)
+
+
+def chargy_command(args):
+    client = create_sunspec_client(args)
+    result = False
+
+    output = client.generate_chargy_json()
+
+    if output != None:
+        sys.stdout.buffer.write(output)
+        result = True
+    else:
+        print('Generating Chargy JSON data failed due to invalid snapshot(s).',
+            file=sys.stderr)
 
     client.close()
     if not result:
