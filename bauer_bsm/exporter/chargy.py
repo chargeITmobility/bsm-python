@@ -138,7 +138,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         # OCMF.
         data['contract'] = {
                 'id': snapshot.points[config.SNAPSHOT_META1_DATA_POINT_ID].value,
-                'type': 'UNDEFINED',
+                'type': None,
             }
 
         data['measurementId'] = response_counter
