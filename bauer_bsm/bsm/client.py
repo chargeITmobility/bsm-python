@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from . import dlms
 from . import config
 from . import md
 from . import util as butil
@@ -14,10 +13,8 @@ from ..sunspec.core import client as sclient
 from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
 from ..sunspec.core.modbus import client as smodbus
-from collections import OrderedDict, namedtuple
+from collections import namedtuple
 from enum import IntEnum
-import json
-import uuid
 
 
 _BsmModelInstanceInfo = namedtuple('_BsmModelInstanceInfo', 'id, label, is_snapshot, aliases')
@@ -43,48 +40,10 @@ _BSM_MODEL_INSTANCES = [
         _BsmModelInstanceInfo(64901,    'Signed Current Snapshot',              True,   ['signed_current_snapshot', 'scs']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-On Snapshot',              True,   ['signed_turn_on_snapshot', 'stons']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-Off Snapshot',             True,   ['signed_turn_off_snapshot', 'stoffs']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Current Snapshot',         False,   ['ocmf_signed_current_snapshot', 'oscs']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-On Snapshot',         False,   ['ocmf_signed_turn_on_snapshot', 'ostons']),
-        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-Off Snapshot',        False,   ['ocmf_signed_turn_off_snapshot', 'ostoffs']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Current Snapshot',         False,  ['ocmf_signed_current_snapshot', 'oscs']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-On Snapshot',         False,  ['ocmf_signed_turn_on_snapshot', 'ostons']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-Off Snapshot',        False,  ['ocmf_signed_turn_off_snapshot', 'ostoffs']),
     ]
-
-
-_CHARGY_IGNORED_SNAPSHOT_DATA_POINT_IDS = {'St', 'NSig', 'BSig', 'Sig'}
-
-_CHARGY_MEASURAND_ID_BY_SNAPSHOT_DATA_POINT_ID = {
-        'MA1': '1-0:0.0.0*255',
-        'RCR': '1-0:1.8.0*198',
-        'TotWhImp': '1-0:1.8.0*255',
-        'W': '1-0:1.7.0*255',
-    }
-
-_CHARGY_NUMERIC_DATA_POINT_TYPES = {
-        suns.SUNS_TYPE_ACC32,
-        suns.SUNS_TYPE_BITFIELD32,
-        suns.SUNS_TYPE_ENUM16,
-        suns.SUNS_TYPE_INT16,
-        suns.SUNS_TYPE_INT32,
-        suns.SUNS_TYPE_UINT16,
-        suns.SUNS_TYPE_UINT32,
-    }
-
-_CHARGY_UNIT_NAME_BY_SUNSPEC_UNIT = {
-        'W': 'WATT',
-        'Wh': 'WATT_HOUR',
-        'min': 'MINUTE',
-        's': 'SECOND',
-    }
-
-_CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
-        suns.SUNS_TYPE_ACC32: 'UnsignedInteger32',
-        suns.SUNS_TYPE_BITFIELD32: 'UnsignedInteger32',
-        suns.SUNS_TYPE_ENUM16: 'UnsignedInteger32',
-        suns.SUNS_TYPE_INT16: 'Integer32',
-        suns.SUNS_TYPE_INT32: 'Integer32',
-        suns.SUNS_TYPE_STRING: 'String',
-        suns.SUNS_TYPE_UINT16: 'UnsignedInteger32',
-        suns.SUNS_TYPE_UINT32: 'UnsignedInteger32',
-    }
 
 
 
@@ -184,153 +143,6 @@ class BsmClientDevice(sclient.ClientDevice):
         return name
 
 
-    def _generate_chargy_data(self, read_data=True):
-        data = None
-
-        # TODO: Provided constants for model aliases.
-        common = self.model_aliases[config.COMMON_INSTANCE_ALIAS]
-        bsm = self.model_aliases[config.BSM_INSTANCE_ALIAS]
-        stons = self.model_aliases['signed_turn_on_snapshot']
-        stoffs = self.model_aliases['signed_turn_off_snapshot']
-
-        if read_data:
-            common.read_points()
-            bsm.read_points()
-            stons.read_points()
-            stoffs.read_points()
-
-        stons_data = self._generate_chargy_snapshot_data(common, bsm, stons)
-        stoffs_data = self._generate_chargy_snapshot_data(common, bsm, stoffs)
-
-        if stons_data and stoffs_data:
-            data = OrderedDict()
-
-            data['@context'] = 'https://www.chargeit-mobility.com/contexts/charging-station-json-v0'
-            # The BSM Python support has no natural unique identifier for a
-            # charging process. Let's use an UUID then.
-            data['@id'] = str(uuid.uuid4())
-            data['placeInfo'] = self._generate_chargy_place_info_data()
-            data['signedMeterValues'] = [stons_data, stoffs_data]
-
-        return data
-
-
-    def _generate_chargy_place_info_data(self):
-        info = OrderedDict()
-
-        # Provide some dummy information for testing.
-        info['geoLocation'] = {'lat': 48.03552, 'lon': 10.50669}
-        info['address'] = {'street': 'Breitenbergstr. 2', 'town': 'Mindelheim', 'zipCode': '87719'}
-        info['evseId'] = 'DE*BDO*E8025334492*2'
-
-        return info
-
-
-    def _generate_chargy_snapshot_data(self, common, bsm, snapshot):
-        data = None
-
-        snapshot_status = snapshot.points[config.SNAPSHOT_STATUS_DATA_POINT_ID].value
-
-        if snapshot_status == SnapshotStatus.VALID:
-            data = OrderedDict()
-
-            meter_id = bsm.points[config.BSM_METER_ADDRESS_1_DATA_POINT_ID].value
-            response_counter = snapshot.points[config.SNAPSHOT_RESPONSE_COUNTER_DATA_POINT_ID].value
-
-            data['@context'] = 'https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0'
-            # Device ID and response counter give a unique ID for a snapshot.
-            data['@id'] = '{}-{}'.format(meter_id, response_counter)
-
-            epoch_seconds = snapshot.points[config.SNAPSHOT_EPOCH_TIME_DATA_POINT_ID].value
-            timezone_offset_minutes = snapshot.points[config.SNAPSHOT_TIMEZONE_OFFSET_DATA_POINT_ID].value
-            local_seconds = None
-            if epoch_seconds != None and timezone_offset_minutes != None:
-                local_seconds = epoch_seconds + timezone_offset_minutes * 60
-            data['timestamp'] = epoch_seconds
-            data['timestampLocal'] = {'timestamp': local_seconds, 'localOffset': timezone_offset_minutes}
-
-            # Provide a combined firmware information string for meter and
-            # communication module.
-            firmware_version = '{}, {}'.format(
-                bsm.points[config.BSM_SOFTWARE_VERSION_METER_DATA_POINT_ID].value,
-                bsm.points[config.BSM_SOFTWARE_VERSION_COMMUNICATION_MODULE_DATA_POINT_ID].value)
-            data['meterInfo'] = {
-                    'firmwareVersion': firmware_version,
-                    'publicKey': self.get_public_key(read_data=False).hex(),
-                    'meterId': meter_id,
-                    'manufacturer': common.points[config.COMMON_MANUFACTURER_DATA_POINT_ID].value,
-                    'type': common.points[config.COMMON_MODEL_DATA_POINT_ID].value,
-                }
-
-            # Metadata field 1 is expected to hold contract information similar
-            # to OCMF.
-            data['contract'] = {
-                    'id': snapshot.points[config.SNAPSHOT_META1_DATA_POINT_ID].value,
-                    'type': 'UNDEFINED',
-                }
-
-            data['measurementId'] = response_counter
-            data['value'] = self._generate_chargy_snapshot_value_data(snapshot.points[config.SNAPSHOT_REFERENCE_CUMULATIVE_REGISTER_DATA_POINT_ID])
-
-            # Provide snapshot data points except status and signature "in
-            # order of their appearance" which is the order for computing the
-            # message digest for signing.
-            additional_values = []
-            for point_id, point in snapshot.points.items():
-                if not point_id in _CHARGY_IGNORED_SNAPSHOT_DATA_POINT_IDS:
-                    additional_values.append(self._generate_chargy_snapshot_value_data(point))
-            data['additionalValues'] = additional_values
-
-            data['signature'] = snapshot.device.repeating_blocks_blob(snapshot).hex()
-
-        return data
-
-
-    def _generate_chargy_snapshot_value_data(self, point):
-
-        measurand = OrderedDict()
-        # Provide OBIS ID where available.
-        measurand_id = _CHARGY_MEASURAND_ID_BY_SNAPSHOT_DATA_POINT_ID.get(point.point_type.id, None)
-        if measurand_id != None:
-            measurand['id'] = measurand_id
-        measurand['name'] = point.point_type.id
-
-        value = OrderedDict()
-        # Provide a scale factor. Either the one explicity given by an
-        # associated scale factor data point. Or the default value 10^0 == 1
-        # which the device uses when computing the message digtst for singing.
-        scale = None
-        if point.sf_point:
-            scale = point.sf_point.value_base
-        elif point.point_type.type in _CHARGY_NUMERIC_DATA_POINT_TYPES:
-            scale = 0
-        # Provide a unit. Either the unit explicitly specified by the model or
-        # "unitless" indicated by DLMS code 255 (and a JSON null here). The
-        # device uses the latter for numeric values which have no explicitly
-        # assigned unit when computing the message digest for signing.
-        value_unit_name = None
-        value_unit_encoded = dlms.DlmsUnits.UNITLESS
-        if point.point_type.units != None:
-            value_unit_name = _CHARGY_UNIT_NAME_BY_SUNSPEC_UNIT[point.point_type.units]
-            value_unit_encoded = dlms.dlms_unit_for_symbol(point.point_type.units)
-        value_value = point.value_base
-        # SunSpec defines zero as 'not accumulated'/invalid value for
-        # accumulators and pySunSpec returns them as None. Let's have a numeric
-        # output in this case.
-        if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base == None:
-            value_value = 0
-        value['scale'] = scale
-        value['unit'] = value_unit_name
-        value['unitEncoded'] = value_unit_encoded
-        value['value'] = value_value
-        value['valueType'] = _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point.point_type.type]
-
-        data = OrderedDict()
-        data['measurand'] = measurand
-        data['measuredValue'] = value
-        return data
-
-
     def _init_bsm_models(self):
         """
         Initializes BSM models for the known layout for this device. This saves
@@ -366,79 +178,6 @@ class BsmClientDevice(sclient.ClientDevice):
 
         status.value = SnapshotStatus.UPDATING
         status.write()
-
-
-    def generate_chargy_json(self, read_data=True):
-        """
-        Generates a chargeIT mobility JSON document from signed turn-on and
-        turn-off snapshots.
-
-        The JSON document will be UTF-8 encoded. In case that one of the
-        snapshots is not valid, None will be returned.
-        """
-        data = self._generate_chargy_data(read_data=read_data)
-        if data != None:
-            data = json.dumps(data, indent=2).encode('utf-8')
-        return data
-
-
-    def generate_ocmf_xml(self, read_data=True):
-        """
-        Generates an OCMF XML document from signed turn-on and turn-off
-        snapshots.
-
-        The XML document gets returned as byte data for declaring and using
-        identical encoding. In case that one of the snapshots is not valid,
-        None will be returned.
-        """
-        bsm = self.model_aliases['bs_meter']
-        ostons = self.model_aliases['ocmf_signed_turn_on_snapshot']
-        ostoffs = self.model_aliases['ocmf_signed_turn_off_snapshot']
-        result = None
-
-        if read_data:
-            bsm.read_points()
-            ostons.read_points()
-            ostoffs.read_points()
-
-        ostons_status = ostons.points[config.OCMF_STATUS_DATA_POINT_ID].value
-        ostons_data = ostons.points[config.OCMF_DATA_DATA_POINT_ID].value
-        ostoffs_status = ostoffs.points[config.OCMF_STATUS_DATA_POINT_ID].value
-        ostoffs_data = ostoffs.points[config.OCMF_DATA_DATA_POINT_ID].value
-
-        if ostons_status == SnapshotStatus.VALID \
-            and ostoffs_status == SnapshotStatus.VALID:
-
-            # Don't read BSM model instance containing the public key data
-            # again. If requested, this has been done above.
-            der = self.get_public_key(read_data=False).hex()
-
-            template = \
-                '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
-                '<values>\n' \
-                '  <value transactionId="1" context="Transaction.Begin">\n' \
-                '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
-                '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-                '  </value>\n' \
-                '  <value transactionId="1" context="Transaction.End">\n' \
-                '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
-                '    <publicKey encoding="plain">{pk}</publicKey>\n' \
-                '  </value>\n' \
-                '</values>\n'
-
-            values = {
-                    # XML seems to define encoding names to be upper-case.
-                    'encoding': config.PYSUNSPEC_STRING_ENCODING.upper(),
-                    'pk': der,
-                    'ostons': ostons_data,
-                    'ostoffs': ostoffs_data,
-                }
-
-            # Generate data in the same encoding as pySunSpec's fixed one as
-            # string data got set and signed in this one.
-            result = template.format(**values).encode(config.PYSUNSPEC_STRING_ENCODING)
-
-        return result
 
 
     def get_public_key(self, read_data=True, output_format='der'):
@@ -748,14 +487,6 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
     def create_snapshot(self, snapshot):
         alias = self._snapshot_alias(snapshot)
         self.device.create_snapshot(alias)
-
-
-    def generate_chargy_json(self, read_data=True):
-        return self.device.generate_chargy_json(read_data=read_data)
-
-
-    def generate_ocmf_xml(self, read_data=True):
-        return self.device.generate_ocmf_xml(read_data=read_data)
 
 
     def get_public_key(self, output_format='der'):
