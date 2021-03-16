@@ -497,8 +497,8 @@ Success.
 ```
 
 This is done in code by BSM Tool's
-[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L535) which uses
-[`verify_snapshot`](../../bauer_bsm/bsm/client.py#L406) from the BSM Python
+[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L399) which uses
+[`verify_snapshot`](../../bauer_bsm/bsm/client.py#L361) from the BSM Python
 support. The following sections cover some aspects of this procedure more in
 detail.
 
@@ -557,7 +557,7 @@ For example the string `ABC` will be represented as `00000003 414243`. See
 BSM Tools `verify-snapshot` command verifies the signature of the specified
 snapshot.  additionally provides `verify-signature` for indepently verifying
 the signature for a given hash and public key. The latter is implemented at
-[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L519) and both of
+[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L383) and both of
 them are backed by [`verify_signed_digest`](../../bauer_bsm/crypto/util.py#L72).
 
 Verifying the signature for the snapshot data hash shown in in [Verifying a

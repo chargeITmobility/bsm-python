@@ -67,7 +67,7 @@ Python client could be found in
 
 - [`BsmClientDevice`](../../bauer_bsm/bsm/client.py#L103) meant for general use
   which follows the interface from pySunSpec's `ClientDevice`
-- [`SunSpecBsmClientDevice`](../../bauer_bsm/bsm/client.py#L468) which provides
+- [`SunSpecBsmClientDevice`](../../bauer_bsm/bsm/client.py#L421) which provides
   models and their data points directly as object attributes/properties as
   pySunSpec's `SunSpecClientDevice` and might come in handy for scripting
 

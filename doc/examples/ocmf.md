@@ -192,17 +192,17 @@ uses an XML envelope.
 The XML envelope includes the OCMF data taken before starting and after
 terminating the charging process along with the public key used for signing.
 The format could be generated from a
-[template](../../bauer_bsm/bsm/client.py#L214) where the actual data gets
+[template](../../bauer_bsm/exporter/ocmf.py#L48) where the actual data gets
 inserted.
 
 
 ### Generating OCMF XML
 
-The [BSM Python support](../../bauer_bsm/bsm/client.py#L183) and the BSM Tool
-support the generation of OCMF XML data for _OCMF Signed Turn-On Snapshot_ and
-_OCMF Signed Turn-Off Snapshot_ when the corresponding snapshots have already
-been successfully created. To generate an OCMF XML envelope, invoke the BSM
-Tool as follows:
+The [BSM Python support](../../bauer_bsm/exporter/ocmf.py#L12) and the [BSM
+Tool](../../bauer_bsm/cli/bsmtool.py#L365) support the generation of OCMF XML
+data for _OCMF Signed Turn-On Snapshot_ and _OCMF Signed Turn-Off Snapshot_
+when the corresponding snapshots have already been successfully created. To
+generate an OCMF XML envelope, invoke the BSM Tool as follows:
 
 - Create _Signed Turn-On Snapshot_
     ```
