@@ -106,7 +106,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
     if snapshot_status == SnapshotStatus.VALID:
         data = OrderedDict()
 
-        meter_id = bsm.points[config.BSM_METER_ADDRESS_1_DATA_POINT_ID].value
+        meter_id = snapshot.points[config.SNAPSHOT_METER_ADDRESS_1_DATA_POINT_ID].value
         response_counter = snapshot.points[config.SNAPSHOT_RESPONSE_COUNTER_DATA_POINT_ID].value
 
         data['@context'] = 'https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0'
