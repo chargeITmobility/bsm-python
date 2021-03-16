@@ -13,6 +13,7 @@ from ..bsm import config
 from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice, SnapshotStatus
 from ..bsm.md import md_for_snapshot_data
 from ..crypto import util as cryptoutil
+from ..exporter import ocmf
 from ..sunspec.core import client as sclient
 from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
@@ -502,7 +503,7 @@ def ocmf_xml_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    xml = client.generate_ocmf_xml()
+    xml = ocmf.generate_ocmf_xml(client)
 
     if xml != None:
         sys.stdout.buffer.write(xml)
