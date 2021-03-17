@@ -53,6 +53,8 @@ Let's dive into the actual examples:
     - [Example](ocmf.md#example)
     - [Comparing Snapshot and OCMF Payload](ocmf.md#comparing-snapshot-and-ocmf-payload)
     - [OCMF XML](ocmf.md#ocmf-xml)
+- [chargeIT mobility Chargy and Custom Formats](chargy.md)
+    - [Example](chargy.md#example)
 - [Electric Vehicle Charging](ev-charging.md)
     - [Typical Setup](ev-charging.md#typical-setup)
     - [Charging Scenario](ev-charging.md#charging-scenario)
