@@ -206,7 +206,7 @@ generating this sample documents.
 Let's have a look at the root object's fields in the following sections.
 
 
-#### Type and Document Identification
+#### Document Identification
 
 The context marker is meant for identifying this type of document so that
 processing it does not require in-depth checking of the document structure
@@ -254,6 +254,11 @@ the JSON document. It is not provided by the meter.
 Finally, the array [`signedMeterValues`](data/ev-charging-chargy.json#L16)
 contains snapshot data. Each item of this array represents a snapshot where the
 first item is the start snapshot and the last one the end snapshot.
+
+In contrast to [Document Identification](chargy.md#document-identification) and
+[Place Information](chargy.md#place-information) which needs to be filled in by
+the entity generating the Chargy JSON document, the data presented here is
+completely taken from the meter.
 
 
 ##### Snapshot Objects
@@ -404,6 +409,54 @@ points](../../bauer_bsm/bsm/models/smdx_64901.xml) are provided in the array
 `addtionalValues` in the order they contributed to the signed message digest.
 The follow the structure of `value` and the reference cumulative register is
 included for indicating its position.
+
+
+##### Abstract Data Representation Example
+
+The [`value` object from the end snapshot](data/ev-charging-chargy.json#L282)
+```json
+"value": {
+  "measurand": {
+    "id": "1-0:1.8.0*198",
+    "name": "RCR"
+  },
+  "measuredValue": {
+    "scale": 0,
+    "unit": "WATT_HOUR",
+    "unitEncoded": 30,
+    "value": 150,
+    "valueType": "UnsignedInteger32"
+  }
+}
+```
+with a raw value of 150 = 0x96, a scale factor exponent 0, and the unit code 30
+= 0x1e would translate to to the abstract representation:
+```
+`00000096 00 1e`
+```
+
+> FIXME: How to specify the encoding for string values used at the meter?
+
+The string from _Meta1_
+```json
+{
+  "measurand": {
+    "name": "Meta1"
+  },
+  "measuredValue": {
+    "scale": null,
+    "unit": null,
+    "unitEncoded": 255,
+    "value": "chargeIT up 12*4, id: 12345678abcdef",
+    "valueType": "String"
+  }
+}
+```
+would simply translate to its length and encoded string value:
+```
+00000024 63686172676549542075702031322a342c2069643a203132333435363738616263646566
+```
+
 
 
 ##### Signature
