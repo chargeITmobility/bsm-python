@@ -104,7 +104,10 @@ def create_argument_parser():
     verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=cliutil.hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
 
     # Generate OCMF XML from already existings snapshots.
-    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)')
+    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)',
+        epilog='Use matching matching start and end snapshots like \'stons\' and \'stoffs\' for typical OCMF XML output.')
+    ocmf_xml_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='ostons')
+    ocmf_xml_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='ostoffs')
     ocmf_xml_parser.set_defaults(func=ocmf_xml_command)
 
     # Hex-dump registers.
@@ -344,7 +347,7 @@ def ocmf_xml_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    xml = ocmf.generate_ocmf_xml(client, begin_alias='ostons', end_alias='ostoffs')
+    xml = ocmf.generate_ocmf_xml(client, begin_alias=args.start, end_alias=args.end)
 
     if xml != None:
         sys.stdout.buffer.write(xml)
