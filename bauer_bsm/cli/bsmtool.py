@@ -344,7 +344,7 @@ def ocmf_xml_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    xml = ocmf.generate_ocmf_xml(client)
+    xml = ocmf.generate_ocmf_xml(client, begin_alias='ostons', end_alias='ostoffs')
 
     if xml != None:
         sys.stdout.buffer.write(xml)
