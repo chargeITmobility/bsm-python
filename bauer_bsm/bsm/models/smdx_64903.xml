@@ -1,5 +1,5 @@
 <sunSpecModels v="1">
-  <model id="64903" len="372" name="bsm_ocmf">
+  <model id="64903" len="498" name="bsm_ocmf">
     <block len="372">
       <point id="Typ" offset="0" type="enum16">
         <symbol id="CURRENT">0</symbol>
@@ -14,7 +14,7 @@
         <symbol id="FAILED_NOT_ENABLED">4</symbol>
         <symbol id="FAILED_FEEDBACK">5</symbol>
       </point>
-      <point id="O" offset="2" type="string" len="370" />
+      <point id="O" offset="2" type="string" len="496" />
     </block>
   </model>
   <strings id="64903" locale="en">
