@@ -5,6 +5,8 @@
         <symbol id="CURRENT">0</symbol>
         <symbol id="TURN_ON">1</symbol>
         <symbol id="TURN_OFF">2</symbol>
+        <symbol id="START">3</symbol>
+        <symbol id="END">4</symbol>
       </point>
       <point id="St" offset="1" type="enum16">
         <symbol id="VALID">0</symbol>
@@ -70,6 +72,20 @@
           Creating this snapshot executes the turn-on sequence for an external
           contactor. Its data is taken after turning the contactor off.
         </notes>
+      </symbol>
+      <symbol id="START">
+        <label>Signed Start Snapshot</label>
+        <description>
+          Signed snapshot marking the start of a charging process without
+          executing the turn-on sequence for an external contactor.
+        </description>
+      </symbol>
+      <symbol id="END">
+        <label>Signed End Snapshot</label>
+        <description>
+          Signed snapshot marking the end of a charging process without
+          executing the turn-off sequence for an external contactor
+        </description>
       </symbol>
     </point>
     <point id="St">
