@@ -75,13 +75,13 @@ def md_value_and_scaler_for_point(point):
     # Fixup value an scaler for the 'not implemented' case which gets reported
     # as None by pySunSpec.
 
-    if value == None:
+    if value is None:
         try:
             value = _MD_UNIMPL_VALUES[type_]
         except KeyError as cause:
             raise TypeError('Unsupported point type \'{}\'.'.format(type_)) from cause
 
-    if scaler == None:
+    if scaler is None:
         scaler = 0
 
     return (value, scaler)

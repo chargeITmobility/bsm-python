@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 # BSM Python library and command line tool
 #
 # Copyright (C) 2020 chargeIT mobility GmbH
@@ -5,17 +8,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-#!/usr/bin/env python3
-
-
 from . import util as cliutil
 from ..bsm import config
-from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice, SnapshotStatus
-from ..bsm.md import md_for_snapshot_data
+from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..crypto import util as cryptoutil
 from ..exporter import ocmf, registers
-from ..sunspec.core import client as sclient
-from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
 from ..util import package_version
 from argparse import ArgumentParser, FileType
@@ -126,7 +123,7 @@ def create_argument_parser():
 def create_client_backend(clazz, args):
     trace = None
     if args.trace:
-        trace=trace_modbus_rtu
+        trace = trace_modbus_rtu
 
     client = clazz(slave_id=args.unit, name=args.device,
         baudrate=args.baud, timeout=args.timeout, max_count=args.chunk_size,
@@ -326,7 +323,7 @@ def get_snapshot_command(args):
         sys.exit(1)
     else:
         snapshot = client.get_snapshot(alias)
-        if snapshot != None:
+        if snapshot is not None:
             print('Updating \'{}\' succeeded'.format(args.name))
             print('Snapshot data:')
             cliutil.print_model_data(model, verbose=args.verbose)
@@ -349,12 +346,12 @@ def ocmf_xml_command(args):
 
     xml = ocmf.generate_ocmf_xml(client, begin_alias=args.start, end_alias=args.end)
 
-    if xml != None:
+    if xml is not None:
         sys.stdout.buffer.write(xml)
         result = True
     else:
         print('Genrating OCMF XML failed due to invalid snapshot(s).',
-            file=sys.stderr);
+            file=sys.stderr)
 
     client.close()
     if not result:

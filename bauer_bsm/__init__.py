@@ -17,7 +17,7 @@ class _Pathlist:
         # pretty akward. Suggestions for improvement are welcome.
         try:
             data = pkgutil.get_data(__package__, 'bsm/models/' + filename)
-        except OSError as e:
+        except OSError:
             # Callers expect None to be returned in case the requested file was
             # not found.
             data = None
@@ -25,7 +25,7 @@ class _Pathlist:
 
 
 # Attempt to add BSM models to pySunSpec by setting our resource provider.
-if sdevice.file_pathlist == None:
+if sdevice.file_pathlist is None:
     sdevice.file_pathlist = _Pathlist()
 else:
     warnings.warn('file_pathlist is not None. '

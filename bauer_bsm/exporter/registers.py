@@ -5,7 +5,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..sunspec.core import suns
 import re
 
@@ -24,7 +23,7 @@ _SYMBOL_POINT_TYPES = [
 
 
 def _cleanup_model_string(string, none=None):
-    if string == None:
+    if string is None:
         return none
 
     string = re.sub(r'\s+', ' ', string)
@@ -164,7 +163,7 @@ def write_register_overview_csv(client, writer):
             if point_type.type in _SYMBOL_POINT_TYPES:
                 symbol_points.append(point_type)
 
-        if repeating_block != None:
+        if repeating_block is not None:
             fixed_block_length = int(fixed_block.len)
             base_addr = base_addr + fixed_block_length
 

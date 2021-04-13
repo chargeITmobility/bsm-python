@@ -22,7 +22,7 @@ def auto_int(x):
     if isinstance(x, int):
         # Pass-through integer values.
         result = x
-    elif x != None:
+    elif x is not None:
         # Parse everything else but 'None' with auto base detection.
         result = int(x, 0)
 
@@ -38,7 +38,7 @@ def hex_data_or_file(arg):
 
 
 def model_name(model):
-    if model.model_type != None:
+    if model.model_type is not None:
         return model.model_type.name
     else:
         return 'unknown model {}'.format(model.id)
