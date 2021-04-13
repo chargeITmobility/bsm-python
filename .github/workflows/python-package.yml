@@ -26,6 +26,7 @@ jobs:
         python-version: '3.x'
     - name: Install dependencies
       run: |
+        sudo apt-get install libxml2-utils
         python -m pip install --upgrade pip
         python -m pip install setuptools wheel
         python -m pip install flake8
@@ -34,6 +35,9 @@ jobs:
         # Stop the build if there are Python syntax errors or undefined names.
         flake8 ./bauer_bsm --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 ./bauer_bsm --count --exit-zero --ignore=E121,E125,E126,E127,E128,E241,E301,E302,E303,E501 --max-line-length=127 --statistics
+    - name: Check models
+      run: |
+        ./tools/validate-models
     - name: Build
       run: |
         # Just build the binary distribution package. A source package would be
