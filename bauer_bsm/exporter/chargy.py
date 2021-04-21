@@ -188,11 +188,20 @@ def _generate_chargy_snapshot_value_data(client, point):
     # case.
     if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base == None:
         value_value = 0
+    point_type = point.point_type.type
+    value_type = _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point_type]
+    # Provide the encoding for string values at the time of hashing. The
+    # pySunSpec stack used by the BSM TOOL uses Latin 1/ISO-8859-1. If no
+    # encoding is given, UTF-8 will be assumed.
+    encoding = None
+    if point_type is suns.SUNS_TYPE_STRING:
+        encoding = 'ISO-8859-1'
     _put_non_null(value, 'scale', scale)
     _put_non_null(value, 'unit', value_unit_name)
     _put_non_null(value, 'unitEncoded', value_unit_encoded)
     _put_non_null(value, 'value', value_value)
     _put_non_null(value, 'valueType', _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point.point_type.type])
+    _put_non_null(value, 'valueEncoding', encoding)
 
     data = OrderedDict()
     data['measurand'] = measurand
