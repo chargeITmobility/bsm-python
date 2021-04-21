@@ -138,7 +138,6 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         # OCMF.
         data['contract'] = {
                 'id': snapshot.points[config.SNAPSHOT_META1_DATA_POINT_ID].value,
-                'type': None,
             }
 
         data['measurementId'] = response_counter
@@ -162,9 +161,8 @@ def _generate_chargy_snapshot_value_data(client, point):
     measurand = OrderedDict()
     # Provide OBIS ID where available.
     measurand_id = _CHARGY_MEASURAND_ID_BY_SNAPSHOT_DATA_POINT_ID.get(point.point_type.id, None)
-    if measurand_id != None:
-        measurand['id'] = measurand_id
-    measurand['name'] = point.point_type.id
+    _put_non_null(measurand, 'id', measurand_id)
+    _put_non_null(measurand, 'name', point.point_type.id)
 
     value = OrderedDict()
     # Provide a scale factor. Either the one explicity given by an associated
@@ -190,16 +188,21 @@ def _generate_chargy_snapshot_value_data(client, point):
     # case.
     if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base == None:
         value_value = 0
-    value['scale'] = scale
-    value['unit'] = value_unit_name
-    value['unitEncoded'] = value_unit_encoded
-    value['value'] = value_value
-    value['valueType'] = _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point.point_type.type]
+    _put_non_null(value, 'scale', scale)
+    _put_non_null(value, 'unit', value_unit_name)
+    _put_non_null(value, 'unitEncoded', value_unit_encoded)
+    _put_non_null(value, 'value', value_value)
+    _put_non_null(value, 'valueType', _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point.point_type.type])
 
     data = OrderedDict()
     data['measurand'] = measurand
     data['measuredValue'] = value
     return data
+
+
+def _put_non_null(dict_, key, value):
+    if value is not None:
+        dict_[key] = value
 
 
 def generate_chargy_json(client, read_data=True):
