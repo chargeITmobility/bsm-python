@@ -56,7 +56,7 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
 
 
 
-def _generate_chargy_data(client, read_data=True):
+def _generate_chargy_data(client, read_data=True, operator_info=None):
     data = None
 
     # TODO: Provided constants for model aliases.
@@ -71,8 +71,8 @@ def _generate_chargy_data(client, read_data=True):
         stons.read_points()
         stoffs.read_points()
 
-    stons_data = _generate_chargy_snapshot_data(client, common, bsm, stons)
-    stoffs_data =_generate_chargy_snapshot_data(client, common, bsm, stoffs)
+    stons_data = _generate_chargy_snapshot_data(client, common, bsm, stons, operator_info=operator_info)
+    stoffs_data =_generate_chargy_snapshot_data(client, common, bsm, stoffs, operator_info=operator_info)
 
     if stons_data and stoffs_data:
         data = OrderedDict()
@@ -98,7 +98,7 @@ def _generate_chargy_place_info_data(client):
     return info
 
 
-def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
+def _generate_chargy_snapshot_data(client, common, bsm, snapshot, operator_info=None):
     data = None
 
     snapshot_status = snapshot.points[config.SNAPSHOT_STATUS_DATA_POINT_ID].value
@@ -133,6 +133,8 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
                 'manufacturer': common.points[config.COMMON_MANUFACTURER_DATA_POINT_ID].value,
                 'type': common.points[config.COMMON_MODEL_DATA_POINT_ID].value,
             }
+
+        _put_non_null(data, 'operatorInfo', operator_info)
 
         # Metadata field 1 is expected to hold contract information similar to
         # OCMF.
@@ -214,7 +216,7 @@ def _put_non_null(dict_, key, value):
         dict_[key] = value
 
 
-def generate_chargy_json(client, read_data=True):
+def generate_chargy_json(client, read_data=True, operator_info=None):
     """
     Generates a chargeIT mobility JSON document from signed turn-on and
     turn-off snapshots.
@@ -227,7 +229,7 @@ def generate_chargy_json(client, read_data=True):
         client = client.device
     assert isinstance(client, BsmClientDevice)
 
-    data = _generate_chargy_data(client, read_data=read_data)
+    data = _generate_chargy_data(client, read_data=read_data, operator_info=operator_info)
     if data != None:
         data = json.dumps(data, indent=2).encode('utf-8')
     return data
