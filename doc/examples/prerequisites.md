@@ -60,7 +60,7 @@ pip 20.3.3 from /usr/local/lib/python3.9/site-packages/pip (python 3.9)
 Having Python 3 and its Package Installer ready, you could easily install the
 BSM-WS36A Python Support as follows:
 ```
-$ pip3 install https://github.com/chargeITmobility/bsm-python/releases/download/release-0.10.1/bauer_bsm-0.10.1-py3-none-any.whl
+$ pip3 install https://github.com/chargeITmobility/bsm-python/releases/download/release-0.11.0/bauer_bsm-0.11.0-py3-none-any.whl
 ```
 
 Now you should be able to run the BSM tool and display its help output

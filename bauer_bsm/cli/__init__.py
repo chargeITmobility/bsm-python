@@ -3,5 +3,3 @@
 # Copyright (C) 2020 chargeIT mobility GmbH
 #
 # SPDX-License-Identifier: Apache-2.0
-
-

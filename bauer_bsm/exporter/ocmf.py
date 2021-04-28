@@ -9,7 +9,7 @@ from ..bsm import config
 from ..bsm.client import BsmClientDevice, SnapshotStatus, SunSpecBsmClientDevice
 
 
-def generate_ocmf_xml(client, read_data=True):
+def generate_ocmf_xml(client, begin_alias, end_alias, read_data=True):
     """
     Generates an OCMF XML document from signed turn-on and turn-off
     snapshots.
@@ -24,22 +24,22 @@ def generate_ocmf_xml(client, read_data=True):
     assert isinstance(client, BsmClientDevice)
 
     bsm = client.model_aliases['bs_meter']
-    ostons = client.model_aliases['ocmf_signed_turn_on_snapshot']
-    ostoffs = client.model_aliases['ocmf_signed_turn_off_snapshot']
+    begin = client.model_aliases[begin_alias]
+    end = client.model_aliases[end_alias]
     result = None
 
     if read_data:
         bsm.read_points()
-        ostons.read_points()
-        ostoffs.read_points()
+        begin.read_points()
+        end.read_points()
 
-    ostons_status = ostons.points[config.OCMF_STATUS_DATA_POINT_ID].value
-    ostons_data = ostons.points[config.OCMF_DATA_DATA_POINT_ID].value
-    ostoffs_status = ostoffs.points[config.OCMF_STATUS_DATA_POINT_ID].value
-    ostoffs_data = ostoffs.points[config.OCMF_DATA_DATA_POINT_ID].value
+    begin_status = begin.points[config.OCMF_STATUS_DATA_POINT_ID].value
+    begin_data = begin.points[config.OCMF_DATA_DATA_POINT_ID].value
+    end_status = end.points[config.OCMF_STATUS_DATA_POINT_ID].value
+    end_data = end.points[config.OCMF_DATA_DATA_POINT_ID].value
 
-    if ostons_status == SnapshotStatus.VALID \
-        and ostoffs_status == SnapshotStatus.VALID:
+    if begin_status == SnapshotStatus.VALID \
+        and end_status == SnapshotStatus.VALID:
 
         # Don't read BSM model instance containing the public key data
         # again. If requested, this has been done above.
@@ -49,11 +49,11 @@ def generate_ocmf_xml(client, read_data=True):
             '<?xml version="1.0" encoding="{encoding}" standalone="yes"?>\n' \
             '<values>\n' \
             '  <value transactionId="1" context="Transaction.Begin">\n' \
-            '    <signedData format="OCMF" encoding="plain">{ostons}</signedData>\n' \
+            '    <signedData format="OCMF" encoding="plain">{begin}</signedData>\n' \
             '    <publicKey encoding="plain">{pk}</publicKey>\n' \
             '  </value>\n' \
             '  <value transactionId="1" context="Transaction.End">\n' \
-            '    <signedData format="OCMF" encoding="plain">{ostoffs}</signedData>\n' \
+            '    <signedData format="OCMF" encoding="plain">{end}</signedData>\n' \
             '    <publicKey encoding="plain">{pk}</publicKey>\n' \
             '  </value>\n' \
             '</values>\n'
@@ -62,8 +62,8 @@ def generate_ocmf_xml(client, read_data=True):
                 # XML seems to define encoding names to be upper-case.
                 'encoding': config.PYSUNSPEC_STRING_ENCODING.upper(),
                 'pk': der,
-                'ostons': ostons_data,
-                'ostoffs': ostoffs_data,
+                'begin': begin_data,
+                'end': end_data,
             }
 
         # Generate data in the same encoding as pySunSpec's fixed one as

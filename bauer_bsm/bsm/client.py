@@ -10,7 +10,6 @@ from . import md
 from . import util as butil
 from ..crypto import util as cutil
 from ..sunspec.core import client as sclient
-from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
 from ..sunspec.core.modbus import client as smodbus
 from collections import namedtuple
@@ -40,9 +39,13 @@ _BSM_MODEL_INSTANCES = [
         _BsmModelInstanceInfo(64901,    'Signed Current Snapshot',              True,   ['signed_current_snapshot', 'scs']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-On Snapshot',              True,   ['signed_turn_on_snapshot', 'stons']),
         _BsmModelInstanceInfo(64901,    'Signed Turn-Off Snapshot',             True,   ['signed_turn_off_snapshot', 'stoffs']),
+        _BsmModelInstanceInfo(64901,    'Signed Start Snapshot',                True,   ['signed_start_snapshot', 'sss']),
+        _BsmModelInstanceInfo(64901,    'Signed End Snapshot',                  True,   ['signed_end_snapshot', 'ses']),
         _BsmModelInstanceInfo(64903,    'OCMF Signed Current Snapshot',         False,  ['ocmf_signed_current_snapshot', 'oscs']),
         _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-On Snapshot',         False,  ['ocmf_signed_turn_on_snapshot', 'ostons']),
         _BsmModelInstanceInfo(64903,    'OCMF Signed Turn-Off Snapshot',        False,  ['ocmf_signed_turn_off_snapshot', 'ostoffs']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed Start Snapshot',           False,  ['ocmf_signed_start_snapshot', 'osss']),
+        _BsmModelInstanceInfo(64903,    'OCMF Signed End Snapshot',             False,  ['ocmf_signed_end_snapshot', 'oses']),
     ]
 
 
@@ -54,7 +57,7 @@ def _blob_point_value(point):
     # Fixup invalid/unimpmlemented uint16 value 0xffff which gets converted to
     # None by pySunSpec. When dealing with blob data we'd like to have the real
     # bits.
-    if value_base == None:
+    if value_base is None:
         value_base = suns.SUNS_UNIMPL_UINT16
 
     return point.point_type.to_data(value_base, 2 * point.point_type.len)
@@ -76,9 +79,9 @@ class _BlobProxy:
         model = getattr(self.device, name, None)
         blob = None
 
-        if model != None:
-             core_model = model.model
-             blob = core_model.device.repeating_blocks_blob(core_model)
+        if model is not None:
+            core_model = model.model
+            blob = core_model.device.repeating_blocks_blob(core_model)
 
         return blob
 
@@ -226,8 +229,8 @@ class BsmClientDevice(sclient.ClientDevice):
                 repeating_type = repeating_point.point_type
 
                 result = repeating_type.type == suns.SUNS_TYPE_UINT16 \
-                    and repeating_type.units == None \
-                    and repeating_type.sf == None
+                    and repeating_type.units is None \
+                    and repeating_type.sf is None
 
         return result
 
@@ -273,7 +276,7 @@ class BsmClientDevice(sclient.ClientDevice):
         Case-insensitively looks up a snapshot model by the given name or
         alias.
         """
-        return dict_get_case_insensitive(self.snapshot_aliases, name)
+        return butil.dict_get_case_insensitive(self.snapshot_aliases, name)
 
 
     def model_instance_label(self, model):
@@ -313,7 +316,7 @@ class BsmClientDevice(sclient.ClientDevice):
 
         # Trim blob data if an explicit length is given by the model.
         blob_bytes = self.repeating_blocks_blob_explicit_length_bytes(model)
-        if blob_bytes != None:
+        if blob_bytes is not None:
             result = result[:blob_bytes]
 
         return result
@@ -335,8 +338,8 @@ class BsmClientDevice(sclient.ClientDevice):
             bytes_type = bytes_point.point_type
 
             if bytes_point and bytes_type.type == suns.SUNS_TYPE_UINT16 \
-                and bytes_type.units == None \
-                and bytes_type.sf == None:
+                and bytes_type.units is None \
+                and bytes_type.sf is None:
                 result = bytes_point.value
 
         return result
@@ -353,7 +356,7 @@ class BsmClientDevice(sclient.ClientDevice):
         result = None
 
         if self.has_repeating_blocks_blob_layout(model):
-            result =  model.blocks[1].points_list[0].point_type.id
+            result = model.blocks[1].points_list[0].point_type.id
 
         return result
 
@@ -427,7 +430,7 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
     provides attributes for the model instance aliases from BsmClientDevice.
     """
     def __init__(self, device_type=sclient.RTU, slave_id=BSM_DEFAULT_SLAVE_ID, name=None,
-            pathlist = None, baudrate=BSM_DEFAULT_BAUDRATE,
+            pathlist=None, baudrate=BSM_DEFAULT_BAUDRATE,
             parity=BSM_DEFAULT_PARITY, ipaddr=None, ipport=None,
             timeout=BSM_DEFAULT_TIMEOUT, trace=False, scan_progress=None,
             scan_delay=None, max_count=smodbus.REQ_COUNT_MAX):
@@ -474,10 +477,10 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
         models = getattr(self, model.model_type.name)
         result = None
 
-        if  type(models) is list:
+        if type(models) is list:
             # Pick the corresponding attribute model instance from the list in
             # case of multiple instances of the same model.
-            result = next(filter(lambda x: x != None and x.model == model, models), None)
+            result = next(filter(lambda x: x is not None and x.model == model, models), None)
         else:
             result = models
 
@@ -497,7 +500,7 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
         alias = self._snapshot_alias(snapshot)
         result = None
 
-        if self.device.get_snapshot(alias) != None:
+        if self.device.get_snapshot(alias) is not None:
             # If the wrapped device returs something we were successful. Return
             # the wrapped snapshot model whose underlying model has been
             # updated.
@@ -516,7 +519,7 @@ class SunSpecBsmClientDevice(sclient.SunSpecClientDeviceBase):
         alias = self._snapshot_alias(snapshot)
         result = False
 
-        if alias != None:
+        if alias is not None:
             result = self.device.verify_snapshot(alias, read_data=read_data, trace=trace)
 
         return result

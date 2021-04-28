@@ -12,7 +12,7 @@ def format_point(point):
 def format_point_value(point):
     unit = ''
 
-    if point.value != None and point.point_type.units:
+    if point.value is not None and point.point_type.units:
         unit = ' {}'.format(point.point_type.units)
 
     return '{}{}'.format(point.value, unit)

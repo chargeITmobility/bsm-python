@@ -17,7 +17,7 @@ def der_public_key(public_key):
     """
     Generates a DER represetnation of the given public key.
     """
-    return public_key.to_der();
+    return public_key.to_der()
 
 
 def public_key_data_from_blob(blob, md, output_format):

@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 # BSM Python library and command line tool
 #
 # Copyright (C) 2020 chargeIT mobility GmbH
@@ -5,13 +8,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-#!/usr/bin/env python3
-
-
 from . import util as cliutil
 from ..bsm import config
-from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice, SnapshotStatus
-from ..bsm.md import md_for_snapshot_data
+from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..crypto import util as cryptoutil
 from ..exporter import chargy, ocmf, registers
 from ..sunspec.core import client as sclient
@@ -109,7 +108,10 @@ def create_argument_parser():
     chargy_parser.add_argument('--operator-info', metavar='INFO', help='information from the meter operator', default='See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate')
 
     # Generate OCMF XML from already existings snapshots.
-    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML billing data sample from already existing snapshots (stons and stoffs)')
+    ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)',
+        epilog='Use matching matching start and end snapshots like \'stons\' and \'stoffs\' for typical OCMF XML output.')
+    ocmf_xml_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='ostons')
+    ocmf_xml_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='ostoffs')
     ocmf_xml_parser.set_defaults(func=ocmf_xml_command)
 
     # Hex-dump registers.
@@ -128,7 +130,7 @@ def create_argument_parser():
 def create_client_backend(clazz, args):
     trace = None
     if args.trace:
-        trace=trace_modbus_rtu
+        trace = trace_modbus_rtu
 
     client = clazz(slave_id=args.unit, name=args.device,
         baudrate=args.baud, timeout=args.timeout, max_count=args.chunk_size,
@@ -328,7 +330,7 @@ def get_snapshot_command(args):
         sys.exit(1)
     else:
         snapshot = client.get_snapshot(alias)
-        if snapshot != None:
+        if snapshot is not None:
             print('Updating \'{}\' succeeded'.format(args.name))
             print('Snapshot data:')
             cliutil.print_model_data(model, verbose=args.verbose)
@@ -367,14 +369,14 @@ def ocmf_xml_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    xml = ocmf.generate_ocmf_xml(client)
+    xml = ocmf.generate_ocmf_xml(client, begin_alias=args.start, end_alias=args.end)
 
-    if xml != None:
+    if xml is not None:
         sys.stdout.buffer.write(xml)
         result = True
     else:
         print('Genrating OCMF XML failed due to invalid snapshot(s).',
-            file=sys.stderr);
+            file=sys.stderr)
 
     client.close()
     if not result:
