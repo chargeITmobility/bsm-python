@@ -70,9 +70,14 @@ The BSM-WS36A provides the following model instances:
 | 40522         | 64901    | 252               | Signed Current Snapshot            | [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml)                                                       | signed\_current\_snapshot, scs             |
 | 40776         | 64901    | 252               | Signed Turn-On Snapshot            | [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml)                                                       | signed\_turn\_on\_snapshot, stons          |
 | 41030         | 64901    | 252               | Signed Turn-Off Snapshot           | [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml)                                                       | signed\_turn\_off\_snapshot, stoffs        |
-| 41284         | 64903    | 372               | OCMF Signed Current Snapshot       | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_current\_snapshot, oscs      |
-| 41658         | 64903    | 372               | OCMF Signed Turn-On Snapshot       | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_turn\_on\_snapshot, ostons   |
-| 42032         | 64903    | 372               | OCMF Signed Turn-Off Snapshot      | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_turn\_off\_snapshot, ostoffs |
+| 41284         | 64901    | 252               | Signed Start Snapshot              | [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml)                                                       | signed\_start\_snapshot, sss               |
+| 41538         | 64901    | 252               | Signed End Snapshot                | [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml)                                                       | signed\_end\_snapshot, ses                 |
+| 41792         | 64903    | 498               | OCMF Signed Current Snapshot       | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_current\_snapshot, oscs      |
+| 42292         | 64903    | 498               | OCMF Signed Turn-On Snapshot       | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_turn\_on\_snapshot, ostons   |
+| 42792         | 64903    | 498               | OCMF Signed Turn-Off Snapshot      | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_turn\_off\_snapshot, ostoffs |
+| 43292         | 64903    | 498               | OCMF Signed Start Snapshot         | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_start\_snapshot, osss        |
+| 43792         | 64903    | 498               | OCMF Signed End Snapshot           | [bsm\_ocmf](../../bauer_bsm/bsm/models/smdx_64903.xml)                                                           | ocmf\_signed\_end\_snapshot, oses          |
+
 
 Each model starts with a two register header followed by the given number of
 payload registers. The individual data point start addresses can be computed as
@@ -114,9 +119,13 @@ Address  ID       Payload  Label                                    Name        
 40521    64901    252      Signed Current Snapshot                  bsm_snapshot     signed_current_snapshot, scs
 40775    64901    252      Signed Turn-On Snapshot                  bsm_snapshot     signed_turn_on_snapshot, stons
 41029    64901    252      Signed Turn-Off Snapshot                 bsm_snapshot     signed_turn_off_snapshot, stoffs
-41283    64903    372      OCMF Signed Current Snapshot             bsm_ocmf         ocmf_signed_current_snapshot, oscs
-41657    64903    372      OCMF Signed Turn-On Snapshot             bsm_ocmf         ocmf_signed_turn_on_snapshot, ostons
-42031    64903    372      OCMF Signed Turn-Off Snapshot            bsm_ocmf         ocmf_signed_turn_off_snapshot, ostoffs
+41283    64901    252      Signed Start Snapshot                    bsm_snapshot     signed_start_snapshot, sss
+41537    64901    252      Signed End Snapshot                      bsm_snapshot     signed_end_snapshot, ses
+41791    64903    498      OCMF Signed Current Snapshot             bsm_ocmf         ocmf_signed_current_snapshot, oscs
+42291    64903    498      OCMF Signed Turn-On Snapshot             bsm_ocmf         ocmf_signed_turn_on_snapshot, ostons
+42791    64903    498      OCMF Signed Turn-Off Snapshot            bsm_ocmf         ocmf_signed_turn_off_snapshot, ostoffs
+43291    64903    498      OCMF Signed Start Snapshot               bsm_ocmf         ocmf_signed_start_snapshot, osss
+43791    64903    498      OCMF Signed End Snapshot                 bsm_ocmf         ocmf_signed_end_snapshot, oses
 ```
 
 ## Data Representation
