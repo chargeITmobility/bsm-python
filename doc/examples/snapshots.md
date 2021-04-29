@@ -5,18 +5,18 @@ Successfully created snapshots will be ECDSA signed with the device's
 individual key so the data can later be verified with the device's public key.
 
 Snapshots are represented by instances of the model
-[bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml) and there are three snapshot
-instances available. The first one:
+[bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml) and there are five
+snapshot instances available. The first one:
 
-- [_Signed Current Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L81)
+- [_Signed Current Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L83)
   for a snapshot of the device's actual data
 
-And two instances for switching an external contactor on or off via the meter's
-digital I/Os:
+Two snapshot instances for starting and ending energy consumption and switching
+an external contactor on and off via the meter's digital I/Os:
 
-- [_Signed Turn-On Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L92)
+- [_Signed Turn-On Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L94)
   for turning the contactor on after taking the snapshot data
-- [_Signed Turn-Off Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L103)
+- [_Signed Turn-Off Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L105)
   for turning the contactor off and taking the snapshot data afterwards
 
 These two instances could be used for exactly measuring the energy consumption
@@ -25,17 +25,28 @@ consumption gets recorded with the contactor turned off. This allows to exactly
 determine the energy consumption between them, for example for electric vehicle
 charging applications.
 
+And there is still more: Two snapshots marking the start and end of energy
+consumption without switching an external contactor:
+
+- [_Signed Start Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L116) for
+  recording start data for energy consumption
+
+- [_Signed End Snapshot_](../../bauer_bsm/bsm/models/smdx_64901.xml#L123) for
+  recording end data for energy consumption
+
+
+
 
 ## Snapshot Creation
 
 A snapshot gets created by the writing to its status data point
-[_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115) and polling this data
+[_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L131) and polling this data
 point afterwards its value indicates either a successful update or a failure.
 
 The procedure looks as follows:
 
-1. Write [_UPDATING_](../../bauer_bsm/bsm/models/smdx_64901.xml#L12) (2) to
-   [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115)
+1. Write [_UPDATING_](../../bauer_bsm/bsm/models/smdx_64901.xml#L14) (2) to
+   [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L131)
 2. Read the value of _St_ with a timeout of 15 seconds
 3. If _St_ returns _UPDATING_ (2), continue with step 2
 4. If _St_ returns _VALID_ (0), the snapshot data is ready to be read
@@ -53,16 +64,16 @@ bsm_snapshot:
     fixed:
         Typ: 0
         St: 0
-        RCR: 20 Wh
-        TotWhImp: 36600 Wh
+        RCR: 150 Wh
+        TotWhImp: 88350 Wh
         W: 0.0 W
-        MA1: 001BZR1520200007
-        RCnt: 1513
-        OS: 1038979 s
-        Epoch: 1609491606 s
-        TZO: 60 min
-        EpochSetCnt: 221
-        EpochSetOS: 881136 s
+        MA1: 001BZR1521070003
+        RCnt: 22111
+        OS: 1840464 s
+        Epoch: 1602156057 s
+        TZO: 120 min
+        EpochSetCnt: 12174
+        EpochSetOS: 1829734 s
         DI: 1
         DO: 0
         Meta1: demo data 1
@@ -72,7 +83,7 @@ bsm_snapshot:
         NSig: 48
         BSig: 71
     repeating blocks blob:
-        Sig: 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e
+        Sig: 3045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b9
 ```
 In this case the snapshot gets created successfully and ready upon the first
 poll:
@@ -80,11 +91,11 @@ poll:
 --> 2a 10 9e4c 0001 02 0002 bca5
 <-- 2a 10 9e4c 0001 e9ed
 --> 2a 03 9e4b 0064 1dc4
-<-- 2a 03 c8 000000000000001400008ef8000000000001303031425a5231353230323030303037000005e9000fda835feee496003c000000dd000d71f00001000064656d6f20646174612031000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 ada3
+<-- 2a 03 c8 00000000000000960001591e000000000001303031425a52313532313037303030330000565f001c15505f7ef619007800002f8e001beb660001000064656d6f20646174612031000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 2f8e
 --> 2a 03 9eaf 007d 9c39
-<-- 2a 03 fa 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000473045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d 3dba
+<-- 2a 03 fa 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000473045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b bef5
 --> 2a 03 9f2c 001b ec07
-<-- 2a 03 36 8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e00000000000000000000000000000000000000000000000000 aa60
+<-- 2a 03 36 55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b900000000000000000000000000000000000000000000000000 06c5
 ```
 
 Just polling _St_ and not the entire model instance could for example be done
@@ -118,13 +129,13 @@ Snapshot data is represented by instances of the model
 [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml) containing two data
 points describing the snapshot:
 
-- [_Typ_](../../bauer_bsm/bsm/models/smdx_64901.xml#L78) as a read-only data
+- [_Typ_](../../bauer_bsm/bsm/models/smdx_64901.xml#L80) as a read-only data
   point indicating the snapshot instance
 
-- [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115) returning the
+- [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L131) returning the
   snapshot status when read and triggering the creation of a new snapshot by
   writing the value [_UPDATING_
-  (2)](../../bauer_bsm/bsm/models/smdx_64901.xml#L12) to this data point
+  (2)](../../bauer_bsm/bsm/models/smdx_64901.xml#L14) to this data point
 
 Most data points represent the state of the corresponding data points (with
 equal ID) from other model instances when the snapshot was taken. See
@@ -139,16 +150,16 @@ bsm_snapshot:
     fixed:
         Typ: 0
         St: 0
-        RCR: 20 Wh
-        TotWhImp: 36600 Wh
+        RCR: 150 Wh
+        TotWhImp: 88350 Wh
         W: 0.0 W
-        MA1: 001BZR1520200007
-        RCnt: 1513
-        OS: 1038979 s
-        Epoch: 1609491606 s
-        TZO: 60 min
-        EpochSetCnt: 221
-        EpochSetOS: 881136 s
+        MA1: 001BZR1521070003
+        RCnt: 22111
+        OS: 1840464 s
+        Epoch: 1602156057 s
+        TZO: 120 min
+        EpochSetCnt: 12174
+        EpochSetOS: 1829734 s
         DI: 1
         DO: 0
         Meta1: demo data 1
@@ -158,15 +169,15 @@ bsm_snapshot:
         NSig: 48
         BSig: 71
     repeating blocks blob:
-        Sig: 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e
+        Sig: 3045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b9
 ```
 ```
 --> 2a 03 9e4b 0064 1dc4
-<-- 2a 03 c8 000000000000001400008ef8000000000001303031425a5231353230323030303037000005e9000fda835feee496003c000000dd000d71f00001000064656d6f20646174612031000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 ada3
+<-- 2a 03 c8 00000000000000960001591e000000000001303031425a52313532313037303030330000565f001c15505f7ef619007800002f8e001beb660001000064656d6f20646174612031000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 2f8e
 --> 2a 03 9eaf 007d 9c39
-<-- 2a 03 fa 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000473045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d 3dba
+<-- 2a 03 fa 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000473045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b bef5
 --> 2a 03 9f2c 001b ec07
-<-- 2a 03 36 8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e00000000000000000000000000000000000000000000000000 aa60
+<-- 2a 03 36 55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b900000000000000000000000000000000000000000000000000 06c5
 ```
 
 
@@ -190,10 +201,10 @@ And current data of the _Signed Current Snapshot_ could be dumped by invoking
 the following command with a total length of _payload length_ + 2:
 ```
 $ bsmtool dump 40521 254
-   40521: fd85 00fc 0000 0000 0000 0014 0000 8ef8  ................
-   40529: 0000 0000 0001 3030 3142 5a52 3135 3230  ......001BZR1520
-   40537: 3230 3030 3037 0000 05df 000f 2860 5f80  200007......(`_.
-   40545: 829c 003c 0000 00dd 000d 71f0 0001 0000  ...<......q.....
+   40521: fd85 00fc 0000 0000 0000 0096 0001 591e  ..............Y.
+   40529: 0000 0000 0001 3030 3142 5a52 3135 3231  ......001BZR1521
+   40537: 3037 3030 3033 0000 565f 001c 1550 5f7e  070003..V_...P_~
+   40545: f619 0078 0000 2f8e 001b eb66 0001 0000  ...x../....f....
    40553: 6465 6d6f 2064 6174 6120 3100 0000 0000  demo data 1.....
    40561: 0000 0000 0000 0000 0000 0000 0000 0000  ................
    40569: 0000 0000 0000 0000 0000 0000 0000 0000  ................
@@ -215,12 +226,12 @@ $ bsmtool dump 40521 254
    40697: 0000 0000 0000 0000 0000 0000 0000 0000  ................
    40705: 0000 0000 0000 0000 0000 0000 0000 0000  ................
    40713: 0000 0000 0000 0000 0000 0000 0000 0000  ................
-   40721: 0000 0000 0000 0000 0030 0047 3045 0220  .........0.G0E.
-   40729: 6485 473a 37a8 9fb2 20a5 be53 396d 7474  d.G:7... ..S9mtt
-   40737: 243a a68f bfb2 0089 7483 f628 0b17 d5a2  $:......t..(....
-   40745: 0221 008d 19b0 f1f0 4504 4987 e418 4c86  .!......E.I...L.
-   40753: 379e 5353 cc33 9a01 2df8 16b3 a172 4429  7.SS.3..-....rD)
-   40761: 0176 8700 0000 0000 0000 0000 0000 0000  .v..............
+   40721: 0000 0000 0000 0000 0030 0047 3045 0221  .........0.G0E.!
+   40729: 0089 5b68 a977 654f c052 9883 10dc 92aa  ..[h.weO.R......
+   40737: d5f7 191e c936 acbb 7bfa 3221 3017 1ff0  .....6..{.2!0...
+   40745: 6002 205d e10b 55b4 8e2e 08c5 9e03 108d  `. ]..U.........
+   40753: 67e5 f3e7 2ed6 2b10 b77b 705c ae6d 3e73  g.....+..{p\.m>s
+   40761: ce73 b900 0000 0000 0000 0000 0000 0000  .s..............
    40769: 0000 0000 0000 0000 0000 0000            ............
 ```
 
@@ -230,13 +241,13 @@ $ bsmtool dump 40521 254
 A snapshot records three data points related to power and energy:
 
 - The reference cumulative register
-  [_RCR_](bauer_bsm/bsm/models/smdx_64901.xml#L169) which counts the energy
+  [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185) which counts the energy
   consumption since it got reset during the creation of the last _Signed
   Turn-On Snapshot_
-- [_TotWhImp_](bauer_bsm/bsm/models/smdx_64901.xml#L177) counting the overall
+- [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L193) counting the overall
   energy consumption measured by the BSM-WS36A
 - And the actual real power consumption
-  [_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185)
+  [_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L201)
 
 Please note that both counters maintain hidden internal digits to track the
 energy consumption below the least significant digit presented in display and
@@ -251,9 +262,9 @@ energy shown on the meter display.
 For identifying the point in time of its creation, snapshots record timestamps
 and some counters. Epoch time information in:
 
-- [_Epoch_](../../bauer_bsm/bsm/models/smdx_64901.xml#L25) - [epoch
+- [_Epoch_](../../bauer_bsm/bsm/models/smdx_64901.xml#L27) - [epoch
   time](https://en.wikipedia.org/wiki/Unix_time)
-- [_TZO_](../../bauer_bsm/bsm/models/smdx_64901.xml#L26) - the current time
+- [_TZO_](../../bauer_bsm/bsm/models/smdx_64901.xml#L28) - the current time
   zone offset to
   [UTC](https://en.wikipedia.org/wiki/Coordinated_Universal_Time)
 
@@ -265,14 +276,14 @@ In addition to the epoch time, the BSM-WS36A also records the following data
 points which might come in handy for validating a snapshots by their timestamps
 and counter sequences:
 
-- [_RCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L23) a response counter
+- [_RCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L25) a response counter
   which increments with each signed snapshot
-- [_OS_](../../bauer_bsm/bsm/models/smdx_64901.xml#L24) the meter's operating
+- [_OS_](../../bauer_bsm/bsm/models/smdx_64901.xml#L26) the meter's operating
   seconds counter
-- [_EpochSetCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L27) a counter
+- [_EpochSetCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L29) a counter
   which gets incremented every time the epoch time is set (in contrast to
   [updating](time.md#terminology))
-- [_EpochSetOS_](../../bauer_bsm/bsm/models/smdx_64901.xml#L28) the operating
+- [_EpochSetOS_](../../bauer_bsm/bsm/models/smdx_64901.xml#L30) the operating
   seconds timestamp of the point in time snapshot data got recorded
 
 
@@ -282,9 +293,9 @@ The BSM-WS36A supports custom data to be included and signed along with the
 other snapshot data. Therefor a snapshot records the three metadata string data
 points
 
-- [_Meta1_](../../bauer_bsm/bsm/models/smdx_64901.xml#L31)
-- [_Meta2_](../../bauer_bsm/bsm/models/smdx_64901.xml#L32)
-- [_Meta3_](../../bauer_bsm/bsm/models/smdx_64901.xml#L33)
+- [_Meta1_](../../bauer_bsm/bsm/models/smdx_64901.xml#L33)
+- [_Meta2_](../../bauer_bsm/bsm/models/smdx_64901.xml#L34)
+- [_Meta3_](../../bauer_bsm/bsm/models/smdx_64901.xml#L35)
 
 from the [bsm](../../bauer_bsm/bsm/models/smdx_64900.xml) model. The character
 encoding could be chosen by the application. In case of doubt, we recommend
@@ -313,11 +324,11 @@ The last data points of
 [bsm\_snapshot](../../bauer_bsm/bsm/models/smdx_64901.xml) are the signature
 [BLOB](modbus-interface.md#binary-data) represented by:
 
-- [_NSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L392) the number of Modbus
+- [_NSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L408) the number of Modbus
   registers forming the signature data area
-- [_BSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L400) the number of bytes
+- [_BSig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L416) the number of bytes
   actually used by the signature
-- [_Sig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L404) the actual signature
+- [_Sig_](../../bauer_bsm/bsm/models/smdx_64901.xml#L420) the actual signature
   data
 
 Snapshots are signed using ECDSA and the signature is encoded as
@@ -328,10 +339,10 @@ essence, the signature components _r_ and _s_ with a prefix.
 For example, _r_ and _s_ of the example from [Snapshot Data](#snapshot-data)
 could be parsed from the signature using OpenSSL:
 ```
-$ echo 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e | xxd -r -p | openssl asn1parse -inform der -i -dump
+$ echo 3045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b9 | xxd -r -p | openssl asn1parse -inform der -i -dump
     0:d=0  hl=2 l=  69 cons: SEQUENCE
-    2:d=1  hl=2 l=  33 prim:  INTEGER           :B83C4B4194F5FD536C036D6F9FA002FFE89A560A97FF8B72DD77057C2D77B86D
-   37:d=1  hl=2 l=  32 prim:  INTEGER           :7FCB1D8B23AE8FC4CC80075F66D3EC4553D3E30AEE5D234D6C1333D143C3B78E
+    2:d=1  hl=2 l=  33 prim:  INTEGER           :895B68A977654FC052988310DC92AAD5F7191EC936ACBB7BFA322130171FF060
+   37:d=1  hl=2 l=  32 prim:  INTEGER           :5DE10B55B48E2E08C59E03108D67E5F3E72ED62B10B77B705CAE6D3E73CE73B9
 ```
 
 
@@ -439,41 +450,41 @@ $ bsmtool verify-snapshot scs
 Verifying 64901 ...
 Curve: secp256r1
 Public key: 3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254
-Signature: 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e
+Signature: 3045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b9
 Computing SHA-256 digest for snapshot data:
 Typ:
     value: 0
     data:  0000000000ff
 RCR:
-    value: 20 Wh
-    data:  00000014001e
+    value: 150 Wh
+    data:  00000096001e
 TotWhImp:
-    value: 36600 Wh
-    data:  00008ef8001e
+    value: 88350 Wh
+    data:  0001591e001e
 W:
     value: 0.0 W
     data:  00000000011b
 MA1:
-    value: 001BZR1520200007
-    data:  00000010303031425a5231353230323030303037
+    value: 001BZR1521070003
+    data:  00000010303031425a5231353231303730303033
 RCnt:
-    value: 1513
-    data:  000005e900ff
+    value: 22111
+    data:  0000565f00ff
 OS:
-    value: 1038979 s
-    data:  000fda830007
+    value: 1840464 s
+    data:  001c15500007
 Epoch:
-    value: 1609491606 s
-    data:  5feee4960007
+    value: 1602156057 s
+    data:  5f7ef6190007
 TZO:
-    value: 60 min
-    data:  0000003c0006
+    value: 120 min
+    data:  000000780006
 EpochSetCnt:
-    value: 221
-    data:  000000dd00ff
+    value: 12174
+    data:  00002f8e00ff
 EpochSetOS:
-    value: 881136 s
-    data:  000d71f00007
+    value: 1829734 s
+    data:  001beb660007
 DI:
     value: 1
     data:  0000000100ff
@@ -492,13 +503,13 @@ Meta3:
 Evt:
     value: 0
     data:  0000000000ff
-Snapshot data SHA-256 digest: 07c35dbf15939c4c3d79c61a5cffc5006d88e4e86a3ad40739b6afaf5a6f2ffb
+Snapshot data SHA-256 digest: cfbc3ac362fe24e1913ec5651f69dd4744ba256de990fa767a9c58279b47353b
 Success.
 ```
 
 This is done in code by BSM Tool's
-[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L399) which uses
-[`verify_snapshot`](../../bauer_bsm/bsm/client.py#L361) from the BSM Python
+[`verify_snapshot_command`](../../bauer_bsm/cli/bsmtool.py#L377) which uses
+[`verify_snapshot`](../../bauer_bsm/bsm/client.py#L364) from the BSM Python
 support. The following sections cover some aspects of this procedure more in
 detail.
 
@@ -555,15 +566,17 @@ For example the string `ABC` will be represented as `00000003 414243`. See
 ### Signature Verification
 
 BSM Tools `verify-snapshot` command verifies the signature of the specified
-snapshot.  additionally provides `verify-signature` for indepently verifying
-the signature for a given hash and public key. The latter is implemented at
-[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L383) and both of
-them are backed by [`verify_signed_digest`](../../bauer_bsm/crypto/util.py#L72).
+snapshot.  It additionally provides `verify-signature` for independently
+verifying the signature for a given hash and public key. The latter is
+implemented at
+[`verify_signature_command`](../../bauer_bsm/cli/bsmtool.py#L361) and both of
+them are backed by
+[`verify_signed_digest`](../../bauer_bsm/crypto/util.py#L72).
 
 Verifying the signature for the snapshot data hash shown in in [Verifying a
 Snapshot with the BSM Tool](#verifying-a-snapshot-with-the-bsm-tool) could be
 done by:
 ```
-$ bsmtool --verbose verify-signature 3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254 07c35dbf15939c4c3d79c61a5cffc5006d88e4e86a3ad40739b6afaf5a6f2ffb 3045022100b83c4b4194f5fd536c036d6f9fa002ffe89a560a97ff8b72dd77057c2d77b86d02207fcb1d8b23ae8fc4cc80075f66d3ec4553d3e30aee5d234d6c1333d143c3b78e
+$ bsmtool --verbose verify-signature 3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254 cfbc3ac362fe24e1913ec5651f69dd4744ba256de990fa767a9c58279b47353b 3045022100895b68a977654fc052988310dc92aad5f7191ec936acbb7bfa322130171ff06002205de10b55b48e2e08c59e03108d67e5f3e72ed62b10b77b705cae6d3e73ce73b9
 Success.
 ```
