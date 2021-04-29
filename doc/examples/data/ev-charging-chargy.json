@@ -1,6 +1,6 @@
 {
   "@context": "https://www.chargeit-mobility.com/contexts/charging-station-json-v0",
-  "@id": "75446ca2-0865-4684-8d24-b0b60486f686",
+  "@id": "34158336-3909-48b2-bb6d-2dff2a87d9b4",
   "placeInfo": {
     "geoLocation": {
       "lat": 48.03552,
@@ -16,24 +16,24 @@
   "signedMeterValues": [
     {
       "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0",
-      "@id": "001BZR1520200007-2064",
-      "timestamp": 1609491622,
-      "timesstampLocal": {
-        "timestamp": 1609491622,
-        "localOffset": 60
+      "@id": "001BZR1521070003-22107",
+      "timestamp": 1602145359,
+      "timestampLocal": {
+        "timestamp": 1602152559,
+        "localOffset": 120
       },
       "meterInfo": {
-        "firmwareVersion": "1.7:97B4:505A, d939f6f",
+        "firmwareVersion": "1.8:33C4:DB63, 08d1aa3",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
-        "meterId": "001BZR1520200007",
+        "meterId": "001BZR1521070003",
         "manufacturer": "BAUER Electronic",
         "type": "BSM-WS36A-H01-1311-0000"
       },
+      "operatorInfo": "See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate",
       "contract": {
-        "id": "chargeIT up 12*4, id: 12345678abcdef",
-        "type": null
+        "id": "chargeIT up 12*4, id: 12345678abcdef"
       },
-      "measurementId": 2064,
+      "measurementId": 22107,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
@@ -54,7 +54,6 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 1,
             "valueType": "UnsignedInteger32"
@@ -82,7 +81,7 @@
             "scale": 0,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 14430,
+            "value": 88200,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -92,7 +91,7 @@
             "name": "W"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT",
             "unitEncoded": 27,
             "value": 0,
@@ -101,15 +100,14 @@
         },
         {
           "measurand": {
-            "id": "0100000000ff",
+            "id": "1-0:0.0.0*255",
             "name": "MA1"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
-            "value": "001BZR1520200007",
-            "valueType": "String"
+            "value": "001BZR1521070003",
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -118,9 +116,8 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
-            "value": 284,
+            "value": 22107,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -132,7 +129,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 352851,
+            "value": 1829766,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -144,7 +141,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1609491622,
+            "value": 1602145359,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -156,8 +153,8 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 60,
-            "valueType": "Integer16"
+            "value": 120,
+            "valueType": "Integer32"
           }
         },
         {
@@ -166,9 +163,8 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
-            "value": 224,
+            "value": 12174,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -180,7 +176,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 352832,
+            "value": 1829734,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -190,7 +186,6 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 1,
             "valueType": "UnsignedInteger32"
@@ -202,7 +197,6 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 0,
             "valueType": "UnsignedInteger32"
@@ -213,11 +207,10 @@
             "name": "Meta1"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
             "value": "chargeIT up 12*4, id: 12345678abcdef",
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -225,11 +218,10 @@
             "name": "Meta2"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
             "value": "demo data 2",
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -237,11 +229,9 @@
             "name": "Meta3"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
-            "value": null,
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -250,35 +240,34 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 0,
             "valueType": "UnsignedInteger32"
           }
         }
       ],
-      "signature": "304402201bfb63da4a6ea54d5dec4579cb029d435b9391e85587905d740d711867650860022008f16665b60dedeccb0bb061c49b8bb68e24754c600269f6a74bd020e72caf2e"
+      "signature": "304502201a40c702753d715cc37e5aabbf706ed409e1aa01f8f19996b192a3276adecd72022100a4818e85690f00946c56569b92453ad9bf118fa3ae2a636629cdb8b89123f041"
     },
     {
       "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0",
-      "@id": "001BZR1520200007-2065",
-      "timestamp": 1609491933,
-      "timesstampLocal": {
-        "timestamp": 1609491933,
-        "localOffset": 60
+      "@id": "001BZR1521070003-22108",
+      "timestamp": 1602145657,
+      "timestampLocal": {
+        "timestamp": 1602152857,
+        "localOffset": 120
       },
       "meterInfo": {
-        "firmwareVersion": "1.7:97B4:505A, d939f6f",
+        "firmwareVersion": "1.8:33C4:DB63, 08d1aa3",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
-        "meterId": "001BZR1520200007",
+        "meterId": "001BZR1521070003",
         "manufacturer": "BAUER Electronic",
-        "type": "BSM-WS36A-H01-1311-000"
+        "type": "BSM-WS36A-H01-1311-0000"
       },
+      "operatorInfo": "See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate",
       "contract": {
-        "id": "chargeIT up 12*4, id: 12345678abcdef",
-        "type": null
+        "id": "chargeIT up 12*4, id: 12345678abcdef"
       },
-      "measurementId": 2065,
+      "measurementId": 22108,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
@@ -299,9 +288,8 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
-            "value": 1,
+            "value": 2,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -327,7 +315,7 @@
             "scale": 0,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 14590,
+            "value": 88350,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -337,7 +325,7 @@
             "name": "W"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT",
             "unitEncoded": 27,
             "value": 0,
@@ -350,11 +338,10 @@
             "name": "MA1"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
-            "value": "001BZR1520200007",
-            "valueType": "String"
+            "value": "001BZR1521070003",
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -363,9 +350,8 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
-            "value": 2065,
+            "value": 22108,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -377,7 +363,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 353162,
+            "value": 1830064,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -389,7 +375,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1609491933,
+            "value": 1602145657,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -401,8 +387,8 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 60,
-            "valueType": "Integer16"
+            "value": 120,
+            "valueType": "Integer32"
           }
         },
         {
@@ -411,9 +397,8 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
-            "value": 224,
+            "value": 12174,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -425,7 +410,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 352832,
+            "value": 1829734,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -435,7 +420,6 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 1,
             "valueType": "UnsignedInteger32"
@@ -447,7 +431,6 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 0,
             "valueType": "UnsignedInteger32"
@@ -458,11 +441,10 @@
             "name": "Meta1"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
             "value": "chargeIT up 12*4, id: 12345678abcdef",
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -470,11 +452,10 @@
             "name": "Meta2"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
             "value": "demo data 2",
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -482,11 +463,9 @@
             "name": "Meta3"
           },
           "measuredValue": {
-            "scale": null,
-            "unit": null,
             "unitEncoded": 255,
-            "value": null,
-            "valueType": "String"
+            "valueType": "String",
+            "valueEncoding": "ISO-8859-1"
           }
         },
         {
@@ -495,14 +474,13 @@
           },
           "measuredValue": {
             "scale": 0,
-            "unit": null,
             "unitEncoded": 255,
             "value": 0,
             "valueType": "UnsignedInteger32"
           }
         }
       ],
-      "signature": "304402204fb0de8e38e9e23ebe52e2b15397fe1313cd4753b88b0920b58edad6127448a80220408a02dc0f65545637201f912c7e0107669149f60722e8365ba0b1f5f25936bb"
+      "signature": "3045022100d7070dc074c9188ec1b957cb7a6b3a37d0c416b3c9f9eb49c01087c4a95e16e9022025aaee48fa55f93ed507d7565458fdfa118b1aa73632055401a9e324e1f28a20"
     }
   ]
 }
