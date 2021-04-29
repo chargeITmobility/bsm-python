@@ -382,7 +382,7 @@ the charging process.
 ### End of Charging
 
 Creating a _Signed Turn-Off Snapshot_ ends the charging process by turning of
-the contactor and recoding the snapshot data. Again, [Snapshot Creation]() gives
+the contactor and recoding the snapshot data. Again, [Snapshot Creation](snapshots.md#snapshot-creation) gives
 the details about this procedure.
 
 
@@ -453,7 +453,7 @@ the _Signed Turn-On Snapshot_ taken at the start of charging:
       difference can be one least significant digit larger than the value for
       _RCR_ (shown in the display).
     - Again, there is no active power
-      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185) = 0 Wh) since
+      ([_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L201) = 0 Wh) since
       power delivery got cut before recording the snapshot data
 - Time and counters
     - The response counter

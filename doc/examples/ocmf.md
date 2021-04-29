@@ -37,7 +37,7 @@ model instance afterwards.
 ## Snapshot Data in OCMF
 
 The OCMF representation includes
-[_Meta1_](../../../../bauer_bsm/bsm/models/smdx_64901.xml#L31) as customer
+[_Meta1_](../../bauer_bsm/bsm/models/smdx_64901.xml#L31) as customer
 identification data which needs to be set appropriately. The other metadata
 fields are ignored and will not appear in OCMF output.
 
@@ -206,17 +206,19 @@ uses an XML envelope.
 The XML envelope includes the OCMF data taken before starting and after
 terminating the charging process along with the public key used for signing.
 The format could be generated from a
-[template](../../bauer_bsm/bsm/client.py#L214) where the actual data gets
+[template](../../bauer_bsm/exporter/ocmf.py#L48) where the actual data gets
 inserted.
 
 
 ### Generating OCMF XML
 
-The [BSM Python support](../../bauer_bsm/bsm/client.py#L183) and the BSM Tool
-support the generation of OCMF XML data for _OCMF Signed Turn-On Snapshot_ and
-_OCMF Signed Turn-Off Snapshot_ when the corresponding snapshots have already
-been successfully created. To generate an OCMF XML envelope, invoke the BSM
-Tool as follows:
+The [BSM Python support](../../bauer_bsm/exporter/ocmf.py#L12) and the [BSM
+Tool](../../bauer_bsm/cli/bsmtool.py#L343) support the generation of OCMF XML
+data for the OCMF representation of a pair of already created snapshots (the
+switching snapshots _OCMF Signed Turn-On Snapshot_ and _OCMF Signed Turn-Off
+Snapshot_ or the non-switching _OCMF Signed Start Snapshot_ and _OCMF Signed
+End Snapshot_). To generate an OCMF XML envelope for the switching snapshots,
+invoke the BSM Tool as follows:
 
 - Create _Signed Turn-On Snapshot_
     ```

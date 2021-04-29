@@ -40,13 +40,13 @@ consumption without switching an external contactor:
 ## Snapshot Creation
 
 A snapshot gets created by the writing to its status data point
-[_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115) and polling this data
+[_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L131) and polling this data
 point afterwards its value indicates either a successful update or a failure.
 
 The procedure looks as follows:
 
-1. Write [_UPDATING_](../../bauer_bsm/bsm/models/smdx_64901.xml#L12) (2) to
-   [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L115)
+1. Write [_UPDATING_](../../bauer_bsm/bsm/models/smdx_64901.xml#L14) (2) to
+   [_St_](../../bauer_bsm/bsm/models/smdx_64901.xml#L131)
 2. Read the value of _St_ with a timeout of 15 seconds
 3. If _St_ returns _UPDATING_ (2), continue with step 2
 4. If _St_ returns _VALID_ (0), the snapshot data is ready to be read
@@ -241,10 +241,10 @@ $ bsmtool dump 40521 254
 A snapshot records three data points related to power and energy:
 
 - The reference cumulative register
-  [_RCR_](bauer_bsm/bsm/models/smdx_64901.xml#L185) which counts the energy
+  [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185) which counts the energy
   consumption since it got reset during the creation of the last _Signed
   Turn-On Snapshot_
-- [_TotWhImp_](bauer_bsm/bsm/models/smdx_64901.xml#L193) counting the overall
+- [_TotWhImp_](../../bauer_bsm/bsm/models/smdx_64901.xml#L193) counting the overall
   energy consumption measured by the BSM-WS36A
 - And the actual real power consumption
   [_W_](../../bauer_bsm/bsm/models/smdx_64901.xml#L201)

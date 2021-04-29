@@ -141,7 +141,7 @@ describes the interpretation of standard data types.
 
 The BSM-WS36A provides several data as Binary Large Objects (BLOBs) - for
 example, its [public key](../../bauer_bsm/bsm/models/smdx_64900.xml#L31) and
-[snapshot signatures](../../bauer_bsm/bsm/models/smdx_64901.xml#L65).
+[snapshot signatures](../../bauer_bsm/bsm/models/smdx_64901.xml#L67).
 
 SunSpec does not define a data representation for BLOBs and so a proprietary
 [bsm\_blob](../../bauer_bsm/bsm/models/smdx_64902.xml) or a similar arrangement
@@ -154,7 +154,7 @@ representation is used. Either by the specialized BLOB model
 - [_BB_](../../bauer_bsm/bsm/models/smdx_64902.xml#L49) the actual number of
   bytes
 
-- [_B_](bauer_bsm/bsm/models/smdx_64902.xml#L53) a repeating block with a
+- [_B_](../../bauer_bsm/bsm/models/smdx_64902.xml#L53) a repeating block with a
   single register of this name forming the BLOB data area
 
 See [Signed Snapshots](snapshots.md) for an example.
