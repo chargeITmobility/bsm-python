@@ -106,6 +106,8 @@ def create_argument_parser():
     chargy_parser = subparsers.add_parser('chargy', help='generate billing data sample for Chargy from already existing snapshots (stons and stoffs)')
     chargy_parser.set_defaults(func=chargy_command)
     chargy_parser.add_argument('--operator-info', metavar='INFO', help='information from the meter operator', default='See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate')
+    chargy_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='stons')
+    chargy_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='stoffs')
 
     # Generate OCMF XML from already existings snapshots.
     ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)',
@@ -351,7 +353,7 @@ def chargy_command(args):
     client = create_sunspec_client(args)
     result = False
 
-    output = chargy.generate_chargy_json(client, operator_info=args.operator_info)
+    output = chargy.generate_chargy_json(client, args.start, args.end, operator_info=args.operator_info)
 
     if output != None:
         sys.stdout.buffer.write(output)

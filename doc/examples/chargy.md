@@ -207,7 +207,7 @@ and the snapshot data in the array `signedMeterValues`:
 The BSM Tool supports creating sample documents from already successfully
 created start and end snapshots via:
 ```
-$ bsmtool chargy
+$ bsmtool chargy stons stoffs
 ```
 See [`chargy_command`](../../bauer_bsm/cli/bsmtool.py#L347) and
 [`generate_chargy_json`](../../bauer_bsm/exporter/chargy.py#205) for the code

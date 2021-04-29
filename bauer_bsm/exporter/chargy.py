@@ -56,25 +56,24 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
 
 
 
-def _generate_chargy_data(client, read_data=True, operator_info=None):
+def _generate_chargy_data(client, start_alias, end_alias, read_data=True, operator_info=None):
     data = None
 
-    # TODO: Provided constants for model aliases.
     common = client.model_aliases[config.COMMON_INSTANCE_ALIAS]
     bsm = client.model_aliases[config.BSM_INSTANCE_ALIAS]
-    stons = client.model_aliases['signed_turn_on_snapshot']
-    stoffs = client.model_aliases['signed_turn_off_snapshot']
+    start = client.model_aliases[start_alias]
+    end = client.model_aliases[end_alias]
 
     if read_data:
         common.read_points()
         bsm.read_points()
-        stons.read_points()
-        stoffs.read_points()
+        start.read_points()
+        end.read_points()
 
-    stons_data = _generate_chargy_snapshot_data(client, common, bsm, stons, operator_info=operator_info)
-    stoffs_data =_generate_chargy_snapshot_data(client, common, bsm, stoffs, operator_info=operator_info)
+    start_data = _generate_chargy_snapshot_data(client, common, bsm, start, operator_info=operator_info)
+    end_data =_generate_chargy_snapshot_data(client, common, bsm, end, operator_info=operator_info)
 
-    if stons_data and stoffs_data:
+    if start_data and end_data:
         data = OrderedDict()
 
         data['@context'] = 'https://www.chargeit-mobility.com/contexts/charging-station-json-v0'
@@ -82,7 +81,7 @@ def _generate_chargy_data(client, read_data=True, operator_info=None):
         # charging process. Let's use an UUID then.
         data['@id'] = str(uuid.uuid4())
         data['placeInfo'] = _generate_chargy_place_info_data(client)
-        data['signedMeterValues'] = [stons_data, stoffs_data]
+        data['signedMeterValues'] = [start_data, end_data]
 
     return data
 
@@ -216,7 +215,7 @@ def _put_non_null(dict_, key, value):
         dict_[key] = value
 
 
-def generate_chargy_json(client, read_data=True, operator_info=None):
+def generate_chargy_json(client, start_alias, end_alias, read_data=True, operator_info=None):
     """
     Generates a chargeIT mobility JSON document from signed turn-on and
     turn-off snapshots.
@@ -229,7 +228,7 @@ def generate_chargy_json(client, read_data=True, operator_info=None):
         client = client.device
     assert isinstance(client, BsmClientDevice)
 
-    data = _generate_chargy_data(client, read_data=read_data, operator_info=operator_info)
+    data = _generate_chargy_data(client, start_alias=start_alias, end_alias=end_alias, read_data=read_data, operator_info=operator_info)
     if data != None:
         data = json.dumps(data, indent=2).encode('utf-8')
     return data
