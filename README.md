@@ -43,6 +43,8 @@ The command line tool gets installed as `bsmtool`.
 
 ## Getting Help
 
+### Built-In Tool Help
+
 To display the built-in help for the tool and general arguments use:
 ```
 $ bsmtool --help
@@ -53,8 +55,15 @@ For example for help on creating and fetching snapshots use:
 $ bsmtool get-snapshot --help
 ```
 
+
+### Online Examples and Documentation
+
 This repository contains a comprehensive set of examples on using the BSM-WS36A
 and the BSM Tool in [`doc/examples`](doc/examples/README.md).
 
 The directory [`doc/modbus`](doc/modbus) contains a Modbus model instance and
 register overview.
+
+Finally, you could have a look in the product manuals of the BSM-WS36A:
+* [English _Product Manual_](doc/manuals/Product_manual_BSM_EN_210511.pdf)
+* [German _Produkthandbuch_](doc/manuals/Produkthandbuch_BSM_DE_v1-0.pdf)
