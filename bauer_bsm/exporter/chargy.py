@@ -10,6 +10,7 @@ from ..bsm import dlms
 from ..bsm.client import BsmClientDevice, SnapshotStatus, SunSpecBsmClientDevice
 from ..sunspec.core import suns
 from collections import OrderedDict
+from datetime import datetime, timedelta, timezone
 import json
 import uuid
 
@@ -112,13 +113,17 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot, operator_info=
         # Device ID and response counter give a unique ID for a snapshot.
         data['@id'] = '{}-{}'.format(meter_id, response_counter)
 
+        # The point in time of this measurement in ISO 8601 representation of
+        # epoch time and timezone offset. The latter are given in their native
+        # representation in 'additionalValues' to facilitate snapshot hash
+        # computation.
         epoch_seconds = snapshot.points[config.SNAPSHOT_EPOCH_TIME_DATA_POINT_ID].value
         timezone_offset_minutes = snapshot.points[config.SNAPSHOT_TIMEZONE_OFFSET_DATA_POINT_ID].value
-        local_seconds = None
+        when = None
         if epoch_seconds != None and timezone_offset_minutes != None:
-            local_seconds = epoch_seconds + timezone_offset_minutes * 60
-        data['timestamp'] = epoch_seconds
-        data['timestampLocal'] = {'timestamp': local_seconds, 'localOffset': timezone_offset_minutes}
+            timezone_ = timezone(timedelta(minutes=timezone_offset_minutes))
+            when = datetime.fromtimestamp(epoch_seconds, timezone_)
+        data['time'] = when.isoformat()
 
         # Provide a combined firmware information string for meter and
         # communication module.
