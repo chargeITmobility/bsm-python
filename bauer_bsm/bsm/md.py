@@ -93,21 +93,32 @@ def update_md_from_point(md, point, trace=None):
     (value, scaler) = md_value_and_scaler_for_point(point)
 
     data = None
+    trace_data_slicer = None
 
     if type_ in _MD_UNSIGNED_TYPES:
         data = data_for_scaled_uint32(md, value, scaler, dlms_unit)
+        trace_data_slicer = lambda s: [s[:4], s[4:5], s[5:]]
     elif type_ in _MD_SIGNED_TYPES:
         data = data_for_scaled_int32(md, value, scaler, dlms_unit)
+        trace_data_slicer = lambda s: [s[:4], s[4:5], s[5:]]
     elif type_ == suns.SUNS_TYPE_STRING:
         data = data_for_string(md, value)
+        trace_data_slicer = lambda s: [s[:4], s[4:]]
     else:
         raise TypeError('Unsupported point type \'{}\'.'.format(type_))
 
     md.update(data)
 
     if trace:
+        # Render trace data separated by spaces to improve readability if
+        # slicing has been provided.
+        if trace_data_slicer:
+            rendered = ' '.join(map(lambda x: x.hex(), trace_data_slicer(data)))
+        else:
+            rendered = data.hex()
+
         trace('{}:\n    value: {}\n    data:  {}\n'.format(point.point_type.id,
-            fmt.format_point_value(point), data.hex()))
+            fmt.format_point_value(point), rendered))
 
 
 def data_for_scaled_int32(md, value, scaler, unit):
