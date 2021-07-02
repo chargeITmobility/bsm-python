@@ -40,17 +40,17 @@ def create_argument_parser():
     device = os.getenv('BSMTOOL_DEVICE')
     baud = cliutil.auto_int(os.getenv('BSMTOOL_BAUD', 19200))
     unit = cliutil.auto_int(os.getenv('BSMTOOL_UNIT', 42))
-    timeout = cliutil.auto_int(os.getenv('BSMTOOL_TIMEOUT', 10))
+    timeout = float(os.getenv('BSMTOOL_TIMEOUT', 10))
     chunk = cliutil.auto_int(os.getenv('BSMTOOL_CHUNK', 125))
 
     parser = ArgumentParser(description='BSM Modbus Tool',
         epilog='You may specify communication parameters also by environment variables. Use BSMTOOL_DEVICE, BSMTOOL_BAUD, BSMTOOL_UNIT, BSMTOOL_TIMEOUT, and BSMTOOL_CHUNK.')
     # Default parser for communication parameters.
     parser.add_argument('--device', metavar='DEVICE', help='serial device', required=(device is None), default=device)
-    parser.add_argument('--baud', metavar='BAUD', type=int, help='serial baud rate', default=baud)
+    parser.add_argument('--baud', metavar='BAUD', type=cliutil.auto_int, help='serial baud rate', default=baud)
     parser.add_argument('--timeout', metavar='SECONDS', type=float, help='request timeout', default=timeout)
-    parser.add_argument('--unit', metavar='UNIT', type=int, help='Modbus RTU unit number', required=(unit is None), default=unit)
-    parser.add_argument('--chunk-size', metavar='REGISTERS', type=int, help='maximum amount of registers to read at once', default=chunk)
+    parser.add_argument('--unit', metavar='UNIT', type=cliutil.auto_int, help='Modbus RTU unit number', required=(unit is None), default=unit)
+    parser.add_argument('--chunk-size', metavar='REGISTERS', type=cliutil.auto_int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
     parser.add_argument('--public-key-format', choices=cryptoutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see RFC 5480 for DER and SEC1 section 2.3.3 for details about formats)', default=cryptoutil.PUBLIC_KEY_DEFAULT_FORMAT)
