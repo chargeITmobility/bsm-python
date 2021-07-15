@@ -53,6 +53,8 @@ def create_argument_parser():
     parser.add_argument('--chunk-size', metavar='REGISTERS', type=cliutil.auto_int, help='maximum amount of registers to read at once', default=chunk)
     parser.add_argument('--trace', action='store_true', help='trace Modbus communication (reads/writes)')
     parser.add_argument('--verbose', action='store_true', help='give verbose output')
+    parser.add_argument('--dtr', metavar='VALUE', type=cliutil.auto_bool, help='set serial device DTR line to VALUE (which may be used for controlling test equipment)', default=None)
+    parser.add_argument('--rts', metavar='VALUE', type=cliutil.auto_bool, help='set serial device RTS line to VALUE (which may be used for controlling test equipment)', default=None)
     parser.add_argument('--public-key-format', choices=cryptoutil.PUBLIC_KEY_RENDERER.keys(), help='output format of ECDSA public key (see RFC 5480 for DER and SEC1 section 2.3.3 for details about formats)', default=cryptoutil.PUBLIC_KEY_DEFAULT_FORMAT)
 
     subparsers = parser.add_subparsers(metavar='COMMAND', help='sub commands')
@@ -128,6 +130,23 @@ def create_client_backend(clazz, args):
     client = clazz(slave_id=args.unit, name=args.device,
         baudrate=args.baud, timeout=args.timeout, max_count=args.chunk_size,
         trace=trace)
+
+    # Set the two modem control lines DTR and RTS. This might be useful for
+    # controlling test equipment via this lines.
+    serial = None
+    if isinstance(client, BsmClientDevice):
+        serial = client.modbus_device.client.serial
+    elif isinstance(client, SunSpecBsmClientDevice):
+        serial = client.device.modbus_device.client.serial
+    else:
+        raise ValueError('Unsupported client class {}'.format(type(client).__name__))
+
+    if args.dtr is not None:
+        serial.dtr = args.dtr
+
+    if args.rts is not None:
+        serial.rts = args.rts
+
     return client
 
 
