@@ -57,7 +57,7 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
 
 
 
-def _generate_chargy_data(client, start_alias, end_alias, read_data=True, operator_info=None):
+def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
     data = None
 
     common = client.model_aliases[config.COMMON_INSTANCE_ALIAS]
@@ -71,8 +71,8 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, operat
         start.read_points()
         end.read_points()
 
-    start_data = _generate_chargy_snapshot_data(client, common, bsm, start, operator_info=operator_info)
-    end_data =_generate_chargy_snapshot_data(client, common, bsm, end, operator_info=operator_info)
+    start_data = _generate_chargy_snapshot_data(client, common, bsm, start)
+    end_data =_generate_chargy_snapshot_data(client, common, bsm, end)
 
     if start_data and end_data:
         data = OrderedDict()
@@ -81,7 +81,11 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, operat
         # The BSM Python support has no natural unique identifier for a
         # charging process. Let's use an UUID then.
         data['@id'] = str(uuid.uuid4())
-        data['placeInfo'] = _generate_chargy_place_info_data(client)
+        data['chargingStationInfo'] = _generate_chargy_station_info_data(
+            client,
+            serial_number=station_serial_number,
+            compliance_info=station_compliance_info)
+        data['chargePointInfo'] = _generate_chargy_point_info_data(client)
         data['signedMeterValues'] = [start_data, end_data]
 
     return data
@@ -93,12 +97,20 @@ def _generate_chargy_place_info_data(client):
     # Provide some dummy information for testing.
     info['geoLocation'] = {'lat': 48.03552, 'lon': 10.50669}
     info['address'] = {'street': 'Breitenbergstr. 2', 'town': 'Mindelheim', 'zipCode': '87719'}
-    info['evseId'] = 'DE*BDO*E8025334492*2'
 
     return info
 
 
-def _generate_chargy_snapshot_data(client, common, bsm, snapshot, operator_info=None):
+def _generate_chargy_point_info_data(client):
+    data = OrderedDict()
+
+    data['placeInfo'] = _generate_chargy_place_info_data(client)
+    data['evseId'] = 'DE*BDO*E8025334492*2'
+
+    return data
+
+
+def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
     data = None
 
     snapshot_status = snapshot.points[config.SNAPSHOT_STATUS_DATA_POINT_ID].value
@@ -137,8 +149,6 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot, operator_info=
                 'manufacturer': common.points[config.COMMON_MANUFACTURER_DATA_POINT_ID].value,
                 'type': common.points[config.COMMON_MODEL_DATA_POINT_ID].value,
             }
-
-        _put_non_null(data, 'operatorInfo', operator_info)
 
         # Metadata field 1 is expected to hold contract information similar to
         # OCMF.
@@ -215,12 +225,23 @@ def _generate_chargy_snapshot_value_data(client, point):
     return data
 
 
+def _generate_chargy_station_info_data(client, serial_number=None, compliance_info=None):
+    data = OrderedDict()
+
+    data['manufacturer'] = 'chargeIT mobility GmbH'
+    data['type'] = 'CIT Ladesäule online'
+    _put_non_null(data, 'serialNumber', serial_number)
+    _put_non_null(data, 'compliance', compliance_info)
+
+    return data
+
+
 def _put_non_null(dict_, key, value):
     if value is not None:
         dict_[key] = value
 
 
-def generate_chargy_json(client, start_alias, end_alias, read_data=True, operator_info=None):
+def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
     """
     Generates a chargeIT mobility JSON document from signed turn-on and
     turn-off snapshots.
@@ -233,7 +254,12 @@ def generate_chargy_json(client, start_alias, end_alias, read_data=True, operato
         client = client.device
     assert isinstance(client, BsmClientDevice)
 
-    data = _generate_chargy_data(client, start_alias=start_alias, end_alias=end_alias, read_data=read_data, operator_info=operator_info)
+    data = _generate_chargy_data(client,
+        start_alias=start_alias,
+        end_alias=end_alias,
+        read_data=read_data,
+        station_serial_number=station_serial_number,
+        station_compliance_info=station_compliance_info)
     if data != None:
         data = json.dumps(data, indent=2).encode('utf-8')
     return data
