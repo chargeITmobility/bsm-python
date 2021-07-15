@@ -9,11 +9,25 @@ from ..bsm import config
 from ..bsm import format as fmt
 from ..crypto import util as cryptoutil
 
+import argparse
 import string
 
 
 MODEL_DATA_INDENT = '    '
 BSM_MODEL_ID = 64900
+
+
+def auto_bool(x):
+    if isinstance(x, bool) or x is None:
+        return x
+
+    lower = x.lower()
+    if lower in ['true', 't', 'yes', 'y', '1']:
+        return True
+    elif lower in ['false', 'f', 'no', 'n', '0']:
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Could not interpret \'{}\' as bool'.format(x))
 
 
 def auto_int(x):
