@@ -81,11 +81,11 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, statio
         # The BSM Python support has no natural unique identifier for a
         # charging process. Let's use an UUID then.
         data['@id'] = str(uuid.uuid4())
+        data['chargePointInfo'] = _generate_chargy_point_info_data(client)
         data['chargingStationInfo'] = _generate_chargy_station_info_data(
             client,
             serial_number=station_serial_number,
             compliance_info=station_compliance_info)
-        data['chargePointInfo'] = _generate_chargy_point_info_data(client)
         data['signedMeterValues'] = [start_data, end_data]
 
     return data
