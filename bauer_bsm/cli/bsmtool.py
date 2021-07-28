@@ -107,7 +107,7 @@ def create_argument_parser():
     # Generate data for Chargy from already existing snapshots.
     chargy_parser = subparsers.add_parser('chargy', help='generate billing data sample for Chargy from already existing snapshots (stons and stoffs)')
     chargy_parser.set_defaults(func=chargy_command)
-    chargy_parser.add_argument('--station-serial-number', metavar='SERIAL_NUMBER', help='charging station\'s serial number', default='12345678')
+    chargy_parser.add_argument('--station-serial-number', metavar='SERIAL_NUMBER', help='charging station\'s serial number', default='2020-24-T-042')
     chargy_parser.add_argument('--station-compliance-info', metavar='INFO', help='compliance info information for the charging station', default='See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate')
     chargy_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='stons')
     chargy_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='stoffs')
