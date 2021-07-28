@@ -135,7 +135,8 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         if epoch_seconds != None and timezone_offset_minutes != None:
             timezone_ = timezone(timedelta(minutes=timezone_offset_minutes))
             when = datetime.fromtimestamp(epoch_seconds, timezone_)
-        data['time'] = when.isoformat()
+        if when is not None:
+            data['time'] = when.isoformat()
 
         # Provide a combined firmware information string for meter and
         # communication module.
