@@ -32,7 +32,7 @@ The command line tool gets installed as `bsmtool`.
 
 * You can install the latest release from GitHub:
   ```
-  $ pip3 install https://github.com/chargeITmobility/bsm-python/releases/download/release-0.11.0/bauer_bsm-0.11.0-py3-none-any.whl
+  $ pip3 install https://github.com/chargeITmobility/bsm-python/releases/download/release-0.11.1/bauer_bsm-0.11.1-py3-none-any.whl
   ```
 
 * For hands-on work of the code, clone this repository and perform a editable installation as follows:

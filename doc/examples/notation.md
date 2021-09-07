@@ -12,10 +12,10 @@ sign (`%`) on Linux or macOS. The examples will use the dollar sign (`$`) to
 indicate an input prompt and the example
 ```
 $ bsmtool version
-0.11.0
+0.11.1
 ```
 means enter `bsmtool version` at your shell prompt and the expected output will
-be `0.11.0` here.
+be `0.11.1` here.
 
 There are a few advanced examples command line invocations using [command
 pipeline](https://en.wikipedia.org/wiki/Pipeline_(Unix)) (`|`). They work on
