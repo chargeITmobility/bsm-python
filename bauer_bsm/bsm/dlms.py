@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from enum import IntEnum
+from aenum import IntEnum
 
 
 # An incomplete enum of DLMS unit encoding.
