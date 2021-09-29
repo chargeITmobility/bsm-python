@@ -74,7 +74,6 @@ def md_value_and_scaler_for_point(point):
 
     # Fixup value an scaler for the 'not implemented' case which gets reported
     # as None by pySunSpec.
-
     if value is None:
         try:
             value = _MD_UNIMPL_VALUES[type_]
@@ -97,13 +96,13 @@ def update_md_from_point(md, point, trace=None):
 
     if type_ in _MD_UNSIGNED_TYPES:
         data = data_for_scaled_uint32(md, value, scaler, dlms_unit)
-        trace_data_slicer = lambda s: [s[:4], s[4:5], s[5:]]
+        trace_data_slicer = scaled_int32_uint32_slicer
     elif type_ in _MD_SIGNED_TYPES:
         data = data_for_scaled_int32(md, value, scaler, dlms_unit)
-        trace_data_slicer = lambda s: [s[:4], s[4:5], s[5:]]
+        trace_data_slicer = scaled_int32_uint32_slicer
     elif type_ == suns.SUNS_TYPE_STRING:
         data = data_for_string(md, value)
-        trace_data_slicer = lambda s: [s[:4], s[4:]]
+        trace_data_slicer = string_slicer
     else:
         raise TypeError('Unsupported point type \'{}\'.'.format(type_))
 
@@ -140,3 +139,11 @@ def data_for_string(md, string):
     length = pack('>L', len(string))
 
     return length + data
+
+
+def scaled_int32_uint32_slicer(data):
+    return [data[:4], data[4:5], data[5:]]
+
+
+def string_slicer(data):
+    return [data[:4], data[4:]]
