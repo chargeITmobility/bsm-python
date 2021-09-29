@@ -33,6 +33,7 @@ setup(
     # on Python 2, we ignore the Python 2 support from pySunSpec.
     python_requires='>=3.5',
     install_requires=[
+        'aenum',
         'ecdsa',
         'pyserial',
     ],
