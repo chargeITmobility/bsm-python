@@ -11,6 +11,10 @@ from ..crypto import util as cryptoutil
 
 import argparse
 import string
+import sys
+
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
 
 
 MODEL_DATA_INDENT = '    '
@@ -128,7 +132,14 @@ def render_blob_data(model, pk_format='der'):
     data = device.repeating_blocks_blob(model)
 
     if model.model_type.id == BSM_MODEL_ID:
-        return cryptoutil.public_key_data_from_blob(data,
-            config.BSM_MESSAGE_DIGEST, output_format=pk_format).hex()
+        if PY3:
+            return cryptoutil.public_key_data_from_blob(data,
+                config.BSM_MESSAGE_DIGEST, output_format=pk_format).hex()
+        if PY2:
+            return cryptoutil.public_key_data_from_blob(data,
+                config.BSM_MESSAGE_DIGEST, output_format=pk_format).encode('hex')
     else:
-        return data.hex()
+        if PY3:
+            return data.hex()
+        if PY2:
+            return data.encode('hex')

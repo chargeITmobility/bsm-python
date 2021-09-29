@@ -13,8 +13,11 @@ from ..sunspec.core import client as sclient
 from ..sunspec.core import suns
 from ..sunspec.core.modbus import client as smodbus
 from collections import namedtuple
-from enum import IntEnum
+from aenum import IntEnum
+import sys
 
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
 
 _BsmModelInstanceInfo = namedtuple('_BsmModelInstanceInfo', 'id, label, is_snapshot, aliases')
 
@@ -124,7 +127,7 @@ class BsmClientDevice(sclient.ClientDevice):
             parity=BSM_DEFAULT_PARITY, ipaddr=None,
             ipport=None, timeout=BSM_DEFAULT_TIMEOUT, trace=False,
             max_count=smodbus.REQ_COUNT_MAX):
-        super().__init__(device_type, slave_id=slave_id, name=name,
+        super(BsmClientDevice, self).__init__(device_type, slave_id=slave_id, name=name,
             pathlist=pathlist, baudrate=baudrate, parity=parity,
             ipaddr=ipaddr, ipport=ipport, timeout=timeout, trace=trace,
             max_count=max_count)
@@ -239,12 +242,16 @@ class BsmClientDevice(sclient.ClientDevice):
         """
         Case-insensitively looks up a model by the given name or alias.
         """
-        model = next(filter(lambda x: x.model_type.name.lower() == name.lower(),
-            self.models_list), None)
-
+        models = filter(lambda x: x.model_type.name.lower() == name.lower(),
+                        self.models_list)
+        model = None
+        if PY2:
+            if len(models) >= 1:
+                model = models[0]
+        if PY3:
+            model = next(models, None)
         if not model:
             model = butil.dict_get_case_insensitive(self.model_aliases, name)
-
         return model
 
 
@@ -267,8 +274,11 @@ class BsmClientDevice(sclient.ClientDevice):
         Case-insensitively looks up a data point by its name in the given
         model.
         """
-        return next(filter(lambda x: x.point_type.id.lower() == point_id.lower(),
-            model.points_list), None)
+        points = filter(lambda x: x.point_type.id.lower() == point_id.lower(), model.points_list)
+        if PY2:
+            return points[0]
+        if PY3:
+            return next(points, None)
 
 
     def lookup_snapshot(self, name):

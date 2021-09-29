@@ -78,7 +78,7 @@ def md_value_and_scaler_for_point(point):
         try:
             value = _MD_UNIMPL_VALUES[type_]
         except KeyError as cause:
-            raise TypeError('Unsupported point type \'{}\'.'.format(type_)) from cause
+            raise TypeError('Unsupported point type \'{}\' cause of {}.'.format(type_, cause))
 
     if scaler is None:
         scaler = 0
