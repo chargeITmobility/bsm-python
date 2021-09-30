@@ -19,7 +19,21 @@ from argparse import ArgumentParser, FileType
 
 import csv
 import os
+import re
 import sys
+
+
+# Slicers for modbus messages in pySunSpec's tracing output. They are meant for
+# messages represented as contigous hex strings and will return an array of
+# logically grouped data (device address, function code, ...).
+_TRACE_RTU_SLICERS = \
+    {
+        ('->', '03'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:-4], s[-4:]],
+        ('->', '10'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:12], s[12:14], s[14:-4], s[-4:]],
+
+        ('<--', '03'): lambda s: [s[0:2], s[2:4], s[4:6], s[6:-4], s[-4:]],
+        ('<--', '10'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:-4], s[-4:]],
+    }
 
 
 def create_argument_parser():
@@ -198,8 +212,23 @@ def register_hexdump_bytes(data, offset=0):
 
 
 def trace_modbus_rtu(string):
-    # TODO: What about adding some spaces around the payload?
+    # Attempt to logically group known Modbus frame formats in the trace output
+    # from pySunSpec.
     #
+    # The Modbus message is expected at the end of a trace output line. Capture
+    # "direction indicator", address, and function code.
+    match = re.search('(<--|->)([0-9a-fA-F]{2})([0-9a-fA-F]{2})[0-9a-fA-F]+$', string)
+    if match:
+        # Look up message slicer by "direction indicator" and function code.
+        slicer = _TRACE_RTU_SLICERS.get((match.group(1), match.group(3)), None)
+        if slicer:
+            (data_start, _) = match.span(2)
+            prefix = string[:data_start]
+            data = string[data_start:]
+            # Separate the message slices by spaces.
+            sliced = ' '.join(slicer(data))
+            string = prefix + sliced
+
     # TODO: What about creating a feature request for "pretty tracing"? In the
     # sense that the trace function gets device, addres, payload data passed
     # separately for formatting?
