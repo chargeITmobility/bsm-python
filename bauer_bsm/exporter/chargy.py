@@ -57,7 +57,7 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
 
 
 
-def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
+def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_software_version=None, station_compliance_info=None):
     data = None
 
     common = client.model_aliases[config.COMMON_INSTANCE_ALIAS]
@@ -85,6 +85,7 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, statio
         data['chargingStationInfo'] = _generate_chargy_station_info_data(
             client,
             serial_number=station_serial_number,
+            software_version=station_software_version,
             compliance_info=station_compliance_info)
         data['signedMeterValues'] = [start_data, end_data]
 
@@ -226,12 +227,13 @@ def _generate_chargy_snapshot_value_data(client, point):
     return data
 
 
-def _generate_chargy_station_info_data(client, serial_number=None, compliance_info=None):
+def _generate_chargy_station_info_data(client, serial_number=None, software_version=None, compliance_info=None):
     data = OrderedDict()
 
     data['manufacturer'] = 'chargeIT mobility GmbH'
     data['type'] = 'CIT Ladesäule online'
     _put_non_null(data, 'serialNumber', serial_number)
+    _put_non_null(data, 'softwareVersion', software_version)
     _put_non_null(data, 'compliance', compliance_info)
 
     return data
@@ -242,7 +244,7 @@ def _put_non_null(dict_, key, value):
         dict_[key] = value
 
 
-def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
+def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_software_version=None, station_compliance_info=None):
     """
     Generates a chargeIT mobility JSON document from signed turn-on and
     turn-off snapshots.
@@ -260,6 +262,7 @@ def generate_chargy_json(client, start_alias, end_alias, read_data=True, station
         end_alias=end_alias,
         read_data=read_data,
         station_serial_number=station_serial_number,
+        station_software_version=station_software_version,
         station_compliance_info=station_compliance_info)
     if data != None:
         data = json.dumps(data, indent=2).encode('utf-8')
