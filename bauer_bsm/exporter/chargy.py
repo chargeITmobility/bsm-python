@@ -72,7 +72,7 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, statio
         end.read_points()
 
     start_data = _generate_chargy_snapshot_data(client, common, bsm, start)
-    end_data =_generate_chargy_snapshot_data(client, common, bsm, end)
+    end_data = _generate_chargy_snapshot_data(client, common, bsm, end)
 
     if start_data and end_data:
         data = OrderedDict()
@@ -133,7 +133,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         epoch_seconds = snapshot.points[config.SNAPSHOT_EPOCH_TIME_DATA_POINT_ID].value
         timezone_offset_minutes = snapshot.points[config.SNAPSHOT_TIMEZONE_OFFSET_DATA_POINT_ID].value
         when = None
-        if epoch_seconds != None and timezone_offset_minutes != None:
+        if epoch_seconds is not None and timezone_offset_minutes is not None:
             timezone_ = timezone(timedelta(minutes=timezone_offset_minutes))
             when = datetime.fromtimestamp(epoch_seconds, timezone_)
         if when is not None:
@@ -166,7 +166,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         # for signing.
         additional_values = []
         for point_id, point in snapshot.points.items():
-            if not point_id in _CHARGY_IGNORED_SNAPSHOT_DATA_POINT_IDS:
+            if point_id not in _CHARGY_IGNORED_SNAPSHOT_DATA_POINT_IDS:
                 additional_values.append(_generate_chargy_snapshot_value_data(client, point))
         data['additionalValues'] = additional_values
 
@@ -197,17 +197,16 @@ def _generate_chargy_snapshot_value_data(client, point):
     # when computing the message digest for signing.
     value_unit_name = None
     value_unit_encoded = dlms.DlmsUnits.UNITLESS
-    if point.point_type.units != None:
+    if point.point_type.units is not None:
         value_unit_name = _CHARGY_UNIT_NAME_BY_SUNSPEC_UNIT[point.point_type.units]
         value_unit_encoded = dlms.dlms_unit_for_symbol(point.point_type.units)
     value_value = point.value_base
     # SunSpec defines zero as 'not accumulated'/invalid value for accumulators
     # and pySunSpec returns them as None. Let's have a numeric output in this
     # case.
-    if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base == None:
+    if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base is None:
         value_value = 0
     point_type = point.point_type.type
-    value_type = _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point_type]
     # Provide the encoding for string values at the time of hashing. The
     # pySunSpec stack used by the BSM TOOL uses Latin 1/ISO-8859-1. If no
     # encoding is given, UTF-8 will be assumed.
@@ -264,6 +263,6 @@ def generate_chargy_json(client, start_alias, end_alias, read_data=True, station
         station_serial_number=station_serial_number,
         station_software_version=station_software_version,
         station_compliance_info=station_compliance_info)
-    if data != None:
+    if data is not None:
         data = json.dumps(data, indent=2).encode('utf-8')
     return data

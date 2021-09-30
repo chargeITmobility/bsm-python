@@ -13,8 +13,6 @@ from ..bsm import config
 from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..crypto import util as cryptoutil
 from ..exporter import chargy, ocmf, registers
-from ..sunspec.core import client as sclient
-from ..sunspec.core import device as sdevice
 from ..sunspec.core import suns
 from ..util import package_version
 from argparse import ArgumentParser, FileType
@@ -379,7 +377,7 @@ def chargy_command(args):
         station_software_version=args.station_software_version,
         station_compliance_info=args.station_compliance_info)
 
-    if output != None:
+    if output is not None:
         sys.stdout.buffer.write(output)
         result = True
     else:
