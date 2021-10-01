@@ -61,6 +61,24 @@ _SNAPSHOT_METADATA_POINT_IDS = [
     ]
 
 
+_KNOWN_ID_TYPE_SCHEMES = ['rfid', 'sms']
+
+
+
+
+def _generate_chargy_contract_information(snapshot):
+    contract = _tagged_snapshot_metadata(snapshot, 'contract-id')
+    result = {}
+
+    if contract is not None and any(map(lambda s: contract.startswith(s + ':'), _KNOWN_ID_TYPE_SCHEMES)):
+        (type_, id_) = contract.split(':', 1)
+        result['id'] = id_
+        result['type'] = type_
+    else:
+        result['id'] = contract
+
+    return result
+
 
 
 def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
@@ -160,12 +178,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
                 'type': common.points[config.COMMON_MODEL_DATA_POINT_ID].value,
             }
 
-        # Metadata field 1 is expected to hold contract information similar to
-        # OCMF.
-        data['contract'] = {
-                'id': _tagged_snapshot_metadata(snapshot, 'contract-id'),
-            }
-
+        data['contract'] = _generate_chargy_contract_information(snapshot)
         data['measurementId'] = response_counter
         data['value'] = _generate_chargy_snapshot_value_data(client, snapshot.points[config.SNAPSHOT_REFERENCE_CUMULATIVE_REGISTER_DATA_POINT_ID])
 
