@@ -1,39 +1,44 @@
 {
-  "@context": "https://www.chargeit-mobility.com/contexts/charging-station-json-v0",
-  "@id": "34158336-3909-48b2-bb6d-2dff2a87d9b4",
-  "placeInfo": {
-    "geoLocation": {
-      "lat": 48.03552,
-      "lon": 10.50669
-    },
-    "address": {
-      "street": "Breitenbergstr. 2",
-      "town": "Mindelheim",
-      "zipCode": "87719"
+  "@context": "https://www.chargeit-mobility.com/contexts/charging-station-json-v1",
+  "@id": "29596515-a37d-433c-a217-4be8e9d090ed",
+  "chargePointInfo": {
+    "placeInfo": {
+      "geoLocation": {
+        "lat": 48.03552,
+        "lon": 10.50669
+      },
+      "address": {
+        "street": "Breitenbergstr. 2",
+        "town": "Mindelheim",
+        "zipCode": "87719"
+      }
     },
     "evseId": "DE*BDO*E8025334492*2"
   },
+  "chargingStationInfo": {
+    "manufacturer": "chargeIT mobility GmbH",
+    "type": "CIT Lades\u00e4ule online",
+    "serialNumber": "2020-24-T-042",
+    "controllerSoftwareVersion": "v1.2.34",
+    "compliance": "See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate"
+  },
   "signedMeterValues": [
     {
-      "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0",
-      "@id": "001BZR1521070003-22107",
-      "timestamp": 1602145359,
-      "timestampLocal": {
-        "timestamp": 1602152559,
-        "localOffset": 120
-      },
+      "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
+      "@id": "001BZR1521070006-22978",
+      "time": "2021-01-01T10:00:27+01:00",
       "meterInfo": {
-        "firmwareVersion": "1.8:33C4:DB63, 08d1aa3",
+        "firmwareVersion": "1.9:32CA:AFF4, 6d1dd3c",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
-        "meterId": "001BZR1521070003",
+        "meterId": "001BZR1521070006",
         "manufacturer": "BAUER Electronic",
         "type": "BSM-WS36A-H01-1311-0000"
       },
-      "operatorInfo": "See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate",
       "contract": {
-        "id": "chargeIT up 12*4, id: 12345678abcdef"
+        "id": "12345678abcdef",
+        "type": "rfid"
       },
-      "measurementId": 22107,
+      "measurementId": 22978,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
@@ -81,7 +86,7 @@
             "scale": 0,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 88200,
+            "value": 52440,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -105,7 +110,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "001BZR1521070003",
+            "value": "001BZR1521070006",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -117,7 +122,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 22107,
+            "value": 22978,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -129,7 +134,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1829766,
+            "value": 1867397,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -141,7 +146,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1602145359,
+            "value": 1609491627,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -153,7 +158,7 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 120,
+            "value": 60,
             "valueType": "Integer32"
           }
         },
@@ -164,7 +169,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 12174,
+            "value": 2814,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -176,7 +181,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1829734,
+            "value": 1867371,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -208,7 +213,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "chargeIT up 12*4, id: 12345678abcdef",
+            "value": "contract-id: rfid:12345678abcdef",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -219,7 +224,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "demo data 2",
+            "value": "evse-id: DE*BDO*E8025334492*2",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -230,6 +235,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
+            "value": "csc-sw-version: v1.2.34",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -246,28 +252,24 @@
           }
         }
       ],
-      "signature": "304502201a40c702753d715cc37e5aabbf706ed409e1aa01f8f19996b192a3276adecd72022100a4818e85690f00946c56569b92453ad9bf118fa3ae2a636629cdb8b89123f041"
+      "signature": "3046022100abf6b2c50a4021f58d075e1df434dc96f1625df66142ec32c6ab831942631c3e022100f863e4aeccee44755302a38b4a08431835b645247b1db2cfecceaa7fe017cb4a"
     },
     {
-      "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0",
-      "@id": "001BZR1521070003-22108",
-      "timestamp": 1602145657,
-      "timestampLocal": {
-        "timestamp": 1602152857,
-        "localOffset": 120
-      },
+      "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
+      "@id": "001BZR1521070006-22979",
+      "time": "2021-01-01T10:05:52+01:00",
       "meterInfo": {
-        "firmwareVersion": "1.8:33C4:DB63, 08d1aa3",
+        "firmwareVersion": "1.9:32CA:AFF4, 6d1dd3c",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
-        "meterId": "001BZR1521070003",
+        "meterId": "001BZR1521070006",
         "manufacturer": "BAUER Electronic",
         "type": "BSM-WS36A-H01-1311-0000"
       },
-      "operatorInfo": "See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate",
       "contract": {
-        "id": "chargeIT up 12*4, id: 12345678abcdef"
+        "id": "12345678abcdef",
+        "type": "rfid"
       },
-      "measurementId": 22108,
+      "measurementId": 22979,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
@@ -277,7 +279,7 @@
           "scale": 0,
           "unit": "WATT_HOUR",
           "unitEncoded": 30,
-          "value": 150,
+          "value": 160,
           "valueType": "UnsignedInteger32"
         }
       },
@@ -302,7 +304,7 @@
             "scale": 0,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 150,
+            "value": 160,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -315,7 +317,7 @@
             "scale": 0,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 88350,
+            "value": 52610,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -339,7 +341,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "001BZR1521070003",
+            "value": "001BZR1521070006",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -351,7 +353,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 22108,
+            "value": 22979,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -363,7 +365,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1830064,
+            "value": 1867722,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -375,7 +377,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1602145657,
+            "value": 1609491952,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -387,7 +389,7 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 120,
+            "value": 60,
             "valueType": "Integer32"
           }
         },
@@ -398,7 +400,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 12174,
+            "value": 2814,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -410,7 +412,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1829734,
+            "value": 1867371,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -442,7 +444,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "chargeIT up 12*4, id: 12345678abcdef",
+            "value": "contract-id: rfid:12345678abcdef",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -453,7 +455,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
-            "value": "demo data 2",
+            "value": "evse-id: DE*BDO*E8025334492*2",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -464,6 +466,7 @@
           },
           "measuredValue": {
             "unitEncoded": 255,
+            "value": "csc-sw-version: v1.2.34",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
           }
@@ -480,7 +483,7 @@
           }
         }
       ],
-      "signature": "3045022100d7070dc074c9188ec1b957cb7a6b3a37d0c416b3c9f9eb49c01087c4a95e16e9022025aaee48fa55f93ed507d7565458fdfa118b1aa73632055401a9e324e1f28a20"
+      "signature": "3044022062f36e0583471d4f438da9da549be550cdbdfa4f9d77f3d4c53339f18c66850a02200e997ccb47cb33b1fb6c504b081b097cb65231b041c9f882122cc8298f575501"
     }
   ]
 }
