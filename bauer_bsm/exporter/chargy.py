@@ -83,7 +83,7 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, statio
     if start_data and end_data:
         data = OrderedDict()
 
-        data['@context'] = 'https://www.chargeit-mobility.com/contexts/charging-station-json-v0'
+        data['@context'] = 'https://www.chargeit-mobility.com/contexts/charging-station-json-v1'
         # The BSM Python support has no natural unique identifier for a
         # charging process. Let's use an UUID then.
         data['@id'] = str(uuid.uuid4())
@@ -130,7 +130,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         meter_id = snapshot.points[config.SNAPSHOT_METER_ADDRESS_1_DATA_POINT_ID].value
         response_counter = snapshot.points[config.SNAPSHOT_RESPONSE_COUNTER_DATA_POINT_ID].value
 
-        data['@context'] = 'https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0'
+        data['@context'] = 'https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1'
         # Device ID and response counter give a unique ID for a snapshot.
         data['@id'] = '{}-{}'.format(meter_id, response_counter)
 
