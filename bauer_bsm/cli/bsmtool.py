@@ -120,7 +120,6 @@ def create_argument_parser():
     chargy_parser = subparsers.add_parser('chargy', help='generate billing data sample for Chargy from already existing snapshots (stons and stoffs)')
     chargy_parser.set_defaults(func=chargy_command)
     chargy_parser.add_argument('--station-serial-number', metavar='SERIAL_NUMBER', help='charging station\'s serial number', default='2020-24-T-042')
-    chargy_parser.add_argument('--station-software-version', metavar='VERSION', help='charging station\'s software version', default='v1.2.3-4-g56789ab')
     chargy_parser.add_argument('--station-compliance-info', metavar='INFO', help='compliance info information for the charging station', default='See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate')
     chargy_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='stons')
     chargy_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='stoffs')
@@ -403,7 +402,6 @@ def chargy_command(args):
 
     output = chargy.generate_chargy_json(client, args.start, args.end,
         station_serial_number=args.station_serial_number,
-        station_software_version=args.station_software_version,
         station_compliance_info=args.station_compliance_info)
 
     if output is not None:

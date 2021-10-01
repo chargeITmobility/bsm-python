@@ -54,10 +54,16 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
         suns.SUNS_TYPE_UINT32: 'UnsignedInteger32',
     }
 
+_SNAPSHOT_METADATA_POINT_IDS = [
+        config.SNAPSHOT_META1_DATA_POINT_ID,
+        config.SNAPSHOT_META2_DATA_POINT_ID,
+        config.SNAPSHOT_META3_DATA_POINT_ID,
+    ]
 
 
 
-def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_software_version=None, station_compliance_info=None):
+
+def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
     data = None
 
     common = client.model_aliases[config.COMMON_INSTANCE_ALIAS]
@@ -81,11 +87,13 @@ def _generate_chargy_data(client, start_alias, end_alias, read_data=True, statio
         # The BSM Python support has no natural unique identifier for a
         # charging process. Let's use an UUID then.
         data['@id'] = str(uuid.uuid4())
-        data['chargePointInfo'] = _generate_chargy_point_info_data(client)
+        data['chargePointInfo'] = _generate_chargy_point_info_data(client,
+            start, end)
         data['chargingStationInfo'] = _generate_chargy_station_info_data(
             client,
+            start,
+            end,
             serial_number=station_serial_number,
-            software_version=station_software_version,
             compliance_info=station_compliance_info)
         data['signedMeterValues'] = [start_data, end_data]
 
@@ -102,11 +110,11 @@ def _generate_chargy_place_info_data(client):
     return info
 
 
-def _generate_chargy_point_info_data(client):
+def _generate_chargy_point_info_data(client, start, end):
     data = OrderedDict()
 
     data['placeInfo'] = _generate_chargy_place_info_data(client)
-    data['evseId'] = 'DE*BDO*E8025334492*2'
+    data['evseId'] = _tagged_snapshots_metadata(start, end, 'evse-id')
 
     return data
 
@@ -155,7 +163,7 @@ def _generate_chargy_snapshot_data(client, common, bsm, snapshot):
         # Metadata field 1 is expected to hold contract information similar to
         # OCMF.
         data['contract'] = {
-                'id': snapshot.points[config.SNAPSHOT_META1_DATA_POINT_ID].value,
+                'id': _tagged_snapshot_metadata(snapshot, 'contract-id'),
             }
 
         data['measurementId'] = response_counter
@@ -226,13 +234,13 @@ def _generate_chargy_snapshot_value_data(client, point):
     return data
 
 
-def _generate_chargy_station_info_data(client, serial_number=None, software_version=None, compliance_info=None):
+def _generate_chargy_station_info_data(client, start, end, serial_number=None, compliance_info=None):
     data = OrderedDict()
 
     data['manufacturer'] = 'chargeIT mobility GmbH'
     data['type'] = 'CIT Ladesäule online'
     _put_non_null(data, 'serialNumber', serial_number)
-    _put_non_null(data, 'softwareVersion', software_version)
+    _put_non_null(data, 'controllerSoftwareVersion', _tagged_snapshots_metadata(start, end, 'csc-sw-version'))
     _put_non_null(data, 'compliance', compliance_info)
 
     return data
@@ -243,7 +251,29 @@ def _put_non_null(dict_, key, value):
         dict_[key] = value
 
 
-def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_software_version=None, station_compliance_info=None):
+def _tagged_snapshot_metadata(snapshot, tag):
+    prefix = tag + ': '
+    result = None
+
+    for id_ in _SNAPSHOT_METADATA_POINT_IDS:
+        value = snapshot.points[id_].value
+        if value is not None and value.startswith(prefix):
+            result = value[len(prefix):]
+
+    return result
+
+
+def _tagged_snapshots_metadata(start, end, tag):
+    start_value = _tagged_snapshot_metadata(start, tag)
+    end_value = _tagged_snapshot_metadata(end, tag)
+
+    assert start_value == end_value
+
+    return start_value
+
+
+
+def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
     """
     Generates a chargeIT mobility JSON document from signed turn-on and
     turn-off snapshots.
@@ -261,7 +291,6 @@ def generate_chargy_json(client, start_alias, end_alias, read_data=True, station
         end_alias=end_alias,
         read_data=read_data,
         station_serial_number=station_serial_number,
-        station_software_version=station_software_version,
         station_compliance_info=station_compliance_info)
     if data is not None:
         data = json.dumps(data, indent=2).encode('utf-8')
