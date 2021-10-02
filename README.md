@@ -65,5 +65,5 @@ The directory [`doc/modbus`](doc/modbus) contains a Modbus model instance and
 register overview.
 
 Finally, you could have a look in the product manuals of the BSM-WS36A:
-* [English _Product Manual_](doc/manuals/Product_manual_BSM_EN_210511.pdf)
-* [German _Produkthandbuch_](doc/manuals/Produkthandbuch_BSM_DE_v1-0.pdf)
+* [English _Product Manual_](doc/manuals/Product_manual_BSM_EN_210910.pdf)
+* [German _Produkthandbuch_](doc/manuals/Produkthandbuch_BSM_DE_v1-01_210910.pdf)
