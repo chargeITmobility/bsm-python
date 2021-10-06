@@ -4,7 +4,7 @@
 > final format will likely differ.
 
 [Signed Snapshot](snapshots.md) data from the BSM-WS36A could also be
-transformed into custom formats which are not directly supported by the meter.
+transformed into custom formats which are not directly provided by the meter.
 For example, the JSON format used by chargeIT mobility's
 [Chargy](https://github.com/chargeITmobility/ChargyDesktopApp).
 
@@ -41,7 +41,7 @@ Scenario](ev-charging.md#charging-scenario).
 
 ### Reading Data from Meter
 
-When preparation is done done, the following [model
+When preparation is done, the following [model
 instances](modbus-interface.md#model-instances) provide the necessary data for
 generating Chargy's JSON format. This is general information from the models:
 
