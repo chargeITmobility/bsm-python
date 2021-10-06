@@ -109,7 +109,6 @@
             "name": "MA1"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "001BZR1521070006",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -212,7 +211,6 @@
             "name": "Meta1"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "contract-id: rfid:12345678abcdef",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -223,7 +221,6 @@
             "name": "Meta2"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "evse-id: DE*BDO*E8025334492*2",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -234,7 +231,6 @@
             "name": "Meta3"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "csc-sw-version: v1.2.34",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"

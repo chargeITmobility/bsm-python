@@ -204,30 +204,32 @@ def _generate_chargy_snapshot_value_data(client, point):
     _put_non_null(measurand, 'name', point.point_type.id)
 
     value = OrderedDict()
+    point_type = point.point_type.type
     # Provide a scale factor. Either the one explicity given by an associated
     # scale factor data point. Or the default value 10^0 == 1 which the device
     # uses when computing the message digtst for singing.
     scale = None
     if point.sf_point:
         scale = point.sf_point.value_base
-    elif point.point_type.type in _CHARGY_NUMERIC_DATA_POINT_TYPES:
+    elif point_type in _CHARGY_NUMERIC_DATA_POINT_TYPES:
         scale = 0
     # Provide a unit. Either the unit explicitly specified by the model or
     # "unitless" indicated by DLMS code 255 (and a JSON null here). The device
     # uses the latter for numeric values which have no explicitly assigned unit
     # when computing the message digest for signing.
     value_unit_name = None
-    value_unit_encoded = dlms.DlmsUnits.UNITLESS
+    value_unit_encoded = None
     if point.point_type.units is not None:
         value_unit_name = _CHARGY_UNIT_NAME_BY_SUNSPEC_UNIT[point.point_type.units]
         value_unit_encoded = dlms.dlms_unit_for_symbol(point.point_type.units)
+    elif point_type in _CHARGY_NUMERIC_DATA_POINT_TYPES:
+        value_unit_encoded = dlms.DlmsUnits.UNITLESS
     value_value = point.value_base
     # SunSpec defines zero as 'not accumulated'/invalid value for accumulators
     # and pySunSpec returns them as None. Let's have a numeric output in this
     # case.
-    if point.point_type.type == suns.SUNS_TYPE_ACC32 and point.value_base is None:
+    if point_type == suns.SUNS_TYPE_ACC32 and point.value_base is None:
         value_value = 0
-    point_type = point.point_type.type
     # Provide the encoding for string values at the time of hashing. The
     # pySunSpec stack used by the BSM TOOL uses Latin 1/ISO-8859-1. If no
     # encoding is given, UTF-8 will be assumed.
@@ -283,7 +285,6 @@ def _tagged_snapshots_metadata(start, end, tag):
     assert start_value == end_value
 
     return start_value
-
 
 
 def generate_chargy_json(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):

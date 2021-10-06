@@ -211,7 +211,7 @@ created start and end snapshots via:
 $ bsmtool chargy stons stoffs
 ```
 See [`chargy_command`](../../bauer_bsm/cli/bsmtool.py#L399) and
-[`generate_chargy_json`](../../bauer_bsm/exporter/chargy.py#L289) for the code
+[`generate_chargy_json`](../../bauer_bsm/exporter/chargy.py#L290) for the code
 generating this sample documents.
 
 Let's have a look at the root object's fields in the following sections.
@@ -261,7 +261,7 @@ This is another piece of information which needs to be added when generating
 the JSON document. It is not provided by the meter. If the EVSE should be
 signed by the meter, it could be put into one of the meter's metadata points
 and will additionally appear within the snapshot data in
-[`signedMeterValues`](data/ev-charging-chargy.json#L227).
+[`signedMeterValues`](data/ev-charging-chargy.json#L224).
 
 
 #### Snapshot Data
@@ -471,7 +471,6 @@ The string from _Meta1_
     "name": "Meta1"
   },
   "measuredValue": {
-    "unitEncoded": 255,
     "value": "contract-id: rfid:12345678abcdef",
     "valueType": "String",
     "valueEncoding": "ISO-8859-1"
