@@ -32,6 +32,39 @@ is based on the same charging process already used for the examples in [Open
 Charge Metering Format (OCMF)](ocmf.md) and [Electric Vehicle
 Charging](ev-charging.md).
 
+The Chargy JSON example below was created using BSM Tool's Chargy export. So
+the exporter's shows every step in detail. The actual exporter is located in
+[`bauer_bsm/exporter/chargy.py`](../../bauer_bsm/exporter/chargy.py) and
+demonstrates everything which needs to be done once the snapshots are
+successfully created:
+
+- [Reading nameplate information](chargy.md#nameplate-information) for
+  identifying the meter model
+- [Reading version and public key
+  data](chargy.md#version-information-and-public-key) for identifying the
+  individual meter
+- [Reading the actual snapshot data](chargy.md#snapshot-data) for generating
+  the actual billing-relevant data from
+
+Reading all data is done in
+[`_generate_chargy_data`](../../bauer_bsm/exporter/chargy.py#L84) as well as
+using it for the actual JSON document generation:
+
+- [Generating snapshot representations](../../bauer_bsm/exporter/chargy.py#98)
+- [Generating the overall JSON document](./../bauer_bsm/exporter/chargy.py#L101)
+
+Running this exporter while having some breakpoints set or with additional
+logging should help answering questions in case of doubt.
+
+Exporting this data was done after preparing the meter as shown in the next
+section and creating the _Signed Turn-On_ and _Signed Turn-Off Snapshot_. The
+BSM Tool was then invoked as follows:
+```
+$ bsmtool chargy stons stoffs
+```
+
+The following sections guide through the steps mentioned above.
+
 
 ### Preparation
 
