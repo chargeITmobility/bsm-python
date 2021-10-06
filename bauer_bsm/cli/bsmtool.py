@@ -12,14 +12,28 @@ from . import util as cliutil
 from ..bsm import config
 from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..crypto import util as cryptoutil
-from ..exporter import ocmf, registers
+from ..exporter import chargy, ocmf, registers
 from ..sunspec.core import suns
 from ..util import package_version
 from argparse import ArgumentParser, FileType
 
 import csv
 import os
+import re
 import sys
+
+
+# Slicers for modbus messages in pySunSpec's tracing output. They are meant for
+# messages represented as contigous hex strings and will return an array of
+# logically grouped data (device address, function code, ...).
+_TRACE_RTU_SLICERS = \
+    {
+        ('->', '03'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:-4], s[-4:]],
+        ('->', '10'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:12], s[12:14], s[14:-4], s[-4:]],
+
+        ('<--', '03'): lambda s: [s[0:2], s[2:4], s[4:6], s[6:-4], s[-4:]],
+        ('<--', '10'): lambda s: [s[0:2], s[2:4], s[4:8], s[8:-4], s[-4:]],
+    }
 
 
 def create_argument_parser():
@@ -101,6 +115,14 @@ def create_argument_parser():
     verify_signature_parser.add_argument('public_key', metavar='PUBLIC_KEY', type=cliutil.hex_data_or_file, help='public key as hex data or a file name to read binary data from. The data is expected to be catenated x and y coordinates x || y.')
     verify_signature_parser.add_argument('message_digest', metavar='MD', type=cliutil.hex_data_or_file, help='message digest as hex data or a file name to read binary data from.')
     verify_signature_parser.add_argument('signature', metavar='SIGNATURE', type=cliutil.hex_data_or_file, help='signature as hex data or a file name to read binary from. The data is expected to be catenated r and s values r || s.')
+
+    # Generate data for Chargy from already existing snapshots.
+    chargy_parser = subparsers.add_parser('chargy', help='generate billing data sample for Chargy from already existing snapshots (stons and stoffs)')
+    chargy_parser.set_defaults(func=chargy_command)
+    chargy_parser.add_argument('--station-serial-number', metavar='SERIAL_NUMBER', help='charging station\'s serial number', default='2020-24-T-042')
+    chargy_parser.add_argument('--station-compliance-info', metavar='INFO', help='compliance info information for the charging station', default='See https://www.chargeit-mobility.com/wp-content/uploads/chargeIT-Baumusterpr%C3%BCfbescheinigung-Lades%C3%A4ule-Online.pdf for type examination certificate')
+    chargy_parser.add_argument('start', metavar='START', nargs='?', help=snapshot_alias_help, default='stons')
+    chargy_parser.add_argument('end', metavar='END', nargs='?', help=snapshot_alias_help, default='stoffs')
 
     # Generate OCMF XML from already existings snapshots.
     ocmf_xml_parser = subparsers.add_parser('ocmf-xml', help='generate OCMF XML from already existing snapshots (stons and stoffs)',
@@ -189,8 +211,23 @@ def register_hexdump_bytes(data, offset=0):
 
 
 def trace_modbus_rtu(string):
-    # TODO: What about adding some spaces around the payload?
+    # Attempt to logically group known Modbus frame formats in the trace output
+    # from pySunSpec.
     #
+    # The Modbus message is expected at the end of a trace output line. Capture
+    # "direction indicator", address, and function code.
+    match = re.search('(<--|->)([0-9a-fA-F]{2})([0-9a-fA-F]{2})[0-9a-fA-F]+$', string)
+    if match:
+        # Look up message slicer by "direction indicator" and function code.
+        slicer = _TRACE_RTU_SLICERS.get((match.group(1), match.group(3)), None)
+        if slicer:
+            (data_start, _) = match.span(2)
+            prefix = string[:data_start]
+            data = string[data_start:]
+            # Separate the message slices by spaces.
+            sliced = ' '.join(slicer(data))
+            string = prefix + sliced
+
     # TODO: What about creating a feature request for "pretty tracing"? In the
     # sense that the trace function gets device, addres, payload data passed
     # separately for formatting?
@@ -353,6 +390,26 @@ def get_snapshot_command(args):
             print('Updating \'{}\' failed: {}'.format(args.name, status.value),
                 file=sys.stderr)
             result = False
+
+    client.close()
+    if not result:
+        sys.exit(1)
+
+
+def chargy_command(args):
+    client = create_sunspec_client(args)
+    result = False
+
+    output = chargy.generate_chargy_json(client, args.start, args.end,
+        station_serial_number=args.station_serial_number,
+        station_compliance_info=args.station_compliance_info)
+
+    if output is not None:
+        sys.stdout.buffer.write(output)
+        result = True
+    else:
+        print('Generating Chargy JSON data failed due to invalid snapshot(s).',
+            file=sys.stderr)
 
     client.close()
     if not result:

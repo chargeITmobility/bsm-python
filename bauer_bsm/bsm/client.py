@@ -387,9 +387,7 @@ class BsmClientDevice(sclient.ClientDevice):
             bsm.read_points()
             snapshot.read_points()
 
-        public_key_regs = bsm.points[config.BSM_PUBLIC_KEY_REGS_DATA_POINT_ID].value
-        assert len(bsm.blocks) == public_key_regs + 1
-        public_key_data = bsm.device.repeating_blocks_blob(bsm)
+        public_key_data = self.get_public_key(read_data=False)
         public_key = cutil.public_key_from_blob(public_key_data, config.BSM_MESSAGE_DIGEST)
         curve_name = self._fixup_curve_name(public_key.curve.name)
         signature_regs = snapshot.points[config.SNAPSHOT_SIGNATURE_REGS_DATA_POINT_ID].value

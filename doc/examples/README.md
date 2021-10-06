@@ -53,6 +53,8 @@ Let's dive into the actual examples:
     - [Example](ocmf.md#example)
     - [Comparing Snapshot and OCMF Payload](ocmf.md#comparing-snapshot-and-ocmf-payload)
     - [OCMF XML](ocmf.md#ocmf-xml)
+- [chargeIT mobility Chargy and Custom Formats](chargy.md)
+    - [Example](chargy.md#example)
 - [Electric Vehicle Charging](ev-charging.md)
     - [Typical Setup](ev-charging.md#typical-setup)
     - [Charging Scenario](ev-charging.md#charging-scenario)
@@ -67,7 +69,7 @@ Python client could be found in
 
 - [`BsmClientDevice`](../../bauer_bsm/bsm/client.py#L103) meant for general use
   which follows the interface from pySunSpec's `ClientDevice`
-- [`SunSpecBsmClientDevice`](../../bauer_bsm/bsm/client.py#L468) which provides
+- [`SunSpecBsmClientDevice`](../../bauer_bsm/bsm/client.py#L421) which provides
   models and their data points directly as object attributes/properties as
   pySunSpec's `SunSpecClientDevice` and might come in handy for scripting
 
