@@ -423,5 +423,5 @@ the example above can be verified with the [S.A.F.E. e.V.
 Transparenzsoftware](https://www.safe-ev.de/de/transparenzsoftware.php) which
 by loading the file and clicking on _Transaktion überprüfen_:
 
-![S.A.F.E. e.V. Transparenzsoftware Main Window](img/ev-charging-verification-overview.png)
-![S.A.F.E. e.V. Transparenzsoftware Verification Details](img/ev-charging-verification-detail.png)
+![S.A.F.E. e.V. Transparenzsoftware Main Window](img/ev-charging-ocmf-verification-overview.png)
+![S.A.F.E. e.V. Transparenzsoftware Verification Details](img/ev-charging-ocmf-verification-detail.png)
