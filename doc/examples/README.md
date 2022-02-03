@@ -58,6 +58,7 @@ Let's dive into the actual examples:
 - [Electric Vehicle Charging](ev-charging.md)
     - [Typical Setup](ev-charging.md#typical-setup)
     - [Charging Scenario](ev-charging.md#charging-scenario)
+- [Electric Vehicle Charging Exchange Data](ev-charging-exchange-data.md)
 
 
 ## Use the Source, Luke
