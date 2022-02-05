@@ -56,7 +56,7 @@ using custom formats along this path. These steps are:
 
 - Charging station
     - The controller [creates](snapshots.md#snapshot-creation) snapshots and
-      [fetches their data](snapshots.md#snapshot-data)
+      [fetches their data](snapshots.md#snapshot-data-1)
     - It converts snapshot data into [Chargy's snapshot data JSON
       format](chargy.md#snapshot-data)
     - It sends this format via OCPP to chargeIT's backend
@@ -78,13 +78,13 @@ using custom formats along this path. These steps are:
 Or to phrase it more technically - this data path consists of:
 
 - [Converting BSM-WS36A snapshot data into a custom transport
-  format](chargy.md#snapshot-data) which allows to reconstruct the abstract
+  format](chargy.md#snapshot-data-1) which allows to reconstruct the abstract
   representation of the signed data
 - Combining and augmenting this data into [Chargy JSON
   data](chargy.md#chargy-json-format)
 - Validating Chargy JSON data
     - Reconstructing the [abstract
-      representation](chargy.md#verifying-a-snapshot-with-the-bsm-tool) as
+      representation](snapshots.md#abstract-data-representation) as
       shown by example in [Abstract Data Representation
       Example](chargy.md#abstract-data-representation-example)
     - Validating the signature for the abstract data representation
