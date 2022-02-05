@@ -111,3 +111,27 @@ this data literally along the path. So the steps here are:
 - Customer
     - Downloads charging data from the frontend, stores it, and opens the file
       with the S.A.F.E. Transparenzsoftware
+
+
+## Special Case Pretty Restricted Data Size
+
+There are scenarios where the amount of data which could be transmitted in a
+single message is too low for snapshot or charging data to fit in. In such a
+case one of the following approaches might help out:
+
+1. If the restriction applies only to a single message and the backend could
+   reassemble message fragments, the data could just be split up among multiple
+   messages
+
+2. If the data has to be transmitted within a single message, then compression
+   might come to the rescue
+    - Could be applied to either snapshot data or charging data
+    - Compressing the complete charging data at once usually gives a better
+      ratio than compressing snapshots individually
+    - Compressing the BSM-WS36A's binary snapshot data or its abstract
+      representation usually gives smaller results than compressing Chargy JSON
+      or OCMF
+
+3. If the above do not work out, the actual data could be shared securely via a
+   side channel (storage) and only identifiers (like URLs) are transmitted in
+   the actual message
