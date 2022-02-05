@@ -59,6 +59,10 @@ Let's dive into the actual examples:
     - [Typical Setup](ev-charging.md#typical-setup)
     - [Charging Scenario](ev-charging.md#charging-scenario)
 - [Electric Vehicle Charging Exchange Data](ev-charging-exchange-data.md)
+    - [Overview](ev-charging-exchange-data.md#overview)
+    - [Chargy JSON and Custom Formats](ev-charging-exchange-data.md#overview)
+    - [OCMF](ev-charging-exchange-data.md#ocmf)
+    - [Special Case Pretty Restricted Data Size](ev-charging-exchange-data.md#special-case-pretty-restricted-data-size)
 
 
 ## Use the Source, Luke
