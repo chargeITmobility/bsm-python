@@ -320,7 +320,7 @@ snapshot's response counter
 [_RCR_](../../bauer_bsm/bsm/models/smdx_64901.xml#L185). For example:
 ```json
 {
-  "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v0",
+  "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
   "@id": "001BZR1521070003-22107",
   "time": "2021-01-01T10:00:27+01:00",
   "meterInfo": { ... },
