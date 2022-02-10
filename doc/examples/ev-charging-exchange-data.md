@@ -14,7 +14,7 @@ output formats:
       representation could be reconstructed from
     - Allows passing on signed data in a variety of derived formats
 2. [OCMF](ocmf.md)
-    - Derived from the former
+    - Derived from the proprietary snapshot format
     - "Signed as seen" and therefor with an individual signature
     - Passed on literally until verification
 
@@ -37,12 +37,15 @@ charging data using a so-called Transparenzsoftware:
     - Validates Chargy, OCMF, ...
     - [Certified
       release](https://www.chargeit-mobility.com/wissen-tipps/validierung/)
-      which does not include validating signed data from BSM-WS36A yet
     - [Pre-release](https://github.com/chargeITmobility/ChargyDesktopApp/releases)
-      supporting the BSM-WS36A which currently undergoes certification
+      supporting the new chargeIT-format with the BSM-WS36A which currently undergoes certification
+    - Open source license
+    - Available without any restrictions or fees
 
 2. [S.A.F.E. Transparenzsoftware](https://www.safe-ev.de/de/transparenzsoftware.php)
     - Validates OCMF, ...
+    - Certified release
+    - S.A.F.E. membership is required (with fees)
 
 As sketched out in the diagram, there are more solutions available and possible
 for validating charging data.
@@ -56,17 +59,18 @@ using custom formats along this path. These steps are:
 
 - Charging station
     - The controller [creates](snapshots.md#snapshot-creation) snapshots and
-      [fetches their data](snapshots.md#snapshot-data-1)
+      [fetches their data](snapshots.md#snapshot-data-1) from the start or stop event of the charging process
     - It converts snapshot data into [Chargy's snapshot data JSON
-      format](chargy.md#snapshot-data)
-    - It sends this format via OCPP to chargeIT's backend
+      format](chargy.md#snapshot-data) (single format)
+    - It sends this format via OCPP to the backend (start + stop)
 
 - Backend and frontend
-    - Receive and handles snapshot data for a charging process in [Chargy's
+    - Receive and handles snapshot data for a charging process (start + stop) in [Chargy's
       snapshot data JSON format](chargy.md#snapshot-objects)
     - Generate [Chargy JSON data](chargy.md#chargy-json-format) from the
-      individual snapshot data and its information about the charge point
-    - Provide the latter to the customer (for example as download via its web
+      individual snapshot data and its information about the charge point (meta format)
+    - Backend submits signed data to the frontend
+    - Provide the meta format to the customer (for example as download via its web
       UI)
 
 - Customer
@@ -99,14 +103,15 @@ this data literally along the path. So the steps here are:
 
 - Charging station
     - The controller [creates](snapshots.md#snapshot-creation) snapshots and
-      [fetches their OCMF
-      respresentation](ocmf.md#getting-the-ocmf-representation)
-    - I directly passes the OCMF data to a backend
+      [fetches their OCMF 
+      respresentation](ocmf.md#getting-the-ocmf-representation) from the start or stop event of the charging process
+    - It directly passes the OCMF data to a backend (start + stop)
 
 - Backend and frontend
-    - Receive and handles snapshot data in OCMF format
+    - Receive and handles snapshot data in OCMF format (start + stop)
     - Assemble [OCMF XML data](ocmf.md#ocmf-xml) from the individual snapshots
-      and provide it to the customer
+    - Backend submits signed data to the frontend
+    - Provide the OCMF XML to the customer (for example as download via its web UI)
 
 - Customer
     - Downloads charging data from the frontend, stores it, and opens the file
