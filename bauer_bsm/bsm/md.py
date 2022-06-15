@@ -67,21 +67,34 @@ def md_for_snapshot_data(snapshot, trace=None):
     return md.digest()
 
 
+def md_scaler_for_point(point):
+    scaler = point.value_sf
+
+    # Fixup the scaler for our message digests computation. There are values
+    # which do have a scaler associated at all and we use zero in this case.
+    # And there are cases where the value is 'not implemented' and the actually
+    # available scaler is not present in value_sf.
+    if scaler is None:
+        if point.sf_point is None:
+            scaler = 0
+        else:
+            scaler = point.sf_point.value_base
+
+    return scaler
+
+
 def md_value_and_scaler_for_point(point):
     type_ = point.point_type.type
     value = point.value_base
-    scaler = point.value_sf
+    scaler = md_scaler_for_point(point)
 
-    # Fixup value an scaler for the 'not implemented' case which gets reported
-    # as None by pySunSpec.
+    # Fixup value for the 'not implemented' case which gets reported as None by
+    # pySunSpec.
     if value is None:
         try:
             value = _MD_UNIMPL_VALUES[type_]
         except KeyError as cause:
             raise TypeError('Unsupported point type \'{}\' cause of {}.'.format(type_, cause))
-
-    if scaler is None:
-        scaler = 0
 
     return (value, scaler)
 
