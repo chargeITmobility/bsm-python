@@ -54,7 +54,7 @@ def create_argument_parser():
     device = os.getenv('BSMTOOL_DEVICE')
     baud = cliutil.auto_int(os.getenv('BSMTOOL_BAUD', 19200))
     unit = cliutil.auto_int(os.getenv('BSMTOOL_UNIT', 42))
-    timeout = float(os.getenv('BSMTOOL_TIMEOUT', 10))
+    timeout = float(os.getenv('BSMTOOL_TIMEOUT', 13))
     chunk = cliutil.auto_int(os.getenv('BSMTOOL_CHUNK', 125))
 
     parser = ArgumentParser(description='BSM Modbus Tool',
