@@ -111,7 +111,7 @@ common:
 ```
 ```
 --> 2a 03 9c44 0042 ada5
-<-- 2a 03 84 424155455220456c656374726f6e69630000000000000000000000000000000042534d2d57533336412d4830312d313331312d3030303000000000000000000000000000000000000000000000000000312e393a333243413a414646340000003231303730303036000000000000000000000000000000000000000000000000002a8000 890d
+<--  2a 03 84 424155455220456c656374726f6e69630000000000000000000000000000000042534d2d57533336412d4830312d313331312d3030303000000000000000000000000000000000000000000000000000312e393a333243413a414646340000003231303730303036000000000000000000000000000000000000000000000000002a8000 890d
 ```
 
 
@@ -126,12 +126,12 @@ bsm:
         SNM: 21070006
         SNC: 000b57000060caa1
         VrM: 1.9:32CA:AFF4
-        VrC: 6d1dd3c
+        VrC: f1d3d06
         MA1: 001BZR1521070006
 [...]
-        Meta1: contract-id: rfid:12345678abcdef
-        Meta2: evse-id: DE*BDO*E8025334492*2
-        Meta3: csc-sw-version: v1.2.34
+        Meta1: None
+        Meta2: None
+        Meta3: None
         NPK: 48
         BPK: 91
     repeating blocks blob:
@@ -139,11 +139,11 @@ bsm:
 ```
 ```
 --> 2a 03 9d07 0050 dd80
-<-- 2a 03 a0 30303030303030303231303730303036000000000000000030303062353730303030363063616131312e393a333243413a4146463400000036643164643363000000000000000000303031425a523135323130373030303646303644314400000000000000000000000000a0000000000420000059c1001c7e795feee49f003c00000afe001c7e6b00010000ffffffffffffffff8000ffffffffffffffff8000 8e27
+<-- 2a 03 a0 30303030303030303231303730303036000000000000000030303062353730303030363063616131312e393a333243413a4146463400000066316433643036000000000000000000303031425a52313532313037303030363034303034320000000000000000000000000008000100000ca9000010b30007ec12ffffffff800000000c420007ec0600010000ffffffffffffffff8000ffffffffffffffff8000 5645
 --> 2a 03 9d57 0078 dd8f
-<-- 2a 03 f0 636f6e74726163742d69643a20726669643a3132333435363738616263646566000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000657673652d69643a2044452a42444f2a45383032353333343439322a320000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 4ec6
+<-- 2a 03 f0 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 d131
 --> 2a 03 9dcf 0064 5da9
-<-- 2a 03 c8 6373632d73772d76657273696f6e3a2076312e322e333400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030005b3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c72540000000000 95c8
+<-- 2a 03 c8 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000030005b3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c72540000000000 3c73
 ```
 Section [Public Key](snapshots.md#public-key) describes the interpretation of
 the public key data in detail.
@@ -167,42 +167,15 @@ bsm_snapshot:
         Typ: 1
         St: 0
         RCR: None
-        TotWhImp: 52440 Wh
+        TotWhImp: 99840.0 Wh
         W: 0.0 W
         MA1: 001BZR1521070006
-        RCnt: 22978
-        OS: 1867397 s
-        Epoch: 1609491627 s
-        TZO: 60 min
-        EpochSetCnt: 2814
-        EpochSetOS: 1867371 s
-        DI: 1
-        DO: 0
-        Meta1: contract-id: rfid:12345678abcdef
-        Meta2: evse-id: DE*BDO*E8025334492*2
-        Meta3: csc-sw-version: v1.2.34
-        Evt: 0
-        NSig: 48
-        BSig: 72
-    repeating blocks blob:
-        Sig: 3046022100abf6b2c50a4021f58d075e1df434dc96f1625df66142ec32c6ab831942631c3e022100f863e4aeccee44755302a38b4a08431835b645247b1db2cfecceaa7fe017cb4a
-```
-```
-$ bsmtool get-snapshot stoffs
-bsm_snapshot:
-    fixed:
-        Typ: 2
-        St: 0
-        RCR: 160 Wh
-        TotWhImp: 52610 Wh
-        W: 0.0 W
-        MA1: 001BZR1521070006
-        RCnt: 22979
-        OS: 1867722 s
-        Epoch: 1609491952 s
-        TZO: 60 min
-        EpochSetCnt: 2814
-        EpochSetOS: 1867371 s
+        RCnt: 4276
+        OS: 519243 s
+        Epoch: 1657267228 s
+        TZO: 120 min
+        EpochSetCnt: 3139
+        EpochSetOS: 519219 s
         DI: 1
         DO: 0
         Meta1: contract-id: rfid:12345678abcdef
@@ -212,7 +185,34 @@ bsm_snapshot:
         NSig: 48
         BSig: 70
     repeating blocks blob:
-        Sig: 3044022062f36e0583471d4f438da9da549be550cdbdfa4f9d77f3d4c53339f18c66850a02200e997ccb47cb33b1fb6c504b081b097cb65231b041c9f882122cc8298f575501
+        Sig: 304402206abd76fb7c48676c8b020e5561ea7cb109025a10ad945fcb4bc712015b5cb59902202e3f0d6d5e02deaeff7fa7429619a5cdb0c637e73a343d45d60ce0829c93ca37
+```
+```
+$ bsmtool get-snapshot stoffs
+bsm_snapshot:
+    fixed:
+        Typ: 2
+        St: 0
+        RCR: 150.0 Wh
+        TotWhImp: 100000.0 Wh
+        W: 0.0 W
+        MA1: 001BZR1521070006
+        RCnt: 4277
+        OS: 519567 s
+        Epoch: 1657267552 s
+        TZO: 120 min
+        EpochSetCnt: 3139
+        EpochSetOS: 519219 s
+        DI: 1
+        DO: 0
+        Meta1: contract-id: rfid:12345678abcdef
+        Meta2: evse-id: DE*BDO*E8025334492*2
+        Meta3: csc-sw-version: v1.2.34
+        Evt: 0
+        NSig: 48
+        BSig: 72
+    repeating blocks blob:
+        Sig: 3046022100ef2c86c28019f485dcb60424c8d29223f8a6c5b32c36bdc98c85677072c5a5d202210086e9512cedde2225d3e8a2094b10c5a0a7b9c1adb77eb9492c5c9f0dddcd77f3
 ```
 
 
@@ -231,7 +231,7 @@ and the snapshot data in the array `signedMeterValues`:
 ```json
 {
   "@context": "https://www.chargeit-mobility.com/contexts/charging-station-json-v1",
-  "@id": "29596515-a37d-433c-a217-4be8e9d090ed",
+  "@id": "af032557-c62c-414b-aecc-41ea59877305",
   "chargePointInfo": { ... },
   "chargingStationInfo": { ... },
   "signedMeterValues": [ ...]
@@ -265,7 +265,7 @@ The document ID uniquely identifies a certain document or so to speak, a
 charging process. This value is not provided by the meter and needs to be
 generated for each document. It could be an UUID for example:
 ```json
-"@id": "29596515-a37d-433c-a217-4be8e9d090ed"
+"@id": "af032557-c62c-414b-aecc-41ea59877305",
 ```
 
 #### Place Information
@@ -321,11 +321,11 @@ snapshot's response counter
 ```json
 {
   "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
-  "@id": "001BZR1521070003-22107",
-  "time": "2021-01-01T10:00:27+01:00",
+  "@id": "001BZR1521070006-4276",
+  "time": "2022-07-08T10:00:28+02:00",
   "meterInfo": { ... },
   "contract": { ... },
-  "measurementId": 22978,
+  "measurementId": 4276,
   "value": { ... },
   "additionalValues": [ ... ],
   "signature": "..."
@@ -342,7 +342,7 @@ There are two fields representing the point in time the snapshot was created:
 The point in time when the snapshot was created is given by `time` in [ISO
 8601](https://en.wikipedia.org/wiki/ISO_8601) format
 ```json
-"time": "2021-01-01T10:00:27+01:00"
+"time": "2022-07-08T10:00:28+02:00",
 ```
 which is a different representation of the values given by the data points as
 epoch time and timezone offset:
@@ -356,7 +356,7 @@ The field `measurementId` provides the meter's response counter
 [_RCnt_](../../bauer_bsm/bsm/models/smdx_64901.xml#L214) which is unique for
 every created snapshot:
 ```json
-"measurementId": 22978
+"measurementId": 4276,
 ```
 
 
@@ -366,7 +366,7 @@ The field [`meterInfo`](data/ev-charging-chargy.json#L30) provides an object
 with information for identifying the meter:
 ```json
 "meterInfo": {
-  "firmwareVersion": "1.9:32CA:AFF4, 6d1dd3c",
+  "firmwareVersion": "1.9:32CA:AFF4, f1d3d06",
   "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
   "meterId": "001BZR1521070006",
   "manufacturer": "BAUER Electronic",
@@ -393,7 +393,7 @@ This object is generated from the following data points:
 The object [`contract`](data/ev-charging-chargy.json#L37) provides customer
 identification if this is set to one of the metadata fields, in the tagged form
 `contract-id: TYPE:ID`. For example, setting
-_Meta1_](../../bauer_bsm/bsm/models/smdx_64900.xml#L245) to
+[_Meta1_](../../bauer_bsm/bsm/models/smdx_64900.xml#L245) to
 ```
 contract-id: rfid:12345678abcdef
 ```
@@ -422,13 +422,12 @@ energy consumption.  For example:
     "name": "RCR"
   },
   "measuredValue": {
-    "scale": 0,
+    "scale": 1,
     "unit": "WATT_HOUR",
     "unitEncoded": 30,
-    "value": 0,
+    "value": 15,
     "valueType": "UnsignedInteger32"
   }
-},
 }
 ```
 The `measurand` objects gives describes the measurand by its name (data point
@@ -483,18 +482,18 @@ The [`value` object from the end snapshot](data/ev-charging-chargy.json#L273)
     "name": "RCR"
   },
   "measuredValue": {
-    "scale": 0,
+    "scale": 1,
     "unit": "WATT_HOUR",
     "unitEncoded": 30,
-    "value": 160,
+    "value": 15,
     "valueType": "UnsignedInteger32"
   }
-},
+}
 ```
-with a raw value of 160 = 0xa0, a scale factor exponent 0, and the unit code 30
+with a raw value of 15 = 0xf, a scale factor exponent 1, and the unit code 30
 = 0x1e would translate to to the abstract representation:
 ```
-000000a0 00 1e
+0000000f 01 1e
 ```
 
 The string from _Meta1_
@@ -516,6 +515,10 @@ would simply translate to its length and string value encoded as [ISO
 00000020 636f6e74726163742d69643a20726669643a3132333435363738616263646566
 ```
 
+Chargy highlights this representation when hovering over the item in question
+in the details view for start or end:
+
+![Chargy Details Window](img/ev-charging-chargy-verification-detail.png)
 
 
 ##### Signature
