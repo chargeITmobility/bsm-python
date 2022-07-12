@@ -560,4 +560,4 @@ The successful verification of
 [`ev-charging-chargy.json`](data/ev-charging-chargy.json) with Chargy looks as
 follows:
 
-![Chargy Main Window](img/ev-charging-chargy-verification.png)
+![Chargy Main Window](img/ev-charging-chargy-verification-overview.png)

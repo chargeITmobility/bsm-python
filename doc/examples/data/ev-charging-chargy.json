@@ -1,6 +1,6 @@
 {
   "@context": "https://www.chargeit-mobility.com/contexts/charging-station-json-v1",
-  "@id": "29596515-a37d-433c-a217-4be8e9d090ed",
+  "@id": "af032557-c62c-414b-aecc-41ea59877305",
   "chargePointInfo": {
     "placeInfo": {
       "geoLocation": {
@@ -25,10 +25,10 @@
   "signedMeterValues": [
     {
       "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
-      "@id": "001BZR1521070006-22978",
-      "time": "2021-01-01T10:00:27+01:00",
+      "@id": "001BZR1521070006-4276",
+      "time": "2022-07-08T10:00:28+02:00",
       "meterInfo": {
-        "firmwareVersion": "1.9:32CA:AFF4, 6d1dd3c",
+        "firmwareVersion": "1.9:32CA:AFF4, f1d3d06",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
         "meterId": "001BZR1521070006",
         "manufacturer": "BAUER Electronic",
@@ -38,14 +38,14 @@
         "id": "12345678abcdef",
         "type": "rfid"
       },
-      "measurementId": 22978,
+      "measurementId": 4276,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
           "name": "RCR"
         },
         "measuredValue": {
-          "scale": 0,
+          "scale": 1,
           "unit": "WATT_HOUR",
           "unitEncoded": 30,
           "value": 0,
@@ -70,7 +70,7 @@
             "name": "RCR"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
             "value": 0,
@@ -83,10 +83,10 @@
             "name": "TotWhImp"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 52440,
+            "value": 9984,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -121,7 +121,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 22978,
+            "value": 4276,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -133,7 +133,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1867397,
+            "value": 519243,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -145,7 +145,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1609491627,
+            "value": 1657267228,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -157,7 +157,7 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 60,
+            "value": 120,
             "valueType": "Integer32"
           }
         },
@@ -168,7 +168,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 2814,
+            "value": 3139,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -180,7 +180,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1867371,
+            "value": 519219,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -248,14 +248,14 @@
           }
         }
       ],
-      "signature": "3046022100abf6b2c50a4021f58d075e1df434dc96f1625df66142ec32c6ab831942631c3e022100f863e4aeccee44755302a38b4a08431835b645247b1db2cfecceaa7fe017cb4a"
+      "signature": "304402206abd76fb7c48676c8b020e5561ea7cb109025a10ad945fcb4bc712015b5cb59902202e3f0d6d5e02deaeff7fa7429619a5cdb0c637e73a343d45d60ce0829c93ca37"
     },
     {
       "@context": "https://www.chargeit-mobility.com/contexts/bsm-ws36a-json-v1",
-      "@id": "001BZR1521070006-22979",
-      "time": "2021-01-01T10:05:52+01:00",
+      "@id": "001BZR1521070006-4277",
+      "time": "2022-07-08T10:05:52+02:00",
       "meterInfo": {
-        "firmwareVersion": "1.9:32CA:AFF4, 6d1dd3c",
+        "firmwareVersion": "1.9:32CA:AFF4, f1d3d06",
         "publicKey": "3059301306072a8648ce3d020106082a8648ce3d030107034200044bfd02c1d85272ceea9977db26d72cc401d9e5602faeee7ec7b6b62f9c0cce34ad8d345d5ac0e8f65deb5ff0bb402b1b87926bd1b7fc2dbc3a9774e8e70c7254",
         "meterId": "001BZR1521070006",
         "manufacturer": "BAUER Electronic",
@@ -265,17 +265,17 @@
         "id": "12345678abcdef",
         "type": "rfid"
       },
-      "measurementId": 22979,
+      "measurementId": 4277,
       "value": {
         "measurand": {
           "id": "1-0:1.8.0*198",
           "name": "RCR"
         },
         "measuredValue": {
-          "scale": 0,
+          "scale": 1,
           "unit": "WATT_HOUR",
           "unitEncoded": 30,
-          "value": 160,
+          "value": 15,
           "valueType": "UnsignedInteger32"
         }
       },
@@ -297,10 +297,10 @@
             "name": "RCR"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 160,
+            "value": 15,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -310,10 +310,10 @@
             "name": "TotWhImp"
           },
           "measuredValue": {
-            "scale": 0,
+            "scale": 1,
             "unit": "WATT_HOUR",
             "unitEncoded": 30,
-            "value": 52610,
+            "value": 10000,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -336,7 +336,6 @@
             "name": "MA1"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "001BZR1521070006",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -349,7 +348,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 22979,
+            "value": 4277,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -361,7 +360,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1867722,
+            "value": 519567,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -373,7 +372,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1609491952,
+            "value": 1657267552,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -385,7 +384,7 @@
             "scale": 0,
             "unit": "MINUTE",
             "unitEncoded": 6,
-            "value": 60,
+            "value": 120,
             "valueType": "Integer32"
           }
         },
@@ -396,7 +395,7 @@
           "measuredValue": {
             "scale": 0,
             "unitEncoded": 255,
-            "value": 2814,
+            "value": 3139,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -408,7 +407,7 @@
             "scale": 0,
             "unit": "SECOND",
             "unitEncoded": 7,
-            "value": 1867371,
+            "value": 519219,
             "valueType": "UnsignedInteger32"
           }
         },
@@ -439,7 +438,6 @@
             "name": "Meta1"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "contract-id: rfid:12345678abcdef",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -450,7 +448,6 @@
             "name": "Meta2"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "evse-id: DE*BDO*E8025334492*2",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -461,7 +458,6 @@
             "name": "Meta3"
           },
           "measuredValue": {
-            "unitEncoded": 255,
             "value": "csc-sw-version: v1.2.34",
             "valueType": "String",
             "valueEncoding": "ISO-8859-1"
@@ -479,7 +475,7 @@
           }
         }
       ],
-      "signature": "3044022062f36e0583471d4f438da9da549be550cdbdfa4f9d77f3d4c53339f18c66850a02200e997ccb47cb33b1fb6c504b081b097cb65231b041c9f882122cc8298f575501"
+      "signature": "3046022100ef2c86c28019f485dcb60424c8d29223f8a6c5b32c36bdc98c85677072c5a5d202210086e9512cedde2225d3e8a2094b10c5a0a7b9c1adb77eb9492c5c9f0dddcd77f3"
     }
   ]
 }

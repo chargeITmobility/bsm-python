@@ -684,7 +684,7 @@ After downloading or just copying the data from the portal, it can be opened in
 or pasted into Chargy for verification. For example, the data set
 [`ev-charging-chargy.json`](data/ev-charging-chargy.json):
 
-![Chargy Main Window](img/ev-charging-chargy-verification.png)
+![Chargy Main Window](img/ev-charging-chargy-verification-overview.png)
 
 
 #### OCMF with S.A.F.E. Transparenzsoftware
