@@ -9,10 +9,14 @@ from ..bsm import config
 from ..bsm import dlms
 from ..bsm.client import BsmClientDevice, SnapshotStatus, SunSpecBsmClientDevice
 from ..sunspec.core import suns
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from datetime import datetime, timedelta, timezone
 import json
 import uuid
+
+
+
+_DisplayHint = namedtuple('_DisplayHint', 'prefix, precision')
 
 
 
@@ -54,6 +58,12 @@ _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE = {
         suns.SUNS_TYPE_UINT32: 'UnsignedInteger32',
     }
 
+_DISPLAY_HINT_BY_POINT_ID = {
+        'RCR': _DisplayHint('kilo', 2),
+        'TotWhImp': _DisplayHint('kilo', 2),
+        'W': _DisplayHint('kilo', 3),
+    }
+
 _SNAPSHOT_METADATA_POINT_IDS = [
         config.SNAPSHOT_META1_DATA_POINT_ID,
         config.SNAPSHOT_META2_DATA_POINT_ID,
@@ -78,7 +88,6 @@ def _generate_chargy_contract_information(snapshot):
         result['id'] = contract
 
     return result
-
 
 
 def _generate_chargy_data(client, start_alias, end_alias, read_data=True, station_serial_number=None, station_compliance_info=None):
@@ -243,9 +252,20 @@ def _generate_chargy_snapshot_value_data(client, point):
     _put_non_null(value, 'valueType', _CHARGY_VALUE_TYPE_BY_SUNSPEC_TYPE[point.point_type.type])
     _put_non_null(value, 'valueEncoding', encoding)
 
+    # The BSM-WS36A does not provide means to read out the displayed format of
+    # values. But we know it for several data points. So let's provide this
+    # info to make it easier for downstream tools to show exactly this format.
+    displayed_format = None
+    display_hint = _DISPLAY_HINT_BY_POINT_ID.get(point.point_type.id, None)
+    if display_hint is not None:
+        displayed_format = OrderedDict()
+        _put_non_null(displayed_format, 'prefix', display_hint.prefix)
+        _put_non_null(displayed_format, 'precision', display_hint.precision)
+
     data = OrderedDict()
     data['measurand'] = measurand
     data['measuredValue'] = value
+    _put_non_null(data, 'displayedFormat', displayed_format)
     return data
 
 
