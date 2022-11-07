@@ -427,6 +427,10 @@ energy consumption.  For example:
     "unitEncoded": 30,
     "value": 15,
     "valueType": "UnsignedInteger32"
+  },
+  "displayedFormat": {
+    "prefix": "kilo",
+    "precision": 2
   }
 }
 ```
@@ -462,6 +466,12 @@ verification.
   representation. The encodings `UTF-8` and `ISO-8859-1` are supported as of
   now.
 
+The `displayedFormat`object describes how the actual value was shown on the
+meter display. It acts as a hint for showing the identical formatting when
+validating data as it might be required by legal regulations. It is not part of
+the signed abstract representation. For example, the hint from above means,
+that the actual value of 150 Wh was displayed as 0.15 kWh.
+
 Fields not explicitly given are assumed to be `null` when processing the data.
 
 But `value` represents just one snapshot data point. For signature
@@ -487,6 +497,10 @@ The [`value` object from the end snapshot](data/ev-charging-chargy.json#L273)
     "unitEncoded": 30,
     "value": 15,
     "valueType": "UnsignedInteger32"
+  },
+  "displayedFormat": {
+    "prefix": "kilo",
+    "precision": 2
   }
 }
 ```
