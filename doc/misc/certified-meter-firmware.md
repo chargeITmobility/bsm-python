@@ -71,10 +71,47 @@ The following sections contain the certified firmware releases for this meter.
 ## Communication Module
 
 - Revision
-     - 6d1dd3cbb90636f2a7105ef1cc29d9d7852704eb
-     - Short representation at data point _bsm_/_VrC_: 6d1dd3c
-     - Short representation at the meter display: `F061D1`
+    - 6d1dd3cbb90636f2a7105ef1cc29d9d7852704eb
+    - Short representation at data point _bsm_/_VrC_: 6d1dd3c
+    - Short representation at the meter display: `F061D1`
 - Firmware Hash
-     - fc99b5088ccf8d9754bcc6d2df6354140388cd3599f8f85f3a7d9e3fa0fa3c7c
-     - Completely provided at repeating dta point _cfwh_/_B_
-     - Short representaton at meter display: `F1FC99` and `F2B508`
+    - fc99b5088ccf8d9754bcc6d2df6354140388cd3599f8f85f3a7d9e3fa0fa3c7c
+    - Completely provided at repeating dta point _cfwh_/_B_
+    - Short representation at meter display: `F1FC99` and `F2B508`
+
+
+# Meter Module 1.9 and Communication Module 1.3
+
+## Changelog
+
+- Harmonize output for energy values
+    - Only digits shown on the meter display are provided
+    - Meter display shows values in kWh with two decimal digits
+    - SunSpec models contain values in Wh with a scale factor of 10^1 = 10
+    - OCMF data contains values in kWh with two decimal digits
+- Data points _Meta2_ and _Meta3_ added to OCMF output
+    - Previously only _Meta1_ was present there as _ID_
+    - OCMF data now contains _Meta2_ and _Meta3_ as _X2_ and _X3_ if non-empty
+- Response counter _RCnt_ is no longer increased on every startup
+    - Snapshots created before and after a power cycle now contain subsequent
+      counter values _n_ and _(n + 1)_
+- Meter display permanently illuminated
+    - Previously the meter display was illuminated only during an active
+      charging process
+
+
+## Meter Module
+
+- Revision 1.9:32CA:AFF4
+
+
+## Communication Module
+
+- Revision
+    - 01d484fff6a5ee086b3728a4b255582dd344d196
+    - Short representation at data point _bsm_/_VrC_: 01d484f
+    - Short representation at the meter display: `F001D4`
+- Firmware Hash
+    - 11b49f84cf423009674d78f0af72a39a2a59b49e2a46e9ed587d48a54434531d
+    - Completely provided at repeating dta point _cfwh_/_B_
+    - Short representation at meter display: `F111B4` and `F29F84`
