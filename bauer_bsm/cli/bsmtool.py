@@ -10,6 +10,7 @@
 
 from . import util as cliutil
 from ..bsm import config
+from ..bsm import util as bsmutil
 from ..bsm.client import BsmClientDevice, SunSpecBsmClientDevice
 from ..crypto import util as cryptoutil
 from ..exporter import chargy, ocmf, registers
@@ -181,33 +182,9 @@ def create_sunspec_client(args):
     return create_client_backend(SunSpecBsmClientDevice, args)
 
 
-def into_chunks(array, length):
-    for i in range(0, len(array), length):
-        yield array[i:i + length]
-
-
 def md_trace_print(string):
     for line in string.splitlines():
         print(line)
-
-
-def register_hexdump_bytes(data, offset=0):
-    chunk_regs = 8
-    chunk_length = 2 * chunk_regs
-
-    start = offset
-    lines = []
-
-    for chunk in into_chunks(data, chunk_length):
-        # Hex data of registers.
-        hex_chunk = ' '.join(map(lambda x: '{:02x}{:02x}'.format(x[0], x[1]), zip(chunk[::2], chunk[1::2])))
-        # Printable characters from data.
-        printable = ''.join(map(lambda x: chr(x) if x >= 32 and x < 127 else '.', chunk))
-
-        lines.append('{:8}: {:40} {}'.format(start, hex_chunk, printable))
-        start += chunk_regs
-
-    return '\n'.join(lines)
 
 
 def trace_modbus_rtu(string):
@@ -264,7 +241,7 @@ def dump_command(args):
     client = create_client(args)
 
     data = client.read(args.offset, args.length)
-    print(register_hexdump_bytes(data, args.offset))
+    print(bsmutil.register_hexdump_bytes(data, args.offset))
 
     client.close()
 
