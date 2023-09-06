@@ -15,9 +15,17 @@ certain hard- and software setup presented in the
 
 ## Modbus Interface
 
-This set of examples demontrates how to interact with the device's [Modbus
+This set of examples demonstrates how to interact with the device's [Modbus
 interface](modbus-interface.md). Most use cases could be easily explored using
 the [BSM Tool](bsmtool.md).
+
+
+## Display Interface
+
+The [user manuals](../manuals/) document the different screens shown by the
+meter. [Baud Rate and Device
+Address](display-interface.md#baud-rate-and-device-address) describes how these
+values are actually displayed.
 
 
 ## Examples
